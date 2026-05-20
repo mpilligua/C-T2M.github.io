@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="Deformable Neural Radiance Fields creates free-viewpoint portraits (nerfies) from casually captured videos.">
-  <meta name="keywords" content="Nerfies, D-NeRF, NeRF">
+        content="C-T2M: a decoupled text-to-motion pipeline that follows user-specified XZ path constraints.">
+  <meta name="keywords" content="text-to-motion, motion generation, controllable motion, T2M-GPT">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nerfies: Deformable Neural Radiance Fields</title>
+  <title>C-T2M: Controllable Autorregressive Text To Motion</title>
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
@@ -58,25 +58,6 @@
       </span>
       </a>
 
-      <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link">
-          More Research
-        </a>
-        <div class="navbar-dropdown">
-          <a class="navbar-item" href="https://hypernerf.github.io">
-            HyperNeRF
-          </a>
-          <a class="navbar-item" href="https://nerfies.github.io">
-            Nerfies
-          </a>
-          <a class="navbar-item" href="https://latentfusion.github.io">
-            LatentFusion
-          </a>
-          <a class="navbar-item" href="https://photoshape.github.io">
-            PhotoShape
-          </a>
-        </div>
-      </div>
     </div>
 
   </div>
@@ -109,45 +90,26 @@
 
           <div class="column has-text-centered">
             <div class="publication-links">
-              <!-- PDF Link. -->
-              <span class="link-block">
-                <a href=""
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fas fa-file-pdf"></i>
-                  </span>
-                  <span>Paper</span>
-                </a>
-              </span>
-              <!-- Video Link. -->
-              <span class="link-block">
-                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-youtube"></i>
-                  </span>
-                  <span>Video</span>
-                </a>
-              </span>
               <!-- Code Link. -->
               <span class="link-block">
-                <a href="ttps://github.com/google/nerfies"
+                <a href="https://github.com/mpilligua/CAR-T2M"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
                       <i class="fab fa-github"></i>
                   </span>
                   <span>Code</span>
-                  </a>
+                </a>
               </span>
-              <!-- Dataset Link. -->
+              <!-- Models Link. -->
               <span class="link-block">
-                <a href="https://bones.studio/"
+                <a href="https://huggingface.co/mpilligua/car-t2m-decoupled-v18"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
-                      <i class="far fa-images"></i>
+                      <i class="fas fa-cube"></i>
                   </span>
-                  <span>Data</span>
-                  </a>
+                  <span>Models</span>
+                </a>
+              </span>
             </div>
 
           </div>
@@ -161,264 +123,412 @@
   <div class="container is-max-desktop">
     <div class="hero-body">
       <video id="teaser" autoplay muted loop playsinline height="100%">
-        <source src="./static/videos/teaser.mp4"
-                type="video/mp4">
+        <source src="" type="video/mp4">
       </video>
       <h2 class="subtitle has-text-centered">
-        <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
-        free-viewpoint
-        portraits.
+        C-T2M generates motion that follows a user-specified XZ path while obeying a
+        free-form caption.
       </h2>
     </div>
   </div>
 </section>
 
 
-<section class="hero is-light is-small">
-  <div class="hero-body">
-    <div class="container">
-      <div id="results-carousel" class="carousel results-carousel">
-        <div class="item item-steve">
-          <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/steve.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-chair-tp">
-          <video poster="" id="chair-tp" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/chair-tp.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-shiba">
-          <video poster="" id="shiba" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/shiba.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-fullbody">
-          <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/fullbody.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-blueshirt">
-          <video poster="" id="blueshirt" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/blueshirt.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-mask">
-          <video poster="" id="mask" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/mask.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-coffee">
-          <video poster="" id="coffee" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/coffee.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-toby">
-          <video poster="" id="toby" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/toby2.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<!-- Results carousel removed; placeholder scenario carousel lives in Experiments. -->
 
 
+<!-- 1. Abstract -->
 <section class="section">
   <div class="container is-max-desktop">
-    <!-- Abstract. -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            We present the first method capable of photorealistically reconstructing a non-rigidly
-            deforming scene using photos/videos captured casually from mobile phones.
-          </p>
-          <p>
-            Our approach augments neural radiance fields
-            (NeRF) by optimizing an
-            additional continuous volumetric deformation field that warps each observed point into a
-            canonical 5D NeRF.
-            We observe that these NeRF-like deformation fields are prone to local minima, and
-            propose a coarse-to-fine optimization method for coordinate-based models that allows for
-            more robust optimization.
-            By adapting principles from geometry processing and physical simulation to NeRF-like
-            models, we propose an elastic regularization of the deformation field that further
-            improves robustness.
-          </p>
-          <p>
-            We show that <span class="dnerf">Nerfies</span> can turn casually captured selfie
-            photos/videos into deformable NeRF
-            models that allow for photorealistic renderings of the subject from arbitrary
-            viewpoints, which we dub <i>"nerfies"</i>. We evaluate our method by collecting data
-            using a
-            rig with two mobile phones that take time-synchronized photos, yielding train/validation
-            images of the same pose at different viewpoints. We show that our method faithfully
-            reconstructs non-rigidly deforming scenes and reproduces unseen views with high
-            fidelity.
+            TODO: one-paragraph abstract. C-T2M generates human motion from a text caption while
+            following user-specified XZ path constraints. We decouple the problem into a small
+            closed-loop trajectory controller, a caption-driven body GPT, and a deterministic
+            recompose step that drops the body's pose onto the controller's path.
           </p>
         </div>
       </div>
     </div>
-    <!--/ Abstract. -->
-
-    <!-- Paper video. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Video</h2>
-        <div class="publication-video">
-          <iframe src="https://www.youtube.com/embed/MrKrnHhk8IA?rel=0&amp;showinfo=0"
-                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-    </div>
-    <!--/ Paper video. -->
   </div>
 </section>
 
 
+<!-- 2. Introduction -->
 <section class="section">
   <div class="container is-max-desktop">
-
-    <div class="columns is-centered">
-
-      <!-- Visual Effects. -->
-      <div class="column">
-        <div class="content">
-          <h2 class="title is-3">Visual Effects</h2>
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Introduction</h2>
+        <div class="content has-text-justified">
           <p>
-            Using <i>nerfies</i> you can create fun visual effects. This Dolly zoom effect
-            would be impossible without nerfies since it would require going through a wall.
+            TODO: motivate the gap. Text-to-motion models like T2M-GPT produce realistic motion
+            from a caption, but the user has no control over the resulting root path. Adding path
+            constraints as extra caption tokens or conditioning signals broke gait in our
+            experiments. We propose a decoupled pipeline that keeps the body generator intact and
+            adds path control as a separate, lightweight module.
           </p>
-          <video id="dollyzoom" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/dollyzoom-stacked.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div>
-      <!--/ Visual Effects. -->
-
-      <!-- Matting. -->
-      <div class="column">
-        <h2 class="title is-3">Matting</h2>
-        <div class="columns is-centered">
-          <div class="column content">
-            <p>
-              As a byproduct of our method, we can also solve the matting problem by ignoring
-              samples that fall outside of a bounding box during rendering.
-            </p>
-            <video id="matting-video" controls playsinline height="100%">
-              <source src="./static/videos/matting.mp4"
-                      type="video/mp4">
-            </video>
-          </div>
-
         </div>
       </div>
     </div>
-    <!--/ Matting. -->
+  </div>
+</section>
 
-    <!-- Animation. -->
-    <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Animation</h2>
 
-        <!-- Interpolating. -->
-        <h3 class="title is-4">Interpolating states</h3>
+<!-- 3. Related Works -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Related Works</h2>
+        <div class="content has-text-justified">
+          <p>TODO: T2M-GPT, MDM, MotionGPT, OmniControl, GMD, PriorMDM. One paragraph each or a single grouped paragraph.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 4. Method -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Method</h2>
         <div class="content has-text-justified">
           <p>
-            We can also animate the scene by interpolating the deformation latent codes of two input
-            frames. Use the slider here to linearly interpolate between the left frame and the right
-            frame.
+            TODO: describe the three blocks. (i) Trajectory controller, a closed-loop GRU that
+            takes <em>(caption, waypoints)</em> and rolls out a clean root path P[T,2] plus
+            integrated heading and yaw offset. (ii) Body GPT, a finetuned T2M-GPT trained on walk
+            and jog clips with sliding-window sampling; its own root translation is discarded.
+            (iii) Recompose, a deterministic step that places the body's pose on the controller's
+            path, time-warps so the feet do not slide, and rotates the body to face
+            <code>head + face_sign·delta</code>.
           </p>
         </div>
-        <div class="columns is-vcentered interpolation-panel">
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_start.jpg"
-                 class="interpolation-image"
-                 alt="Interpolate start reference image."/>
-            <p>Start Frame</p>
-          </div>
-          <div class="column interpolation-video-column">
-            <div id="interpolation-image-wrapper">
-              Loading...
-            </div>
-            <input class="slider is-fullwidth is-large is-info"
-                   id="interpolation-slider"
-                   step="1" min="0" max="100" value="0" type="range">
-          </div>
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_end.jpg"
-                 class="interpolation-image"
-                 alt="Interpolation end reference image."/>
-            <p class="is-bold">End Frame</p>
-          </div>
-        </div>
-        <br/>
-        <!--/ Interpolating. -->
 
-        <!-- Re-rendering. -->
-        <h3 class="title is-4">Re-rendering the input video</h3>
-        <div class="content has-text-justified">
-          <p>
-            Using <span class="dnerf">Nerfies</span>, you can re-render a video from a novel
-            viewpoint such as a stabilized camera by playing back the training deformations.
-          </p>
-        </div>
+        <!-- Architecture diagram. -->
+        <h3 class="title is-4">Architecture</h3>
         <div class="content has-text-centered">
-          <video id="replay-video"
-                 controls
-                 muted
-                 preload
-                 playsinline
-                 width="75%">
-            <source src="./static/videos/replay.mp4"
-                    type="video/mp4">
-          </video>
+          <!-- TODO: replace with an SVG version of the pipeline diagram from CONSTRAINT_MODEL_DOCUMENTATION.md. -->
+          <img src="./static/images/architecture_placeholder.png"
+               alt="C-T2M pipeline diagram (placeholder)."
+               style="max-width:100%; border:1px dashed #ccc; padding:1em;">
+          <p><em>Placeholder for the pipeline diagram.</em></p>
         </div>
-        <!--/ Re-rendering. -->
 
+        <!-- Key capabilities (features grid). -->
+        <h3 class="title is-4">Key capabilities</h3>
+        <div class="columns is-multiline">
+          <div class="column is-half">
+            <div class="box">
+              <h4 class="title is-5">Caption-conditioned</h4>
+              <p>The body GPT generates motion that matches the input text, inherited from T2M-GPT.</p>
+            </div>
+          </div>
+          <div class="column is-half">
+            <div class="box">
+              <h4 class="title is-5">Constraint-following</h4>
+              <p>A small trajectory controller follows user-specified XZ waypoints; final waypoint error 0.013–0.027 m.</p>
+            </div>
+          </div>
+          <div class="column is-half">
+            <div class="box">
+              <h4 class="title is-5">Long sustained motion</h4>
+              <p>Sliding-window training and inference yield ~26 s of coherent motion at 30 fps, past the single-pass cap.</p>
+            </div>
+          </div>
+          <div class="column is-half">
+            <div class="box">
+              <h4 class="title is-5">Interactive demo</h4>
+              <p>A viser web app lets users click waypoints, pick from preset trajectories, or run the body alone.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <!--/ Animation. -->
+  </div>
+</section>
 
 
-    <!-- Concurrent Work. -->
-    <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Related Links</h2>
+<!-- 5. Experiments -->
+<section class="section" id="experiments">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Experiments</h2>
+    <p class="has-text-justified">
+      TODO: one-paragraph intro to the experimental protocol. Final model trained
+      on the full motion dataset (~127k clips); ablations on the curated walk+jog
+      subset (22 726 clips, <code>data/walk_run_ids.txt</code>) for tractable
+      iteration. Same evaluation protocol across all tables: 200-clip held-out
+      val set, 5 constraint modes (single / multi / sparse / dense / full
+      trajectory), 30 fps.
+    </p>
 
+    <!-- Table 1 — Main results -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 1 — Main results (full dataset, vs Kimodo)</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Headline comparison on the full motion dataset. Lower is better for FID / MM-Dist / latency / WP error;
+          higher for R-Prec / RT factor / path completion.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Open source</th>
+                <th>Latency (s/clip) ↓</th>
+                <th>RT factor ↑</th>
+                <th>FID ↓</th>
+                <th>R-Prec top-1 ↑</th>
+                <th>MM-Dist ↓</th>
+                <th>WP error (m) ↓</th>
+                <th>Path completion (%) ↑</th>
+                <th>Constraint modes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>T2M-GPT (caption-only)</td>
+                <td>✓</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>none</td>
+              </tr>
+              <tr>
+                <td>Kimodo (baseline)</td>
+                <td>✗</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>full-body / EE / root</td>
+              </tr>
+              <tr>
+                <td><strong>Ours (decoupled, v18 + windowed)</strong></td>
+                <td><strong>✓</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>root XZ</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table 1b — Latency breakdown (companion) -->
+    <div class="columns is-centered" style="margin-top: 1.5rem;">
+      <div class="column is-half is-offset-one-quarter">
+        <h3 class="title is-5">Table 1b — Latency breakdown</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Inference cost breakdown of our decoupled pipeline on a single GPU, 200-frame clip.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr><th>Block</th><th>ms / clip</th><th>% of total</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>CLIP caption encode</td><td>—</td><td>—</td></tr>
+              <tr><td>Trajectory controller rollout (GRU, ~2 M params)</td><td>—</td><td>—</td></tr>
+              <tr><td>Body GPT autoregressive sampling (51 tokens, ~30 M params)</td><td>—</td><td>—</td></tr>
+              <tr><td>VQ decoder</td><td>—</td><td>—</td></tr>
+              <tr><td>A-warp + recompose (CPU)</td><td>—</td><td>—</td></tr>
+              <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>100 %</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table 2 — Ablation 1: Constraint-conditioning architecture -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 2 — Ablation 1: Constraint-conditioning architecture (walk+jog subset)</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Ablation 1 — how to inject the path constraint into a T2M-GPT body. Decoupling (ours) wins on
+          path accuracy, gait quality, and speed simultaneously. Trained on the walk+jog subset for tractable
+          comparison.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>Architecture variant</th>
+                <th>WP error (m) ↓</th>
+                <th>FID ↓</th>
+                <th>R-Prec top-1 ↑</th>
+                <th>Foot-skating ↓</th>
+                <th>Latency (s/clip) ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>(a) Caption-only T2M + linear-interp root path (no controller)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>(b) End-to-end constrained body, <code>xz_io</code> only (path tokens injected)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>(c) End-to-end constrained body, constraint-memory only (no <code>xz_io</code>)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>(d) End-to-end constrained body, full conditioning (<code>xz_io</code> + cmem + heading head)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr>
+                <td><strong>(e) Decoupled: controller → recompose (ours)</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table 3 — Ablation 2: Trajectory controller versions -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 3 — Ablation 2: Trajectory controller versions (walk+jog subset)</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Ablation 2 — controller iteration: each step measurably improves a specific failure mode
+          (low-speed jitter, start-yaw drift, waypoint accuracy) without slowing inference.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>Controller version</th>
+                <th>What changed</th>
+                <th>WP error (m) ↓</th>
+                <th>Start-yaw err (°) ↓</th>
+                <th>Heading tremor (°) ↓</th>
+                <th>Ctrl latency (ms) ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>v9 (baseline)</td><td>initial GRU + λ_prior=20</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>v12</td><td>+ arrive-radius (§7.4) + widened data</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>v14</td><td>absolute-yaw output</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>v15 / v16</td><td>+ angular-jerk smoothing loss</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>v17</td><td><code>--init-head-gt</code> + λ_smooth = 8; head-facing recompose</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr>
+                <td><strong>v18 (ours)</strong></td>
+                <td><strong>low-LR polish of v17 (lr 1e-5, 15 k steps)</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table 4 — Ablation 3: Body GPT variants -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 4 — Ablation 3: Body GPT variants (walk+jog subset)</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Ablation 3 — body GPT variants. Sliding-window finetuning gives the sustained-motion win;
+          increasing block_size alone does not.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>Body variant</th>
+                <th>block size</th>
+                <th>Params</th>
+                <th>Gen-len walk / jog (fr)</th>
+                <th>Sustained swlen (fr) ↑</th>
+                <th>FID (200-fr clips) ↓</th>
+                <th>Latency (s/clip) ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Walk-only base</td><td>51</td><td>~30 M</td><td>— / —</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr><td>Walk+jog (<code>GPT_t2m_HFbig_walkjog_v1</code>)</td><td>51</td><td>~30 M</td><td>— / —</td><td>—</td><td>—</td><td>—</td></tr>
+              <tr>
+                <td><strong>Windowed-finetune (<code>GPT_t2m_window_walkjog_v1</code>, ours)</strong></td>
+                <td><strong>51</strong></td>
+                <td><strong>~30 M</strong></td>
+                <td><strong>— / —</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+                <td><strong>—</strong></td>
+              </tr>
+              <tr><td>BIG (<code>GPT_t2m_window_walkjog_big_v1</code>, from-scratch 100 k)</td><td>128</td><td>~90 M</td><td>— / —</td><td>—</td><td>—</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- 6. Conclusion -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Conclusion</h2>
         <div class="content has-text-justified">
           <p>
-            There's a lot of excellent work that was introduced around the same time as ours.
-          </p>
-          <p>
-            <a href="https://arxiv.org/abs/2104.09125">Progressive Encoding for Neural Optimization</a> introduces an idea similar to our windowed position encoding for coarse-to-fine optimization.
-          </p>
-          <p>
-            <a href="https://www.albertpumarola.com/research/D-NeRF/index.html">D-NeRF</a> and <a href="https://gvv.mpi-inf.mpg.de/projects/nonrigid_nerf/">NR-NeRF</a>
-            both use deformation fields to model non-rigid scenes.
-          </p>
-          <p>
-            Some works model videos with a NeRF by directly modulating the density, such as <a href="https://video-nerf.github.io/">Video-NeRF</a>, <a href="https://www.cs.cornell.edu/~zl548/NSFF/">NSFF</a>, and <a href="https://neural-3d-video.github.io/">DyNeRF</a>
-          </p>
-          <p>
-            There are probably many more by the time you are reading this. Check out <a href="https://dellaert.github.io/NeRF/">Frank Dellart's survey on recent NeRF papers</a>, and <a href="https://github.com/yenchenlin/awesome-NeRF">Yen-Chen Lin's curated list of NeRF papers</a>.
+            TODO: restate that decoupling caption-driven gait from path control is enough to make
+            a pretrained T2M-GPT controllable. Note that path and gait are separable problems and
+            this is the cheap solution.
           </p>
         </div>
       </div>
     </div>
-    <!--/ Concurrent Work. -->
+  </div>
+</section>
 
+
+<!-- 7. Limitations -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Limitations</h2>
+        <div class="content has-text-justified">
+          <p>
+            TODO: trained on walk + jog only; turning is handled by recompose rotation, not by the
+            body itself, so very sharp turns look stiff; the recompose step assumes a planar floor.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 8. Individual Contributions -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Individual Contributions</h2>
+        <div class="content has-text-justified">
+          <ul>
+            <li><strong>Maria Pilligua</strong> — TODO</li>
+            <li><strong>Pau Amargant</strong> — TODO</li>
+            <li><strong>Miquel Lopez</strong> — TODO</li>
+            <li><strong>Nahush</strong> — TODO</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -426,12 +536,7 @@
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
-    <pre><code>@article{park2021nerfies,
-  author    = {Park, Keunhong and Sinha, Utkarsh and Barron, Jonathan T. and Bouaziz, Sofien and Goldman, Dan B and Seitz, Steven M. and Martin-Brualla, Ricardo},
-  title     = {Nerfies: Deformable Neural Radiance Fields},
-  journal   = {ICCV},
-  year      = {2021},
-}</code></pre>
+    <pre><code>TODO: BibTeX entry for C-T2M.</code></pre>
   </div>
 </section>
 
