@@ -6,7 +6,7 @@
         content="C-T2M: a decoupled text-to-motion pipeline that follows user-specified XZ path constraints.">
   <meta name="keywords" content="text-to-motion, motion generation, controllable motion, T2M-GPT">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>C-T2M: Controllable Autorregressive Text To Motion</title>
+  <title>C-T2M: Controllable Autoregressive Text-to-Motion Generation</title>
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
@@ -69,17 +69,19 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">C-T2M: Controllable Autorregressive Text To Motion</h1>
+          <h1 class="title is-1 publication-title">C-T2M: Controllable Autoregressive Text-to-Motion Generation</h1>
           <div class="is-size-5 publication-authors">
             <span class="author-block">
-              <a href="https://mpilligua.github.io">Maria Pilligua</a><sup>1, 2</sup>,</span>
-            <span class="author-block">
-              <a href="">Pau Amargant</a><sup>1</sup>,</span>
-            <span class="author-block">
-              <a href="">Miquel Lopez</a><sup>1</sup>,
+              <a href="https://mpilligua.github.io">Maria Pilligua</a><sup>1, 2</sup> (444123),
             </span>
             <span class="author-block">
-              <a href="">Nahush </a><sup>1</sup>,
+              <a href="">Pau Amargant</a><sup>1</sup> (408221),
+            </span>
+            <span class="author-block">
+              <a href="">Miquel Lopez</a><sup>1</sup> (415700),
+            </span>
+            <span class="author-block">
+              <a href="">Nahush Rajesh Kolhe</a><sup>1</sup> (407562)
             </span>
           </div>
 
@@ -214,11 +216,9 @@
         <!-- Architecture diagram. -->
         <h3 class="title is-4">Architecture</h3>
         <div class="content has-text-centered">
-          <!-- TODO: replace with an SVG version of the pipeline diagram from CONSTRAINT_MODEL_DOCUMENTATION.md. -->
-          <img src="./static/images/architecture_placeholder.png"
-               alt="C-T2M pipeline diagram (placeholder)."
-               style="max-width:100%; border:1px dashed #ccc; padding:1em;">
-          <p><em>Placeholder for the pipeline diagram.</em></p>
+          <img src="./static/images/arch_constraints.png"
+               alt="C-T2M decoupled pipeline: trajectory controller, body GPT, and recompose."
+               style="max-width:100%;">
         </div>
 
         <!-- Key capabilities (features grid). -->
@@ -325,26 +325,30 @@
 
     <!-- Table 1b — Latency breakdown (companion) -->
     <div class="columns is-centered" style="margin-top: 1.5rem;">
-      <div class="column is-half is-offset-one-quarter">
-        <h3 class="title is-5">Table 1b — Latency breakdown</h3>
+      <div class="column is-two-thirds">
+        <h3 class="title is-5 has-text-centered">Table 1b. Per-block inference cost of the decoupled pipeline.</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Inference cost breakdown of our decoupled pipeline on a single GPU, 200-frame clip.
+          Single A100 80GB, fp32, batch size 1, clip length 200 frames, mean ± standard
+          deviation over 50 measured runs after 10 warmups. End-to-end latency is 413 ms per
+          clip (2.4 clips per second). The autoregressive body sampler and the trajectory
+          controller together account for 96 % of the cost; the VQ decoder and the CPU
+          recompose step are effectively free.
         </p>
         <div class="table-container">
           <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
             <thead>
-              <tr><th>Block</th><th>ms / clip</th><th>% of total</th></tr>
+              <tr><th>block</th><th>ms / clip</th><th>% of total</th></tr>
             </thead>
             <tbody>
-              <tr><td>CLIP caption encode</td><td>—</td><td>—</td></tr>
-              <tr><td>Trajectory controller rollout (GRU, ~2 M params)</td><td>—</td><td>—</td></tr>
-              <tr><td>Body GPT autoregressive sampling (51 tokens, ~30 M params)</td><td>—</td><td>—</td></tr>
-              <tr><td>VQ decoder</td><td>—</td><td>—</td></tr>
-              <tr><td>A-warp + recompose (CPU)</td><td>—</td><td>—</td></tr>
+              <tr><td>CLIP caption encoder</td><td>7.40 ± 0.24</td><td>1.79</td></tr>
+              <tr><td>Trajectory controller (GRU, 2M parameters)</td><td>179.73 ± 4.45</td><td>43.47</td></tr>
+              <tr><td>Body GPT autoregressive sampling (51 tokens, 30M parameters)</td><td><strong>217.00 ± 1.70</strong></td><td><strong>52.49</strong></td></tr>
+              <tr><td>VQ decoder</td><td>1.51 ± 0.08</td><td>0.37</td></tr>
+              <tr><td>Recompose, time-warp and reprojection (CPU)</td><td>7.76 ± 2.52</td><td>1.88</td></tr>
               <tr>
                 <td><strong>Total</strong></td>
-                <td><strong>—</strong></td>
-                <td><strong>100 %</strong></td>
+                <td><strong>413.40</strong></td>
+                <td><strong>100.00</strong></td>
               </tr>
             </tbody>
           </table>
@@ -472,6 +476,66 @@
       </div>
     </div>
 
+    <!-- Table 5 — Ablation 4: VQ-VAE temporal downsample -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 5. VQ-VAE temporal compression rate.</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          The body VQ-VAE acts as a temporal autoencoder: it compresses a motion clip into a
+          shorter sequence of discrete tokens, and the autoregressive language model is then
+          trained to predict those tokens. Higher temporal compression yields fewer tokens per
+          clip, which lengthens the effective context the language model can attend to and
+          reduces its computational cost, at the price of coarser temporal resolution at the
+          decoder. We study four compression rates: 2x, 4x, 8x and 16x, where a rate of kx
+          means that each token represents k frames of motion. All runs share the same training
+          recipe (codebook of 2048 entries, batch size 512, learning rate 2e-4, window of 64
+          frames) and are compared at a fixed budget of 100k training iterations.
+        </p>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          A rate of 4x gives the lowest reconstruction error and the highest per-clip code
+          diversity, while remaining within the codebook utilisation range of 2x and 8x. We
+          adopt 4x as the body VQ-VAE for the decoupled pipeline. 2x is retained for variants
+          in which the language model benefits from a denser token stream. At 16x the model
+          collapses on reconstruction: with only four tokens per 64-frame clip, the encoder
+          runs out of latent slots before it can capture motion detail.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>compression rate</th>
+                <th>frames per token</th>
+                <th>val recon. loss ↓</th>
+                <th>codebook usage ↑</th>
+                <th>unique codes per clip ↑</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>2x</td><td>2</td><td>0.073</td><td>0.683</td><td>9.8</td></tr>
+              <tr>
+                <td>4x</td>
+                <td>4</td>
+                <td><strong>0.012</strong></td>
+                <td>0.690</td>
+                <td><strong>12.4</strong></td>
+              </tr>
+              <tr><td>8x</td><td>8</td><td>0.020</td><td><strong>0.721</strong></td><td>7.3</td></tr>
+              <tr><td>16x</td><td>16</td><td>0.117</td><td>0.705</td><td>4.0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <figure class="image" style="margin-top: 1rem;">
+          <img src="./assets/vqvae_dt_ablation/recons.png"
+               alt="Validation reconstruction loss over training iterations for the four temporal compression rates.">
+        </figure>
+        <p class="has-text-centered" style="margin-top: 0.5rem;">
+          Figure 1. Validation reconstruction loss (log scale) over training iterations for the
+          four temporal compression rates. 4x converges fastest and to the lowest loss.
+        </p>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -536,7 +600,12 @@
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
-    <pre><code>TODO: BibTeX entry for C-T2M.</code></pre>
+    <pre><code>@misc{ct2m2026,
+  title  = {Controllable Autoregressive Text-to-Motion Generation},
+  author = {Amargant, Pau and Lopez, Miquel and Pilligua, Maria and Kolhe, Nahush Rajesh},
+  year   = {2026},
+  note   = {CS-503 Project, EPFL},
+}</code></pre>
   </div>
 </section>
 
