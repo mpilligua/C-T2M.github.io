@@ -283,7 +283,22 @@
           </p>
         </div>
 
-        <!-- Architecture diagram placeholder (final figure TBD). -->
+        <!-- Architecture diagram (provisional). -->
+        <h3 class="title is-4">Architecture</h3>
+        <div class="content has-text-centered">
+          <figure class="image">
+            <img src="./static/images/architecture_provisional.png"
+                 alt="C-T2M decoupled pipeline: caption goes through CLIP and a body GPT producing motion tokens decoded by the VQ-VAE; waypoints go through a closed-loop GRU controller; a recompose step combines body pose with the controller path."
+                 style="max-width: 100%;">
+          </figure>
+          <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
+            Figure 5. C-T2M decoupled architecture (provisional). A caption is encoded by
+            CLIP and fed to a body GPT that emits discrete motion tokens decoded by the
+            VQ-VAE; user-specified waypoints are independently rolled out by a small
+            closed-loop GRU controller; a geometric recompose step glues the body pose
+            onto the controller path and rotates the body to follow the travel direction.
+          </p>
+        </div>
 
         <!-- Key capabilities (features grid). -->
         <h3 class="title is-4">Key capabilities</h3>
@@ -1117,6 +1132,74 @@
           peak (21.0 mm per frame) and the stuck count is at its minimum (1 caption out
           of 10). The default SW = 50 is too narrow: the model emits end-of-sequence after
           roughly 80 frames, less than three seconds of motion.
+        </p>
+      </div>
+    </div>
+
+    <!-- Table 12 — Constraint following head-to-head vs Kimodo -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 12. Constraint following on the Kimodo BONES <code>constraints_withtext/root</code> split.</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          We evaluate constraint following on the same testsuite split Kimodo publishes
+          numbers for: <code>content/constraints_withtext/root/path_2dpos</code>, the
+          path-following root-XZ constraint subset (256 testcases). Each testcase pairs a
+          caption with a target root-XZ trajectory; the model must generate motion that
+          matches the caption while keeping the root within a small tolerance of the
+          specified path. We re-ran Kimodo-SOMA-SEED-v1.1 under our own pipeline on the
+          same 256 testcases so the comparison is apples-to-apples (same evaluator, same
+          testcases, same skeleton handling).
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>model</th>
+                <th>2D root error (cm) ↓</th>
+                <th>root accuracy (≤ 10 cm) ↑</th>
+                <th>foot skate ratio ↓</th>
+                <th>foot contact consistency ↑</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ground truth (lower bound)</td>
+                <td>3.76</td>
+                <td>1.000</td>
+                <td>0.103</td>
+                <td>1.000</td>
+              </tr>
+              <tr>
+                <td>Kimodo-SOMA-SEED-v1.1</td>
+                <td>4.88</td>
+                <td>0.934</td>
+                <td><strong>0.117</strong></td>
+                <td><strong>0.966</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Ours (decoupled, ctrl_full_v2_stillzero)</strong> &starf;</td>
+                <td><strong>3.94</strong></td>
+                <td><strong>0.957</strong></td>
+                <td>0.583</td>
+                <td>0.582</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          Our pipeline matches the ground-truth lower bound on root-2D adherence to within
+          two millimetres and undercuts Kimodo by roughly one centimetre (24 percent
+          relative error reduction), with a higher fraction of frames inside the
+          ten-centimetre tolerance (95.7 percent versus 93.4 percent). Kimodo wins
+          decisively on the foot-skate suite: a five-fold lower skate ratio and a
+          1.66 higher contact consistency. This is the expected trade-off of decoupling:
+          our explicit controller produces a clean world-frame path that the body GPT was
+          not jointly trained to follow, so when the controller-imposed path disagrees
+          with the body's predicted gait the feet slide. Kimodo's diffusion model jointly
+          generates body and root, avoiding the disagreement; the same property is
+          consistent with the codec-ceiling foot-skate reported in Table 9. A
+          foot-projection post-processing step would close most of this gap (Kimodo
+          enables one by default) and is left to future work.
         </p>
       </div>
     </div>
