@@ -345,26 +345,22 @@
             The main novelty of our approach is the ability to adapt motion <em>during</em>
             generation. Because our model is autoregressive, we can interrupt the sequence at
             any point, keep the last few tokens as context, and reinfer from that point
-            forward with a new condition — either a different text prompt or a new path
-            constraint.
+            forward with a new condition — either a different text prompt, a new path
+            constraint or both. The model uses the last few generated tokens as a warm start, so the
+            transition is smooth rather than an abrupt reset.
           </p>
 
           <!-- Figure: cap + reinfer overview -->
           <figure class="image" style="margin: 1.5rem 0;">
-            <div style="background: #f5f5f5; border: 2px dashed #ccc; border-radius: 8px;
-                        padding: 3rem 1rem; text-align: center; color: #888;">
-              <strong>[Figure placeholder]</strong><br>
-              Diagram showing the cap-and-reinfer process: the sequence is cut at an
-              arbitrary frame, the last tokens are kept as context, and a new condition
-              (text or path) drives the remainder.
-            </div>
+            <img src="./assets/online_generation/online_main.png"
+                 alt="Diagram showing the cap-and-reinfer process: the sequence is cut at an arbitrary frame, the last tokens are kept as context, and a new condition (text or path) drives the remainder."
+                 style="max-width: 100%; border-radius: 8px;">
           </figure>
 
           <h3 class="title is-5">Text prompt injection</h3>
           <p>
             We can change what the character does mid-sequence by injecting a new text
-            prompt. The model uses the last few generated tokens as a warm start, so the
-            transition is smooth rather than an abrupt reset.
+            prompt. 
           </p>
           <p>
             For example, starting from <em>"a person walking forward at a steady pace"</em>
