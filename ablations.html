@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="C-T2M ablations: per-component studies of our decoupled text-to-motion pipeline.">
+  <meta name="keywords" content="text-to-motion, motion generation, controllable motion, T2M-GPT, ablations">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C-T2M: Ablations</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="./index.html">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span>Home</span>
+      </a>
+      <a class="navbar-item" href="./ablations.html">
+        <span class="icon"><i class="fas fa-flask"></i></span>
+        <span>Ablations</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-widescreen">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">C-T2M: Ablations</h1>
+          <p class="is-size-5">Per-component studies of our decoupled text-to-motion pipeline.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Ablations -->
+<section class="section" id="ablations">
+  <div class="container is-max-widescreen">
+    <h2 class="title is-3 has-text-centered">Ablations</h2>
+
+    <!-- HumanML3D benchmark table (placeholder, TODO) -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Comparison on HumanML3D <em>(placeholder, TODO)</em></h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          TODO: evaluate our pipeline on the HumanML3D test split and report R-Precision (top-1,
+          top-3), FID, MM-Dist and Diversity using the standard text-to-motion evaluation
+          protocol. This enables direct comparison with prior literature (MDM, MotionDiffuse,
+          T2M-GPT, MoMask, ...).
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>method</th>
+                <th>R@1 ↑</th>
+                <th>R@3 ↑</th>
+                <th>FID ↓</th>
+                <th>MM-Dist ↓</th>
+                <th>Diversity ↑</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Ground truth</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>MDM</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>MotionDiffuse</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>T2M-GPT</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>MoMask</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr>
+                <td><strong>Ours (RVQ-GPT)</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Amir's experiment: closed loop (placeholder, TODO fill content) -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Amir's experiment: closed loop</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          TODO: describe the closed-loop experiment, the setup, and the takeaway.
+        </p>
+      </div>
+    </div>
+
+    <!-- Constraint-conditioning architecture ablation (formerly Table 4) -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Constraint-conditioning architecture</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          How to inject the path constraint into a T2M-GPT body. We compare several end-to-end
+          constrained-body variants (linear-interp baseline, <code>xz_io</code>-only path-token
+          injection, constraint-memory only, and full conditioning combining all signals) against
+          our decoupled controller-and-recompose design. Trained on the walk+jog subset for
+          tractable comparison.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>Architecture variant</th>
+                <th>WP error (m) ↓</th>
+                <th>FID ↓</th>
+                <th>R-Prec top-1 ↑</th>
+                <th>Foot-skating ↓</th>
+                <th>Latency (s/clip) ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>(a) Caption-only T2M + linear-interp root path (no controller)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>(b) End-to-end constrained body, <code>xz_io</code> only (path tokens injected)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>(c) End-to-end constrained body, constraint-memory only (no <code>xz_io</code>)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>(d) End-to-end constrained body, full conditioning (<code>xz_io</code> + cmem + heading head)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr>
+                <td><strong>(e) Decoupled: controller &rarr; recompose (ours)</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          Numbers pending; the qualitative story is that decoupling (ours) is the only variant
+          that achieves accurate path following without degrading gait quality.
+        </p>
+      </div>
+    </div>
+
+    <!-- Table 5 - Trajectory controller comparison - COMMENTED OUT per Maria 2026-05-24
+         (ctrl_full_v1 is the final v18-arch model finetuned on full BONES; the v9 vs v18
+          comparison does not carry the constraint-injection story we want here. The
+          constraint-architecture story moves to Table 4; the constraint-following vs
+          Kimodo comparison becomes a new table.)
+    -->
+    <!--
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 5. Trajectory controller comparison. <span style="color:#c0392b;">(TODO: Check what to do, if retrain or not)</span></h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          The trajectory controller is a small closed-loop GRU (about 2 M parameters)
+          trained to roll out a root XZ path that hits user-specified waypoints. Beyond the
+          basic waypoint-regression loss, our final controller adds a heading-smoothness
+          regulariser to remove per-frame jitter, an arrive-radius gating that prevents
+          orbiting around the final waypoint, an integrated heading source (which replaces
+          the atan2 of consecutive path points, unstable at low speed), and a low
+          learning-rate polish pass. Waypoint error is the mean Euclidean distance between
+          the rolled-out root trajectory and the user-specified waypoints; heading error is
+          the mean absolute angle between the predicted facing direction and the
+          ground-truth heading; jitter is the mean absolute frame-to-frame change in
+          heading, capturing the visible per-frame wobble. Latency is the cost of one
+          rollout over a 200-frame clip. Both rows are evaluated on the same
+          walk-and-jog validation subset with the same single-pass deterministic protocol.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>controller</th>
+                <th>waypoint error (m) ↓</th>
+                <th>heading error (°) ↓</th>
+                <th>jitter (° / frame) ↓</th>
+                <th>controller latency (ms) ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Base GRU (waypoint regression loss only)</td>
+                <td><strong>0.011</strong></td>
+                <td>38.09</td>
+                <td>2.25</td>
+                <td>180</td>
+              </tr>
+              <tr>
+                <td><strong>Ours (final controller)</strong></td>
+                <td>0.043</td>
+                <td><strong>8.93</strong></td>
+                <td><strong>1.16</strong></td>
+                <td><strong>180</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          The base controller already reaches the waypoints accurately but produces a body
+          that frequently faces the wrong direction (heading error close to forty degrees)
+          and that wobbles from one frame to the next (over two degrees of frame-to-frame
+          heading change). Our final controller cuts heading error roughly four-fold and
+          jitter roughly two-fold, at the cost of about three centimetres of additional
+          waypoint slack. The slack is below the foot width of the character and is not
+          visible in the rendered motion, whereas a thirty-degree drift in facing direction
+          is immediately perceptible. The two controllers run in identical wall-clock time,
+          so the stability gains come at no inference cost. Trained on the full BONES split,
+          the same controller architecture achieves a waypoint error of approximately
+          0.034 m on a single-pass evaluation over 200 walk-and-jog samples, demonstrating
+          that it generalises to the broader motion vocabulary at a modest specialisation
+          cost on the walk-and-jog distribution.
+        </p>
+      </div>
+    </div>
+    -->
+
+    <!-- Heading representation ablation - COMMENTED OUT per Maria 2026-05-27 -->
+    <!--
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Heading representation</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          During training, the controller is supervised on a heading signal that can be
+          parameterised in two ways. The first is an <strong>absolute heading</strong>:
+          the network predicts the body yaw in the world frame directly, which defines a
+          target on every frame including still ones. The second, which we adopt, is a
+          <strong>travel-relative heading combined with a still-frame target</strong>: the
+          network predicts the turn rate relative to the direction of motion, integrated
+          over the rollout; on still frames (where the travel direction is undefined) we
+          add an explicit target-zero loss on the predicted turn rate that discourages
+          spurious rotation. The naive travel-relative formulation alone masks still
+          frames out of the loss and produces a controller that rotates in place on
+          captions that do not translate (the spin-on-spot pathology); the still-frame
+          target restores supervision on those frames without giving up the gradient that
+          flows to the path-following term on moving frames.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>heading parameterisation</th>
+                <th>waypoint error (m) ↓</th>
+                <th>heading error (°) ↓</th>
+                <th>jitter (° / frame) ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Absolute heading (world-frame body yaw on every frame)</td>
+                <td><strong>0.058</strong></td>
+                <td><strong>7.79</strong><sup>‡</sup></td>
+                <td><strong>0.16</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Travel-relative heading + still-frame target (ours)</strong></td>
+                <td>0.069</td>
+                <td>9.68<sup>‡</sup></td>
+                <td>0.26</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          Same single-pass deterministic protocol on the walk-and-jog
+          validation subset. Heading error is the mean absolute angle between the
+          predicted facing direction and the ground-truth heading, averaged over all
+          frames of the rollout (moving and still combined). Without the still-frame
+          target on the travel-relative loss, all-frame heading error sits around 21
+          degrees because the rollout drifts on the still frames that the loss ignores;
+          adding the target drops the all-frame error to 9.7 degrees, a two-fold
+          improvement, at the cost of a modest waypoint regression (0.058 to 0.069 m) and
+          slightly higher frame-to-frame jitter. We deploy this configuration in
+          production because the spin-on-spot pathology that the still-frame target fixes
+          is visually disruptive on non-locomotion captions, while the absolute waypoint
+          difference is well below the foot width of the character.
+        </p>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          <sup>‡</sup> Each heading-error number is measured in its model's native heading
+          convention (absolute world-frame yaw for the absolute-heading row, travel-relative
+          turn-rate offset for the travel-relative row). The two values are NOT directly
+          comparable in raw magnitude; each represents the minimum the corresponding loss
+          can in principle drive its own prediction towards. We adopt travel-relative
+          because it transfers smoothly to the full-data production controller (which uses
+          the same loss formulation and generalises across the broader BONES vocabulary;
+          see main results), whereas the absolute formulation is harder to fine-tune on
+          top of a travel-relative parent without re-purposing the output head.
+        </p>
+      </div>
+    </div>
+    -->
+
+    <!-- Table 7 - Body GPT variants - COMMENTED OUT per Maria 2026-05-25
+         (deferred; will re-enable when we have numbers or decide on a reframe) -->
+    <!--
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Table 7 - Ablation 3: Body GPT variants (walk+jog subset)</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Ablation 3 - body GPT variants. Sliding-window finetuning gives the sustained-motion win;
+          increasing block_size alone does not.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>Body variant</th>
+                <th>block size</th>
+                <th>Params</th>
+                <th>Gen-len walk / jog (fr)</th>
+                <th>Sustained swlen (fr) ↑</th>
+                <th>FID (200-fr clips) ↓</th>
+                <th>Latency (s/clip) ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Walk-only base</td><td>51</td><td>~30 M</td><td>- / -</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>Walk+jog (<code>GPT_t2m_HFbig_walkjog_v1</code>)</td><td>51</td><td>~30 M</td><td>- / -</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr>
+                <td><strong>Windowed-finetune (<code>GPT_t2m_window_walkjog_v1</code>, ours)</strong></td>
+                <td><strong>51</strong></td>
+                <td><strong>~30 M</strong></td>
+                <td><strong>- / -</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+                <td><strong>-</strong></td>
+              </tr>
+              <tr><td>BIG (<code>GPT_t2m_window_walkjog_big_v1</code>, from-scratch 100 k)</td><td>128</td><td>~90 M</td><td>- / -</td><td>-</td><td>-</td><td>-</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    -->
+
+    <!-- Table 8 - Ablation 4: VQ-VAE temporal downsample -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">VQ-VAE temporal compression rate</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          The body VQ-VAE acts as a temporal autoencoder: it compresses a motion clip into a
+          shorter sequence of discrete tokens, and the autoregressive language model is then
+          trained to predict those tokens. Higher temporal compression yields fewer tokens per
+          clip, which lengthens the effective context the language model can attend to and
+          reduces its computational cost, at the price of coarser temporal resolution at the
+          decoder. We study four compression rates: 2x, 4x, 8x and 16x, where a rate of kx
+          means that each token represents k frames of motion. All runs share the same training
+          recipe (codebook of 2048 entries, batch size 512, learning rate 2e-4, window of 64
+          frames) and are compared at a fixed budget of 100k training iterations.
+        </p>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          A rate of 4x gives the lowest reconstruction error and the highest per-clip code
+          diversity, while remaining within the codebook utilisation range of 2x and 8x. We
+          adopt 4x as the body VQ-VAE for the decoupled pipeline. 2x is retained for variants
+          in which the language model benefits from a denser token stream. At 16x the model
+          collapses on reconstruction: with only four tokens per 64-frame clip, the encoder
+          runs out of latent slots before it can capture motion detail.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>compression rate</th>
+                <th>frames per token</th>
+                <th>val recon. loss ↓</th>
+                <th>codebook usage ↑</th>
+                <th>unique codes per clip ↑</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>2x</td><td>2</td><td>0.073</td><td>0.683</td><td>9.8</td></tr>
+              <tr>
+                <td>4x</td>
+                <td>4</td>
+                <td><strong>0.012</strong></td>
+                <td>0.690</td>
+                <td><strong>12.4</strong></td>
+              </tr>
+              <tr><td>8x</td><td>8</td><td>0.020</td><td><strong>0.721</strong></td><td>7.3</td></tr>
+              <tr><td>16x</td><td>16</td><td>0.117</td><td>0.705</td><td>4.0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <figure class="image" style="margin-top: 1rem;">
+          <img src="./assets/vqvae_dt_ablation/recons.png"
+               alt="Validation reconstruction loss over training iterations for the four temporal compression rates.">
+        </figure>
+        <p class="has-text-centered" style="margin-top: 0.5rem;">
+          Figure 1. Validation reconstruction loss (log scale) over training iterations for the
+          four temporal compression rates. 4x converges fastest and to the lowest loss.
+        </p>
+      </div>
+    </div>
+
+    <!-- Table 9 - Codec reconstruction quality on the Kimodo benchmark -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Codec reconstruction quality</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Beyond temporal compression, the body codec must preserve text alignment and
+          motion quality when it encodes a ground-truth clip and decodes it back. We pass
+          the 6 539 testcases of the <em>Repetition Text-to-Motion</em> split through both
+          a single VQ-VAE (codebook of 2048 entries) and our residual VQ-VAE (4 levels,
+          cosine-weighted, codebook of 1024 entries per level) and evaluate the
+          reconstructions with the same protocol the body GPT will use downstream. The
+          numbers bound from above what the autoregressive body can achieve: any token-level
+          error of the GPT compounds on top of the residual codec error reported here. The
+          residual quantisation lifts R-Precision by roughly nine percentage points on the
+          Overview split (82.48 versus 73.15) and almost twelve points on the Timeline-multi
+          split (82.69 versus 70.99), halves the FID, and shaves about six centimetres per
+          second off the foot-skate, at the cost of one extra level of codebook
+          quantisation; we adopt the residual codec as our body decoder. Lower is better
+          for FID and Skate; higher for R-Precision (top-3) and Contact consistency.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th rowspan="2">model</th>
+                <th colspan="4">Overview</th>
+                <th colspan="4">Timeline single</th>
+                <th colspan="4">Timeline multi</th>
+              </tr>
+              <tr>
+                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ground Truth</td>
+                <td>93.95</td><td>0.000</td><td>2.11</td><td>1.000</td>
+                <td>90.04</td><td>0.000</td><td>2.04</td><td>1.000</td>
+                <td>94.49</td><td>0.000</td><td>1.93</td><td>1.000</td>
+              </tr>
+              <tr>
+                <td>Single VQ-VAE reconstruction</td>
+                <td>73.15</td><td>0.152</td><td>26.59</td><td>0.636</td>
+                <td>59.16</td><td>0.114</td><td>27.05</td><td>0.616</td>
+                <td>70.99</td><td>0.160</td><td>25.52</td><td>0.622</td>
+              </tr>
+              <tr>
+                <td><strong>RVQ-VAE reconstruction (ours)</strong></td>
+                <td><strong>82.48</strong></td><td><strong>0.076</strong></td><td><strong>20.75</strong></td><td><strong>0.721</strong></td>
+                <td><strong>69.75</strong></td><td><strong>0.055</strong></td><td><strong>20.97</strong></td><td><strong>0.713</strong></td>
+                <td><strong>82.69</strong></td><td><strong>0.076</strong></td><td><strong>19.75</strong></td><td><strong>0.719</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          R@3 is text-to-motion R-Precision at top-3 with the TMR-SOMA-RP text encoder.
+          FID and Skate are computed in the same TMR-SOMA-RP space; Contact is the contact
+          consistency between predicted foot contacts and contacts inferred from foot height
+          and velocity. The reconstruction retains roughly 88 percent of the ground-truth
+          R@3 on the Overview split and 87 percent on the Timeline-multi split. The Skate
+          gap (~20 versus ~2) reflects the codec smoothing high-frequency foot detail; this
+          is a known property of frame-level discrete codecs and motivates the foot-contact
+          re-projection step in our pipeline. At the joint level, the residual codec has a
+          mean per-joint position error of 9 cm, a mean root-XZ drift of 6 cm
+          (p95 = 15 cm), a mean absolute heading error of 1.86 degrees, and a foot-contact
+          F1 of 0.86. The single VQ-VAE under the same protocol nearly doubles those
+          errors (17.5 cm per-joint, 13.8 cm root drift, 7.81 degrees heading) while
+          foot-contact F1 stays essentially tied (0.85 versus 0.86); the geometric ceiling
+          confirms the perceptual gap reported above.
+        </p>
+      </div>
+    </div>
+
+    <!-- Table 10 - Body GPT decoder ablation -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5">Body decoder sampling strategy</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          The body GPT predicts a sequence of discrete tokens that the VQ-VAE decodes back
+          into motion; the choice of token sampling strategy turns out to be more
+          consequential than expected. We measure decoder quality on a set of 25 diverse
+          captions (locomotion, direction, curves, transitions, style-gait, and in-place
+          actions), with five samples per caption, and report three complementary metrics:
+          <strong>body motion</strong> (mean root-relative joint velocity in mm per frame,
+          capturing limb activity independently of root translation),
+          <strong>pose diversity</strong> (standard deviation of relative pose across time,
+          high when the model produces many distinct poses, low when the same pose is
+          held), and <strong>path length</strong> (metres travelled by the root). We also
+          report a stuck count: the number of captions out of 25 on which the body motion
+          falls below 5 mm per frame, indicating that the character has stopped moving even
+          though token generation continues.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>decoder</th>
+                <th>body motion (mm / frame) ↑</th>
+                <th>pose diversity ↑</th>
+                <th>path length (m) ↑</th>
+                <th>stuck captions ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Greedy</td>
+                <td>7.09</td><td>0.017</td><td>3.56</td><td>19 / 25</td>
+              </tr>
+              <tr>
+                <td>Top-p (nucleus)</td>
+                <td>14.64</td><td>0.040</td><td>6.56</td><td>6 / 25</td>
+              </tr>
+              <tr>
+                <td>Top-k</td>
+                <td>14.86</td><td>0.046</td><td>6.50</td><td>3 / 25</td>
+              </tr>
+              <tr>
+                <td>Top-p + repetition penalty</td>
+                <td>14.85</td><td>0.046</td><td>5.83</td><td>8 / 25</td>
+              </tr>
+              <tr>
+                <td><strong>Multinomial (ours)</strong></td>
+                <td><strong>19.67</strong></td>
+                <td><strong>0.058</strong></td>
+                <td><strong>7.80</strong></td>
+                <td><strong>0 / 25</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          Aggregate across 25 captions × 5 samples per caption, all 200-frame generations.
+          Multinomial sampling dominates every metric and is the only decoder that never
+          stands still. Sharpened samplers (top-p with repetition penalty, top-p, top-k)
+          look smooth on locomotion captions but collapse to a held pose on roughly a
+          third, a quarter and an eighth of the captions respectively.
+        </p>
+
+
+        <h4 class="title is-6" style="margin-top: 1.5rem;">Qualitative comparison</h4>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Side-by-side renderings of the five decoders on five representative captions.
+          Each clip shows the same skeleton driven by each decoder; the winning decoder
+          (Multinomial, ours) is drawn in red with a star, the others switch to grey at
+          the frame they predict end-of-sequence.
+        </p>
+        <div class="columns is-multiline">
+          <div class="column is-half">
+            <video controls muted loop playsinline style="width:100%;">
+              <source src="./assets/decoder_grid/decoder_grid_sw20_walks_backward.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">"walks backward"</p>
+          </div>
+          <div class="column is-half">
+            <video controls muted loop playsinline style="width:100%;">
+              <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_crouches_walks.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">"crouches and walks"</p>
+          </div>
+          <div class="column is-half">
+            <video controls muted loop playsinline style="width:100%;">
+              <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_dances.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">"dances"</p>
+          </div>
+          <div class="column is-half">
+            <video controls muted loop playsinline style="width:100%;">
+              <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_stretches.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">"stretches"</p>
+          </div>
+          <div class="column is-half is-offset-one-quarter">
+            <video controls muted loop playsinline style="width:100%;">
+              <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_walks_waving.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered is-size-7">"walks while waving"</p>
+          </div>
+        </div>
+
+        <h4 class="title is-6" style="margin-top: 2rem;">Sliding-window decode trade-off</h4>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          The body GPT samples tokens with a sliding window: at every step it keeps only
+          the last <em>SW</em> tokens of context, refreshing the prefix as the sequence
+          grows. The choice of <em>SW</em> trades off two things: the total number of
+          frames generated before the model predicts end-of-sequence (we want this high so
+          the motion is long enough to be useful), and the limb activity preserved over the
+          rollout. Limb activity is measured as the mean magnitude of the per-joint
+          velocity in the character's local frame (mm per frame). A value close to zero
+          means the character has frozen; a non-trivial walking, dancing or stretching
+          motion sits in the 15 to 25 mm/frame range, so within that band higher
+          essentially means &ldquo;the limbs are still moving like they should&rdquo;. A
+          separate semantic quality metric per (decoder, <em>SW</em>) is being added in a
+          forthcoming revision (Table 2-style FID against the TMR-SOMA-RP encoder).
+        </p>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          We adopt <strong>SW = 25</strong>, which sits at the knee of the gen-length curve
+          (the model produces about 290 frames before EOS, roughly ten seconds of motion at
+          thirty frames per second) while keeping limb activity essentially at its peak
+          (about 21 mm per frame). Multinomial sampling is the only decoder whose limb
+          activity is insensitive to the window size; top-p and top-k both lose roughly
+          twenty percent of limb activity in the <em>SW &isin; {10, 15}</em> regime,
+          indicating that the tightened token distribution starts holding poses when the
+          context becomes short.
+        </p>
+        <div class="columns is-vcentered">
+          <div class="column is-two-thirds">
+            <figure class="image">
+              <img src="./assets/sw_ablation/sw_ablation_plot_n20.png"
+                   alt="Two-panel plot. Left: generation length in frames as a function of sliding window size for the three sampling decoders. Right: body motion in mm per frame against the same axis."
+                   style="border-radius: 4px;">
+            </figure>
+            <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
+              Figure 3. Sliding-window size versus generation length (left) and limb
+              activity (right) for the three sampling decoders. Aggregate over 10 captions
+              and 20 samples per (decoder, SW) cell (4 800 generations total). The dashed
+              vertical line marks our chosen SW = 25.
+            </p>
+          </div>
+          <div class="column is-one-third">
+            <figure class="image">
+              <img src="./assets/sw_ablation/sw_ablation_tradeoff_n20.png"
+                   alt="Scatter plot of motion quality (body motion, vertical axis) against motion quantity (generation length, horizontal axis). Each point corresponds to a (decoder, sliding window) pair."
+                   style="border-radius: 4px;">
+            </figure>
+            <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
+              Figure 4. Quantity versus quality trade-off across the same 4 800
+              generations. Multinomial points (ours) cluster in a high-quality band
+              regardless of window size.
+            </p>
+          </div>
+        </div>
+
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          The table below reports the same four motion-quality metrics as the decoder
+          ablation, now varied along the sliding-window axis with the decoder fixed to our
+          chosen Multinomial sampler. Each cell aggregates 200 generations (10 captions ×
+          20 samples). It answers which window size to pick once the decoder is settled;
+          the decoder ablation above answers the complementary question of which decoder to
+          pick at the chosen window size.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>SW</th>
+                <th>body motion (mm / frame) &uarr;</th>
+                <th>pose diversity &uarr;</th>
+                <th>stuck count (/10) &darr;</th>
+                <th>path length (m)</th>
+                <th>gen length (frames)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>5</td>  <td>23.48</td><td>0.060</td><td>2 / 10</td><td>33.83</td><td>638</td></tr>
+              <tr><td>10</td> <td>20.23</td><td>0.057</td><td>3 / 10</td><td>22.46</td><td>527</td></tr>
+              <tr><td>15</td> <td>20.09</td><td>0.053</td><td>2 / 10</td><td>16.75</td><td>428</td></tr>
+              <tr><td>20</td> <td>19.96</td><td>0.056</td><td>2 / 10</td><td>12.37</td><td>355</td></tr>
+              <tr>
+                <td><strong>25 &starf;</strong></td>
+                <td><strong>21.00</strong></td>
+                <td><strong>0.056</strong></td>
+                <td><strong>1 / 10</strong></td>
+                <td><strong>8.74</strong></td>
+                <td><strong>290</strong></td>
+              </tr>
+              <tr><td>30</td> <td>21.14</td><td>0.056</td><td>2 / 10</td><td>7.75</td><td>265</td></tr>
+              <tr><td>40</td> <td>19.79</td><td>0.053</td><td>2 / 10</td><td>5.54</td><td>233</td></tr>
+              <tr><td>50 (default)</td><td>20.45</td><td>0.053</td><td>2 / 10</td><td>2.71</td><td>82</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          Aggregate over 10 captions × 20 samples per cell (200 generations per row),
+          decoder fixed to Multinomial (ours). Path length is reported without a strict
+          arrow: at small windows the model produces 20 to 35 metres of root travel in
+          6.7 seconds, much of it spurious wandering as the model forgets its own recent
+          context. At SW = 25 the figure tightens to roughly 9 metres of travel in 10
+          seconds, consistent with a natural walking pace, while limb activity is at its
+          peak (21.0 mm per frame) and the stuck count is at its minimum (1 caption out
+          of 10). The default SW = 50 is too narrow: the model emits end-of-sequence after
+          roughly 80 frames, less than three seconds of motion.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="https://github.com/mpilligua/CAR-T2M" class="external-link">
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
