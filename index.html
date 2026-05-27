@@ -334,7 +334,99 @@
 </section>
 
 
-<!-- 5. Experiments -->
+<!-- 5. Online Generation -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Online Generation</h2>
+        <div class="content has-text-justified">
+          <p>
+            The main novelty of our approach is the ability to adapt motion <em>during</em>
+            generation. Because our model is autoregressive, we can interrupt the sequence at
+            any point, keep the last few tokens as context, and reinfer from that point
+            forward with a new condition — either a different text prompt or a new path
+            constraint.
+          </p>
+
+          <!-- Figure: cap + reinfer overview -->
+          <figure class="image" style="margin: 1.5rem 0;">
+            <div style="background: #f5f5f5; border: 2px dashed #ccc; border-radius: 8px;
+                        padding: 3rem 1rem; text-align: center; color: #888;">
+              <strong>[Figure placeholder]</strong><br>
+              Diagram showing the cap-and-reinfer process: the sequence is cut at an
+              arbitrary frame, the last tokens are kept as context, and a new condition
+              (text or path) drives the remainder.
+            </div>
+          </figure>
+
+          <h3 class="title is-5">Text prompt injection</h3>
+          <p>
+            We can change what the character does mid-sequence by injecting a new text
+            prompt. The model uses the last few generated tokens as a warm start, so the
+            transition is smooth rather than an abrupt reset.
+          </p>
+          <p>
+            For example, starting from <em>"a person walking forward at a steady pace"</em>
+            we can inject <em>"a person sits criss-cross"</em> or <em>"a person starts
+            walking right"</em> and the motion adapts accordingly.
+          </p>
+
+          <!-- Figure: text injection examples -->
+          <div class="columns is-vcentered" style="margin: 1.5rem 0;">
+            <div class="column has-text-centered">
+              <img src="./assets/online_generation/online_text_1.gif"
+                   alt="Walking forward, then sits criss-cross" style="max-width: 100%; border-radius: 6px;">
+              <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+                "a person walking forward" &rarr; "a person sits criss-cross"
+              </p>
+            </div>
+            <div class="column has-text-centered">
+              <img src="./assets/online_generation/online_text_2.gif"
+                   alt="Walking forward, then starts walking right" style="max-width: 100%; border-radius: 6px;">
+              <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+                "a person walking forward" &rarr; "a person starts walking right"
+              </p>
+            </div>
+          </div>
+
+          <h3 class="title is-5">Path constraint injection</h3>
+          <p>
+            We can also inject a new path constraint mid-sequence. This is useful when the
+            environment changes — for instance, when a new obstacle appears and the
+            character must reroute.
+          </p>
+          <p>
+            We show two cases: waypoints specified manually, and waypoints computed
+            automatically with the A* algorithm to avoid obstacles.
+          </p>
+
+          <!-- Figure: path injection examples -->
+          <div class="columns is-vcentered" style="margin: 1.5rem 0;">
+            <div class="column has-text-centered">
+              <img src="./assets/online_generation/manual_path.gif"
+                   alt="Path injection with manually placed waypoints" style="max-width: 100%; border-radius: 6px;">
+              <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+                Manual waypoints
+              </p>
+            </div>
+            <div class="column has-text-centered">
+              <img src="./assets/online_generation/a_star_path.gif"
+                   alt="Path injection with A* computed detour around obstacle" style="max-width: 100%; border-radius: 6px;">
+              <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+                A* path around a new obstacle
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 7. Experiments -->
 <section class="section" id="experiments">
   <div class="container is-max-desktop">
     <h2 class="title is-3 has-text-centered">Experiments</h2>
@@ -1433,7 +1525,7 @@
 </section>
 
 
-<!-- 6. Conclusion and Limitations -->
+<!-- 8. Conclusion and Limitations -->
 <section class="section">
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
@@ -1464,7 +1556,7 @@
 </section>
 
 
-<!-- 7. Individual Contributions -->
+<!-- 9. Individual Contributions -->
 <section class="section">
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
