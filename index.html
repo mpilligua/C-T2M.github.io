@@ -1007,7 +1007,6 @@
       text and path injection.
     </p>
 
-    TODO EXPLAIN FIGURE
     <!-- Online-adaptation overview figure -->
     <div class="columns is-centered" style="margin-top: 2rem;">
       <div class="column is-three-quarters">
@@ -1016,6 +1015,14 @@
                alt="Diagram of the cap-and-reinfer process: the sequence is cut at an arbitrary frame, the last tokens are kept as context, and a new condition (text or path) drives the remainder."
                style="max-width: 100%; border-radius: 8px;">
         </figure>
+        <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
+          Figure 8. Online adaptation via cap-and-reinfer. At an arbitrary frame the sequence is
+          <strong>cut</strong> and the last few generated tokens are kept as <strong>context</strong>.
+          A new condition — a different text prompt, a new path constraint, or both — is then fed to the
+          model, which <strong>reinfers</strong> the remainder of the sequence from that point.
+          Because the warm-start context comes from the already-generated tokens, the transition is
+          smooth rather than an abrupt reset.
+        </p>
       </div>
     </div>
 
