@@ -1117,6 +1117,93 @@
 </section>
 
 
+<!-- Other Experiments -->
+<section class="section" id="other-experiments">
+  <div class="container is-max-widescreen">
+    <h2 class="title is-3 has-text-centered">Other Experiments</h2>
+
+    <h3 class="title is-4">Fine-grained Prompt Experiment</h3>
+    <div class="content has-text-justified">
+      <p>
+        To study how much fine-grained information the model can capture from text, we run a simple
+        prompt ablation. We start from a basic walking prompt and progressively add more specific
+        motion details:
+      </p>
+      <pre style="background:#f5f5f5; border-radius:6px; padding:1rem; font-size:0.82rem; line-height:1.6;">level_1: "a person walks"
+level_2: "a person walks forward slowly"
+level_3: "a person walks forward slowly while waving the right hand"
+level_4: "a person walks forward slowly while waving the right hand and nodding their head"
+level_5: "a person walks forward slowly while waving the right hand, nodding their head, and raising their left arm"</pre>
+      <p>
+        The generated motions show that the model captures the main semantic content well up to
+        <strong>Level 3</strong>. At Level 4, the motion still contains walking and right-hand
+        waving, but the head nodding is weak and not as clear as expected. At Level 5, the motion
+        becomes less consistent: the model keeps the dominant walking behavior, but it does not
+        clearly preserve the added head nodding and left-arm raising details.
+      </p>
+      <p>
+        This suggests that the model handles simple prompts and one additional action reasonably
+        well, but struggles when several fine-grained constraints are combined in the same sentence.
+        In practice, the text condition acts as a bottleneck: the model tends to preserve the most
+        salient parts of the prompt while dropping or weakening secondary details. This supports
+        the idea that <em>text is a lossy representation of motion</em>, especially when the caption
+        contains multiple simultaneous body-part-specific actions.
+      </p>
+    </div>
+
+    <div class="columns is-multiline" style="margin: 0 -0.4rem;">
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_1.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 1</strong><br>"a person walks"
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_2.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 2</strong><br>"a person walks forward slowly"
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_3.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 3</strong><br>"…while waving the right hand"
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_4.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 4</strong><br>"…and nodding their head"
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_5.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 5</strong><br>"…and raising their left arm"
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
 <!-- See ablations button -->
 <section class="section" style="padding-top: 0;">
   <div class="container is-max-widescreen has-text-centered">
