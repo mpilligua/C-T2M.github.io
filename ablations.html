@@ -39,6 +39,21 @@
   <script src="./static/js/bulma-carousel.min.js"></script>
   <script src="./static/js/bulma-slider.min.js"></script>
   <script src="./static/js/index.js"></script>
+  <!-- Chart.js for retrieval-curve and other interactive charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Smooth jumps with breathing room above each ablation heading -->
+  <style>
+    html { scroll-behavior: smooth; }
+    h3.title.is-5[id] { scroll-margin-top: 1.5rem; }
+    h3.title.is-5[id]:target {
+      animation: ablt-target-flash 1.6s ease-out 1;
+    }
+    @keyframes ablt-target-flash {
+      0%   { background: rgba(37, 150, 190, 0.18); }
+      100% { background: transparent; }
+    }
+  </style>
 </head>
 <body>
 
@@ -82,7 +97,6 @@
 </section>
 
 
-Ablations
 <section class="section" id="ablations">
   <div class="container is-max-widescreen">
 
@@ -130,10 +144,186 @@ Ablations
     </div>
     -->
 
+    <!-- Neutral encoder evaluation (TMR-petrovich) -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <h3 class="title is-5" id="neutral-encoder">Is the headline comparison fair? Neutral encoder evaluation</h3>
+        <p class="has-text-justified" style="margin-bottom: 0.6rem;">
+          The main results table on the home page uses <strong>Kimodo's own retrieval encoder
+          (TMR-SOMA-RP)</strong>, which is what Kimodo's authors report numbers with. That
+          encoder was trained on Kimodo's training distribution, so motions that look like
+          Kimodo's training data score higher on retrieval, regardless of whether they are
+          actually closer to the target caption. This gives Kimodo a built-in home-field
+          advantage that no other system can match. We initially planned to report only
+          those numbers because our proposal targeted Kimodo's benchmark, but the bias
+          means they overstate the gap.
+        </p>
+        <p class="has-text-justified" style="margin-bottom: 0.6rem;">
+          To remove this bias, we re-evaluated both systems with a <strong>neutral
+          encoder</strong>: <em>TMR-petrovich</em>, the standard text-to-motion encoder
+          used in the broader T2M literature, trained on HumanML3D, a different dataset.
+          Now <em>neither</em> system is at home: any remaining differences reflect actual
+          text-to-motion retrievability, not which model the encoder was trained against.
+          The retrieval protocol is identical for both systems.
+        </p>
+        <p class="has-text-justified" style="margin-bottom: 0.6rem;">
+          The result, shown below: the ~30-point R@3 gap on Kimodo's encoder
+          (58 vs. 88) collapses to a ~2-point gap on the neutral one
+          (9.5 vs. 11.6). Both systems also track the BONES ground truth closely.
+          Most of the apparent quality gap in the headline table was encoder bias,
+          not a real difference in motion quality.
+        </p>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          <strong>And why does Kimodo edge slightly above the ground truth (R@3 11.6 vs.
+          11.1)?</strong> R@k does not measure motion quality, it measures how easily an
+          encoder can map a motion back to its caption. Real captured motion is messy: a
+          person <em>"walking forward"</em> also breathes, shifts weight, glances around.
+          The neutral encoder, trained on a different dataset (HumanML3D), treats those
+          idiosyncrasies as noise that pushes the motion away from the canonical
+          <em>"walking forward"</em> cluster in its embedding space. Kimodo's generated
+          motion, by contrast, is smoother and closer to the Platonic version of the
+          caption, which is friendlier to retrieval even though it carries <em>less</em>
+          information than the real thing. In other words, Kimodo has learned to produce
+          motion that is more retrieval-friendly than the BONES ground truth itself, an
+          interesting side-effect of training a generative model on caption-aligned data.
+          The takeaway is not that generation beats reality, but that all three systems
+          sit in the same retrievability regime on a neutral encoder, with our system
+          within ~2 R@3 points of the ground truth.
+        </p>
+
+        <!-- Retrieval curve (Chart.js, left 2/3) + source table (right 1/3) -->
+        <div class="columns is-vcentered" style="margin-top: 1rem;">
+          <div class="column is-two-thirds">
+            <div style="position: relative; height: 275px;">
+              <canvas id="retrievalCurveChart"></canvas>
+            </div>
+          </div>
+          <div class="column is-one-third">
+            <div class="table-container">
+              <table class="table is-bordered is-striped is-hoverable is-fullwidth is-narrow has-text-centered is-size-7">
+                <thead>
+                  <tr>
+                    <th>model</th>
+                    <th>R@1 ↑</th>
+                    <th>R@3 ↑</th>
+                    <th>R@5 ↑</th>
+                    <th>R@10 ↑</th>
+                    <th>MedR ↓</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>HumanML3D test ceiling</td>
+                    <td>15.3</td>
+                    <td>34.7</td>
+                    <td>43.4</td>
+                    <td>57.1</td>
+                    <td>7</td>
+                  </tr>
+                  <tr>
+                    <td>Ground Truth (BONES)</td>
+                    <td>4.6</td>
+                    <td>11.1</td>
+                    <td>16.5</td>
+                    <td>25.4</td>
+                    <td>48</td>
+                  </tr>
+                  <tr>
+                    <td>Kimodo-SOMA-SEED-v1.1</td>
+                    <td>5.4</td>
+                    <td>11.6</td>
+                    <td>16.8</td>
+                    <td>27.5</td>
+                    <td>39</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Ours (9L VQ-VAE)</strong></td>
+                    <td><strong>4.5</strong></td>
+                    <td><strong>9.5</strong></td>
+                    <td><strong>13.8</strong></td>
+                    <td><strong>23.3</strong></td>
+                    <td><strong>51</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <script>
+          (function () {
+            function draw() {
+              var el = document.getElementById('retrievalCurveChart');
+              if (!el || typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var K = [1, 3, 5, 10];
+              function pts(arr) {
+                return arr.map(function (v, i) { return { x: K[i], y: v }; });
+              }
+              new Chart(el, {
+                type: 'line',
+                data: {
+                  datasets: [
+                    { label: 'Ground Truth (BONES)', data: pts([4.6, 11.1, 16.5, 25.4]),
+                      borderColor: '#2BAD94', backgroundColor: '#2BAD94', borderDash: [6, 4],
+                      borderWidth: 2, pointRadius: 4, pointStyle: 'rectRot', tension: 0.25, _medr: 48 },
+                    { label: 'Kimodo-SOMA-SEED-v1.1', data: pts([5.4, 11.6, 16.8, 27.5]),
+                      borderColor: '#EB6E4C', backgroundColor: '#EB6E4C',
+                      borderWidth: 2, pointRadius: 4, pointStyle: 'triangle', tension: 0.25, _medr: 39 },
+                    { label: 'Ours (9L VQ-VAE)', data: pts([4.5, 9.5, 13.8, 23.3]),
+                      borderColor: '#2596be', backgroundColor: '#2596be',
+                      borderWidth: 3, pointRadius: 5, pointStyle: 'circle', tension: 0.25, _medr: 51 }
+                  ]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  interaction: { mode: 'nearest', intersect: false },
+                  scales: {
+                    x: { type: 'linear', min: 0.5, max: 10.5,
+                         title: { display: true, text: 'k  (top-k retrieval)' },
+                         ticks: { stepSize: 1,
+                                  callback: function (v) { return [1, 3, 5, 10].indexOf(v) >= 0 ? v : ''; } },
+                         grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { beginAtZero: true, suggestedMax: 30,
+                         title: { display: true, text: 'R@k  (%)' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } }
+                  },
+                  plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                      callbacks: {
+                        label: function (c) {
+                          return c.dataset.label + ', R@' + c.parsed.x + ': ' +
+                                 c.parsed.y + '%  (MedR ' + c.dataset._medr + ')';
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+        <p class="is-size-7 has-text-justified" style="margin-top: 0.6rem; color: #4a4a4a;">
+          <strong>Figure.</strong> Text-to-motion retrieval on a neutral encoder
+          (TMR-petrovich). Our model tracks the BONES ground truth and stays within ~2
+          points of Kimodo (R@3 9.5 vs. 11.6); the large gap seen on Kimodo's own encoder
+          is mostly encoder bias, not a quality difference. <strong>R@k</strong> is
+          text-to-motion R-Precision at top-<em>k</em>: the fraction of queries whose
+          correct motion is retrieved within the top <em>k</em> (higher is better).
+          <strong>MedR</strong> is the median rank of the correct motion (lower is better),
+          shown in the chart tooltips. The in-distribution HumanML3D test ceiling reaches
+          R@1&nbsp;15.3 / R@10&nbsp;57.1 and is omitted from the chart axis so the three
+          close-to-GT systems stay legible.
+        </p>
+      </div>
+    </div>
+
+
     <!-- Constraint-conditioning architecture ablation (formerly Table 4) -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <h3 class="title is-5">Constraint-conditioning architecture</h3>
+        <h3 class="title is-5" id="constraint-arch">Could we just inject waypoints into the body GPT?</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           How to inject the path constraint into a T2M-GPT body. We compare several end-to-end
           constrained-body variants (linear-interp baseline, <code>xz_io</code>-only path-token
@@ -253,7 +443,7 @@ Ablations
     <!--
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <h3 class="title is-5">Heading representation</h3>
+        <h3 class="title is-5" id="heading-rep">Heading representation</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           During training, the controller is supervised on a heading signal that can be
           parameterised in two ways. The first is an <strong>absolute heading</strong>:
@@ -370,7 +560,7 @@ Ablations
     <!-- Table 8 - Ablation 4: VQ-VAE temporal downsample -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <h3 class="title is-5">VQ-VAE temporal compression rate</h3>
+        <h3 class="title is-5" id="vq-compression">How aggressively should the VQ-VAE compress time?</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           The body VQ-VAE acts as a temporal autoencoder: it compresses a motion clip into a
           shorter sequence of discrete tokens, and the autoregressive language model is then
@@ -430,21 +620,21 @@ Ablations
     <!-- Table 9 - Codec reconstruction quality on the Kimodo benchmark -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <h3 class="title is-5" id="codec-reconstruction">Codec reconstruction quality</h3>
+        <h3 class="title is-5" id="codec-reconstruction">Is the VQ-VAE creating a bottleneck?</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Beyond temporal compression, the body codec must preserve text alignment and
+          Beyond temporal compression, the body VQ-VAE must preserve text alignment and
           motion quality when it encodes a ground-truth clip and decodes it back. We pass
           the 6 539 testcases of the <em>Repetition Text-to-Motion</em> split through both
           a single VQ-VAE (codebook of 2048 entries) and our residual VQ-VAE (4 levels,
           cosine-weighted, codebook of 1024 entries per level) and evaluate the
           reconstructions with the same protocol the body GPT will use downstream. The
           numbers bound from above what the autoregressive body can achieve: any token-level
-          error of the GPT compounds on top of the residual codec error reported here. The
+          error of the GPT compounds on top of the residual VQ-VAE error reported here. The
           residual quantisation lifts R-Precision by roughly nine percentage points on the
           Overview split (82.48 versus 73.15) and almost twelve points on the Timeline-multi
           split (82.69 versus 70.99), halves the FID, and shaves about six centimetres per
           second off the foot-skate, at the cost of one extra level of codebook
-          quantisation. As an isolated codec the residual stack is clearly the stronger
+          quantisation. As an isolated VQ-VAE the residual stack is clearly the stronger
           decoder, but that advantage did not transfer end-to-end: paired with the body GPT,
           the RVQ-GPT variant trained less effectively and scored worse than the
           single-codebook model (see the model comparison on the main page), so the single
@@ -459,7 +649,7 @@ Ablations
                style="width: 100%; height: auto; display: block;">
         </figure>
         <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
-          <strong>The residual VQ-VAE codec behind RVQ-GPT.</strong>
+          <strong>The residual VQ-VAE behind RVQ-GPT.</strong>
           The RVQ-VAE (left) replaces the single quantizer of a plain VQ-VAE (right) with a
           stack of quantizers, each encoding the residual the previous levels left behind. This
           reconstructs motion more faithfully than a single codebook (the table above), but it
@@ -482,14 +672,14 @@ Ablations
           decoded directly, so each motion token is a single index.
         </p>
         <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
-          <strong>The trade-off.</strong> Measured purely as a codec, the residual stack
+          <strong>The trade-off.</strong> Measured purely as a VQ-VAE, the residual stack
           reconstructs motion more faithfully than the single VQ-VAE. The cost is that it
           quadruples the tokens per frame, which makes the generation problem harder: rather
           than predicting one token per timestep, the body GPT must predict all four
           codebook indices, and in our setup it generates them sequentially. We were not
           able to train this RVQ-VAE + GPT setup effectively: its end-to-end results came
           out worse than the plain VQ-VAE (see the model comparison on the main page), so the
-          single-codebook model remains our reference point. Making the residual codec pay off
+          single-codebook model remains our reference point. Making the residual VQ-VAE pay off
           end-to-end likely needs a more elaborate design, possibly a hierarchical one.
         </p>
         <div class="table-container">
@@ -535,9 +725,9 @@ Ablations
           consistency between predicted foot contacts and contacts inferred from foot height
           and velocity. The reconstruction retains roughly 88 percent of the ground-truth
           R@3 on the Overview split and 87 percent on the Timeline-multi split. The Skate
-          gap (~20 versus ~2) reflects the codec smoothing high-frequency foot detail; this
-          is a known property of frame-level discrete codecs and motivates the foot-contact
-          re-projection step in our pipeline. At the joint level, the residual codec has a
+          gap (~20 versus ~2) reflects the VQ-VAE smoothing high-frequency foot detail; this
+          is a known property of frame-level discrete VQ-VAEs and motivates the foot-contact
+          re-projection step in our pipeline. At the joint level, the residual VQ-VAE has a
           mean per-joint position error of 9 cm, a mean root-XZ drift of 6 cm
           (p95 = 15 cm), a mean absolute heading error of 1.86 degrees, and a foot-contact
           F1 of 0.86. The single VQ-VAE under the same protocol nearly doubles those
@@ -551,7 +741,7 @@ Ablations
     <!-- Table 10 - Body GPT decoder ablation -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <h3 class="title is-5">Body decoder sampling strategy</h3>
+        <h3 class="title is-5" id="decoder-sampling">Is the decoding strategy important?</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           The body GPT predicts a sequence of discrete tokens that the VQ-VAE decodes back
           into motion; the choice of token sampling strategy turns out to be more

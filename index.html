@@ -650,7 +650,7 @@
             <span class="tour-step-counter" id="tour-counter">Step 1 of 6</span>
             <span class="tour-step-badge" id="tour-badge">★ Our addition</span>
           </div>
-          <h3 class="tour-title" id="tour-title">VQ-VAE motion codec</h3>
+          <h3 class="tour-title" id="tour-title">VQ-VAE</h3>
           <p class="tour-body" id="tour-body">A VQ-VAE...</p>
           <div class="tour-nav">
             <div class="tour-nav-side">
@@ -676,7 +676,7 @@
                 highlight: null
               },
               {
-                title: '1. VQ-VAE pretraining (motion codec)',
+                title: '1. VQ-VAE pretraining',
                 body: 'A VQ-VAE is pretrained as an autoencoder: an encoder maps raw motion into a learned codebook of K entries, and a decoder reconstructs motion from those discrete tokens. From now on, "predicting motion" reduces to "predicting tokens", which is what the language model below will do.',
                 kind: 'baseline',
                 highlight: { left: 0.5, top: 0.9, width: 51, height: 33 }
@@ -1073,7 +1073,11 @@
           <strong>Model comparison: Kimodo, RVQ-GPT, and VQ-GPT</strong>
         </p>
         <p class="has-text-justified" style="margin-bottom: 1.5rem;">
-          Qualitative comparison of three text-to-motion models on the same held-out captions. Kimodo is a diffusion-based baseline (state-of-the-art quality, slow); VQ-GPT is our single-codebook autoregressive model; RVQ-GPT swaps that codec for a residual VQ-VAE. The residual codec can reconstruct motion more faithfully on its own, but that advantage did not transfer end-to-end in our experiments. More results are available in the <a href="./ablations.html#codec-reconstruction">codec ablation</a>.
+          Qualitative comparison of three text-to-motion models on the same held-out
+          captions. Kimodo is a diffusion-based baseline (state-of-the-art quality, slow);
+          VQ-GPT is our single-codebook autoregressive model; RVQ-GPT swaps that VQ-VAE for a
+          residual VQ-VAE. See the <a href="./ablations.html#codec-reconstruction">VQ-VAE
+          ablation</a> for the residual variant and its trade-off.
         </p>
 
         <p class="has-text-centered" style="margin-top: 2rem; margin-bottom: 1rem;">
@@ -1209,8 +1213,8 @@ median retrieval rank of the correct motion
           <span class="legend-item"><span class="legend-swatch" style="background:#8A6FCB;"></span>Ours (RVQ-GPT)</span>
         </div>
         <p class="is-size-7 has-text-centered" style="margin-top: 0.4rem; color:#555;">
-          RVQ-GPT is our residual-codec variant; it underperforms VQ-GPT end-to-end; see the
-          <a href="./ablations.html#codec-reconstruction">codec ablation</a> for the architecture and full numbers.
+          RVQ-GPT is our residual-VQ-VAE variant; it underperforms VQ-GPT end-to-end; see the
+          <a href="./ablations.html#codec-reconstruction">VQ-VAE ablation</a> for the architecture and full numbers.
         </p>
 
         <script>
@@ -1352,158 +1356,6 @@ median retrieval rank of the correct motion
           <span class="fig-caption-summary"><strong>Results.</strong> Text-to-motion quality and
           efficiency on the Kimodo Repetition split: we trade some text-match quality for a
           model roughly 20&times; smaller and 10&times; faster than Kimodo.</span>
-        </figcaption>
-      </div>
-    </div>
-
-    <!-- Neutral encoder evaluation (TMR-petrovich) -->
-    <div class="columns is-centered" style="margin-top: 2.5rem;">
-      <div class="column is-full">
-        <strong>Neutral encoder evaluation (TMR-petrovich).</strong><br>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          To isolate encoder bias, we also evaluate on a neutral text-to-motion encoder (TMR-petrovich, HumanML3D-trained, DistilBERT text) rather than the Kimodo-specific TMR-SOMA-RP encoder used above. This eliminates the bias toward Kimodo's training distribution and provides a fairer comparison. Both systems are evaluated on HumanML3D using the same retrieval protocol.
-        </p>
-
-        <!-- PROTOTYPE: retrieval curve (Chart.js, left 2/3) + source table (right 1/3) -->
-        <div class="columns is-vcentered" style="margin-top: 1rem;">
-          <div class="column is-two-thirds">
-            <div style="position: relative; height: 275px;">
-              <canvas id="retrievalCurveChart"></canvas>
-            </div>
-          </div>
-          <div class="column is-one-third">
-            <div class="table-container">
-              <table class="table is-bordered is-striped is-hoverable is-fullwidth is-narrow has-text-centered is-size-7">
-                <thead>
-                  <tr>
-                    <th>model</th>
-                    <th>R@1 ↑</th>
-                    <th>R@3 ↑</th>
-                    <th>R@5 ↑</th>
-                    <th>R@10 ↑</th>
-                    <th>MedR ↓</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>HumanML3D test ceiling</td>
-                    <td>15.3</td>
-                    <td>34.7</td>
-                    <td>43.4</td>
-                    <td>57.1</td>
-                    <td>7</td>
-                  </tr>
-                  <tr>
-                    <td>Ground Truth (BONES)</td>
-                    <td>4.6</td>
-                    <td>11.1</td>
-                    <td>16.5</td>
-                    <td>25.4</td>
-                    <td>48</td>
-                  </tr>
-                  <tr>
-                    <td>Kimodo-SOMA-SEED-v1.1</td>
-                    <td>5.4</td>
-                    <td>11.6</td>
-                    <td>16.8</td>
-                    <td>27.5</td>
-                    <td>39</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Ours (9L VQ-VAE)</strong></td>
-                    <td><strong>4.5</strong></td>
-                    <td><strong>9.5</strong></td>
-                    <td><strong>13.8</strong></td>
-                    <td><strong>23.3</strong></td>
-                    <td><strong>51</strong></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <script>
-          (function () {
-            function draw() {
-              var el = document.getElementById('retrievalCurveChart');
-              if (!el || typeof Chart === 'undefined') { return setTimeout(draw, 50); }
-              var K = [1, 3, 5, 10];
-              function pts(arr) {
-                return arr.map(function (v, i) { return { x: K[i], y: v }; });
-              }
-              new Chart(el, {
-                type: 'line',
-                data: {
-                  datasets: [
-                    { label: 'Ground Truth (BONES)', data: pts([4.6, 11.1, 16.5, 25.4]),
-                      borderColor: '#2BAD94', backgroundColor: '#2BAD94', borderDash: [6, 4],
-                      borderWidth: 2, pointRadius: 4, pointStyle: 'rectRot', tension: 0.25, _medr: 48 },
-                    { label: 'Kimodo-SOMA-SEED-v1.1', data: pts([5.4, 11.6, 16.8, 27.5]),
-                      borderColor: '#EB6E4C', backgroundColor: '#EB6E4C',
-                      borderWidth: 2, pointRadius: 4, pointStyle: 'triangle', tension: 0.25, _medr: 39 },
-                    { label: 'Ours (9L VQ-VAE)', data: pts([4.5, 9.5, 13.8, 23.3]),
-                      borderColor: '#2596be', backgroundColor: '#2596be',
-                      borderWidth: 3, pointRadius: 5, pointStyle: 'circle', tension: 0.25, _medr: 51 }
-                  ]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  interaction: { mode: 'nearest', intersect: false },
-                  scales: {
-                    x: { type: 'linear', min: 0.5, max: 10.5,
-                         title: { display: true, text: 'k  (top-k retrieval)' },
-                         ticks: { stepSize: 1,
-                                  callback: function (v) { return [1, 3, 5, 10].indexOf(v) >= 0 ? v : ''; } },
-                         grid: { color: 'rgba(0,0,0,0.05)' } },
-                    y: { beginAtZero: true, suggestedMax: 30,
-                         title: { display: true, text: 'R@k  (%)' },
-                         grid: { color: 'rgba(0,0,0,0.05)' } }
-                  },
-                  plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                      callbacks: {
-                        label: function (c) {
-                          return c.dataset.label + ', R@' + c.parsed.x + ': ' +
-                                 c.parsed.y + '%  (MedR ' + c.dataset._medr + ')';
-                        }
-                      }
-                    }
-                  }
-                }
-              });
-            }
-            draw();
-          })();
-        </script>
-
-        <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
-          <span class="fig-caption-summary"><strong>Figure.</strong> Text-to-motion retrieval
-          on a neutral encoder (TMR-petrovich). Our model tracks the BONES ground truth and
-          stays within ~2 points of Kimodo (R@3 9.5 vs. 11.6); the large gap seen on
-          Kimodo's own encoder is mostly encoder bias, not a quality difference.</span>
-          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
-            <span class="fig-caption-toggle-label">Show details</span>
-            <i class="fas fa-chevron-down"></i>
-          </a>
-          <div class="fig-caption-details">
-            <p class="has-text-justified">
-              <strong>R@k</strong> is text-to-motion R-Precision at top-<em>k</em>: the fraction
-              of queries whose correct motion is retrieved within the top <em>k</em>
-              (higher is better). <strong>MedR</strong> is the median rank of the correct motion
-              (lower is better), shown in the chart tooltips. For reference, the in-distribution
-              HumanML3D test ceiling reaches R@1&nbsp;15.3 / R@10&nbsp;57.1; it is omitted from
-              the chart axis so the three close-to-GT systems stay legible.
-            </p>
-            <p class="has-text-justified">
-              On the biased Kimodo-TMR encoder our system trails by ~30 points on R@3
-              (58 vs. 88). On this neutral encoder both systems reach similar GT-adjacent
-              retrievability with only a 2-point gap (9.5 vs. 11.6), showing the large apparent
-              quality gap is largely an artifact of encoder bias toward Kimodo's training
-              distribution rather than a ground-truth quality difference.
-            </p>
-          </div>
         </figcaption>
       </div>
     </div>
@@ -1799,7 +1651,7 @@ median retrieval rank of the correct motion
             not jointly trained to follow, so when the controller-imposed path disagrees
             with the body's predicted gait the feet slide. Kimodo's diffusion model jointly
             generates body and root, avoiding the disagreement; the same property is
-            consistent with the codec-ceiling foot-skate reported in the codec reconstruction
+            consistent with the VQ-VAE-ceiling foot-skate reported in the VQ-VAE reconstruction
             ablation. A foot-projection post-processing step would close most of this gap
             (Kimodo enables one by default) and is left to future work.</p>
           </div>
@@ -1848,137 +1700,61 @@ median retrieval rank of the correct motion
     </div>
 
 
-    <!-- Online adaptation gallery (single carousel: text prompt + path constraint injection) -->
-    <div class="columns is-centered" style="margin-top: 1.5rem;">
-      <div class="column is-full">
-        <h3 id="online-adapt-title" class="has-text-centered" style="font-size:1.2rem; font-weight:600; color:#2c3e50; margin-bottom: 0.9rem;">
-          Text prompt injection
-        </h3>
-
-        <div class="qual-carousel-container">
-          <div id="online-adapt-slides"></div>
-          <button class="qual-nav-button prev" type="button"
-                  onclick="onlineAdaptCarousel.navigate(-1)">&#10094;</button>
-          <button class="qual-nav-button next" type="button"
-                  onclick="onlineAdaptCarousel.navigate(1)">&#10095;</button>
+    <!-- Text prompt injection -->
+        <br></br>
+        <strong>Qualitative results: Text prompt injection</strong>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          We can change what the character does mid-sequence by injecting a new text prompt.
+          For example, starting from <em>"a person walking forward at a steady pace"</em> we
+          can inject <em>"a person sits criss-cross"</em> or <em>"a person starts walking
+          right"</em> and the motion adapts accordingly.
+        </p>
+        <div class="columns is-vcentered" style="margin: 1rem 0;">
+          <div class="column">
+            <img src="./assets/online_generation/online_text_1.gif"
+                 alt="Walking forward, then sits criss-cross" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              "a person walking forward" &rarr; "a person sits criss-cross"
+            </p>
+          </div>
+          <div class="column">
+            <img src="./assets/online_generation/online_text_2.gif"
+                 alt="Walking forward, then starts walking right" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              "a person walking forward" &rarr; "a person starts walking right"
+            </p>
+          </div>
         </div>
-        <p id="online-adapt-caption" class="qual-carousel-caption"></p>
-        <div class="qual-dots" id="online-adapt-dots"></div>
 
-        <script>
-          (function () {
-            const data = [
-              {
-                title: 'Text prompt injection',
-                kind: 'img',
-                src: './assets/online_generation/online_text_1.gif',
-                caption: '"a person walking forward" → "a person sits criss-cross"'
-              },
-              {
-                title: 'Text prompt injection',
-                kind: 'img',
-                src: './assets/online_generation/online_text_2.gif',
-                caption: '"a person walking forward" → "a person starts walking right"'
-              },
-              {
-                title: 'Path constraint injection',
-                kind: 'img',
-                src: './assets/online_generation/manual_path.gif',
-                caption: 'Manual waypoints injected mid-rollout.'
-              },
-              {
-                title: 'Path constraint injection',
-                kind: 'img',
-                src: './assets/online_generation/a_star_path.gif',
-                caption: 'A* path around a new obstacle.'
-              }
-            ];
-
-            class OnlineAdaptCarousel {
-              constructor(cfg) {
-                this.data = cfg.data;
-                this.slidesId = cfg.slidesId;
-                this.dotsId = cfg.dotsId;
-                this.captionId = cfg.captionId;
-                this.titleId = cfg.titleId;
-                this.currentIndex = 0;
-              }
-              build() {
-                const slidesContainer = document.getElementById(this.slidesId);
-                const dotsContainer = document.getElementById(this.dotsId);
-                if (!slidesContainer || !dotsContainer) return;
-                slidesContainer.innerHTML = '';
-                dotsContainer.innerHTML = '';
-
-                this.data.forEach((item, index) => {
-                  const slide = document.createElement('div');
-                  slide.className = 'qual-carousel-slide';
-                  slide.dataset.index = index;
-                  slide.onclick = () => { if (index !== this.currentIndex) this.setIndex(index); };
-                  slide.innerHTML = `<img src="${item.src}" alt="${item.title}"
-                      style="width:100%; height:auto; border-radius:16px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); display:block; background:#111;">`;
-                  slidesContainer.appendChild(slide);
-
-                  const dot = document.createElement('button');
-                  dot.className = 'qual-dot';
-                  dot.dataset.index = index;
-                  dot.onclick = () => this.setIndex(index);
-                  dotsContainer.appendChild(dot);
-                });
-
-                this.setIndex(0);
-              }
-              navigate(direction) {
-                let newIndex = this.currentIndex + direction;
-                if (newIndex < 0) newIndex = this.data.length - 1;
-                else if (newIndex >= this.data.length) newIndex = 0;
-                this.setIndex(newIndex);
-              }
-              setIndex(index) {
-                this.currentIndex = index;
-                const slides = document.getElementById(this.slidesId)
-                                       .querySelectorAll('.qual-carousel-slide');
-                const dots = document.getElementById(this.dotsId)
-                                     .querySelectorAll('.qual-dot');
-                const captionEl = document.getElementById(this.captionId);
-                const titleEl = document.getElementById(this.titleId);
-                const n = this.data.length;
-
-                slides.forEach((slide, i) => {
-                  slide.classList.remove('active', 'prev', 'next', 'hidden');
-                  if (i === index) {
-                    slide.classList.add('active');
-                  } else if (i === (index - 1 + n) % n) {
-                    slide.classList.add('prev');
-                  } else if (i === (index + 1) % n) {
-                    slide.classList.add('next');
-                  } else {
-                    slide.classList.add('hidden');
-                  }
-                });
-
-                dots.forEach((dot, i) => {
-                  dot.classList.toggle('active', i === index);
-                });
-
-                if (captionEl) captionEl.textContent = this.data[index].caption;
-                if (titleEl) titleEl.textContent = this.data[index].title;
-              }
-            }
-
-            window.onlineAdaptCarousel = new OnlineAdaptCarousel({
-              data: data,
-              slidesId: 'online-adapt-slides',
-              dotsId: 'online-adapt-dots',
-              captionId: 'online-adapt-caption',
-              titleId: 'online-adapt-title'
-            });
-            onlineAdaptCarousel.build();
-          })();
-        </script>
+    <!-- Path constraint injection -->
+    <div class="columns is-centered" style="margin-top: 2rem;">
+      <div class="column is-full">
+        <strong>Qualitative results: Path constraint injection</strong>
+        <!-- TODO: generate more path-injection result GIFs and add them to the gallery below. -->
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          We can also inject a new path constraint mid-sequence. This is useful when the
+          environment changes, for instance when a new obstacle appears and the character
+          must reroute. We show two cases: waypoints specified manually, and waypoints
+          computed automatically with the A* algorithm to avoid obstacles.
+        </p>
+        <div class="columns is-vcentered" style="margin: 1rem 0;">
+          <div class="column has-text-centered">
+            <img src="./assets/online_generation/manual_path.gif"
+                 alt="Path injection with manually placed waypoints" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              Manual waypoints
+            </p>
+          </div>
+          <div class="column has-text-centered">
+            <img src="./assets/online_generation/a_star_path.gif"
+                 alt="Path injection with A* computed detour around obstacle" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              A* path around a new obstacle
+            </p>
+          </div>
+        </div>
       </div>
     </div>
-
 
     <!-- Per-block latency breakdown (animated timeline) -->
         <br><br>
@@ -2537,62 +2313,6 @@ median retrieval rank of the correct motion
           </div>
         </figcaption>
 
-    <!-- Text prompt injection -->
-        <br></br>
-        <strong>Qualitative results: Text prompt injection</strong>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          We can change what the character does mid-sequence by injecting a new text prompt.
-          For example, starting from <em>"a person walking forward at a steady pace"</em> we
-          can inject <em>"a person sits criss-cross"</em> or <em>"a person starts walking
-          right"</em> and the motion adapts accordingly.
-        </p>
-        <div class="columns is-vcentered" style="margin: 1rem 0;">
-          <div class="column">
-            <img src="./assets/online_generation/online_text_1.gif"
-                 alt="Walking forward, then sits criss-cross" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              "a person walking forward" &rarr; "a person sits criss-cross"
-            </p>
-          </div>
-          <div class="column">
-            <img src="./assets/online_generation/online_text_2.gif"
-                 alt="Walking forward, then starts walking right" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              "a person walking forward" &rarr; "a person starts walking right"
-            </p>
-          </div>
-        </div>
-
-    <!-- Path constraint injection -->
-    <div class="columns is-centered" style="margin-top: 2rem;">
-      <div class="column is-full">
-        <strong>Qualitative results: Path constraint injection</strong>
-        <!-- TODO: generate more path-injection result GIFs and add them to the gallery below. -->
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          We can also inject a new path constraint mid-sequence. This is useful when the
-          environment changes, for instance when a new obstacle appears and the character
-          must reroute. We show two cases: waypoints specified manually, and waypoints
-          computed automatically with the A* algorithm to avoid obstacles.
-        </p>
-        <div class="columns is-vcentered" style="margin: 1rem 0;">
-          <div class="column has-text-centered">
-            <img src="./assets/online_generation/manual_path.gif"
-                 alt="Path injection with manually placed waypoints" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              Manual waypoints
-            </p>
-          </div>
-          <div class="column has-text-centered">
-            <img src="./assets/online_generation/a_star_path.gif"
-                 alt="Path injection with A* computed detour around obstacle" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              A* path around a new obstacle
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </section>
 
@@ -2711,13 +2431,154 @@ median retrieval rank of the correct motion
 </section>
 
 
-<!-- See ablations button -->
-<section class="section" style="padding-top: 0;">
-  <div class="container is-max-widescreen has-text-centered">
-    <a href="./ablations.html" class="button is-large is-rounded is-dark">
-      <span class="icon"><i class="fas fa-flask"></i></span>
-      <span>See more ablations...</span>
-    </a>
+<!-- See ablations teaser (preview card grid + CTA) -->
+<section class="section" id="ablations-teaser" style="padding-top: 1rem;">
+  <style>
+    .ablt-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #f6f9fc 0%, #eef3fa 100%);
+      border: 1px solid #d9e2ef;
+      border-radius: 18px;
+      padding: 2rem 2rem 1.75rem;
+    }
+    .ablt-header { text-align: center; margin-bottom: 1.5rem; }
+    .ablt-header h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1f2933;
+      margin-bottom: 0.4rem;
+    }
+    .ablt-header p {
+      color: #4a5568;
+      font-size: 1rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .ablt-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.85rem;
+      margin: 1.25rem 0 1.5rem;
+    }
+    .ablt-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      background: #fff;
+      border: 1px solid #dfe5f2;
+      border-radius: 12px;
+      padding: 1rem 1.1rem 0.95rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .ablt-card::after {
+      content: '\f105';  /* fa-angle-right */
+      font-family: 'Font Awesome 5 Free';
+      font-weight: 900;
+      position: absolute;
+      top: 0.95rem;
+      right: 1.05rem;
+      color: #cbd5e1;
+      font-size: 1.1rem;
+      transition: all 0.18s ease;
+    }
+    .ablt-card:hover {
+      transform: translateY(-3px);
+      border-color: #2596be;
+      box-shadow: 0 10px 22px rgba(37, 150, 190, 0.15);
+    }
+    .ablt-card:hover::after {
+      color: #2596be;
+      transform: translateX(3px);
+    }
+    .ablt-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    .ablt-title {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: #1f2933;
+      line-height: 1.25;
+      margin-top: 0.45rem;
+      padding-right: 1.4rem;
+    }
+    .ablt-hook {
+      color: #4a5568;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .ablt-cta {
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    .ablt-cta a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.7rem 1.6rem;
+      background: #2596be;
+      color: #fff;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(37, 150, 190, 0.3);
+      transition: all 0.18s ease;
+    }
+    .ablt-cta a:hover {
+      background: #1f7c9d;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 150, 190, 0.4);
+    }
+  </style>
+
+  <div class="container is-max-widescreen">
+    <div class="ablt-wrap">
+      <div class="ablt-header">
+        <h2>Want to go deeper? Explore the ablations</h2>
+        <p>Five experiments that justify the design choices behind C-T2M. Click any card to jump straight to the section.</p>
+      </div>
+
+      <div class="ablt-grid">
+        <a class="ablt-card" href="./ablations.html#neutral-encoder">
+          <span class="ablt-icon" style="background:#EB6E4C;"><i class="fas fa-scale-balanced"></i></span>
+          <span class="ablt-title">Is the headline comparison fair?</span>
+          <span class="ablt-hook">Re-evaluating with a neutral encoder collapses the 30-point gap to 2 points.</span>
+        </a>
+        <a class="ablt-card" href="./ablations.html#constraint-arch">
+          <span class="ablt-icon" style="background:#8A6FCB;"><i class="fas fa-route"></i></span>
+          <span class="ablt-title">Could we just inject waypoints into the body GPT?</span>
+          <span class="ablt-hook">We tried four end-to-end variants. The decoupled controller wins every metric.</span>
+        </a>
+        <a class="ablt-card" href="./ablations.html#vq-compression">
+          <span class="ablt-icon" style="background:#2596be;"><i class="fas fa-compress"></i></span>
+          <span class="ablt-title">How aggressively should the VQ-VAE compress time?</span>
+          <span class="ablt-hook">2×, 4×, 8×, 16×. 16× collapses; 4× converges fastest and to the lowest loss.</span>
+        </a>
+        <a class="ablt-card" href="./ablations.html#codec-reconstruction">
+          <span class="ablt-icon" style="background:#2BAD94;"><i class="fas fa-layer-group"></i></span>
+          <span class="ablt-title">Is the VQ-VAE creating a bottleneck?</span>
+          <span class="ablt-hook">Pure reconstruction with the residual VQ-VAE retains ~88% of GT R@3 and halves the FID.</span>
+        </a>
+        <a class="ablt-card" href="./ablations.html#decoder-sampling">
+          <span class="ablt-icon" style="background:#1f2933;"><i class="fas fa-dice"></i></span>
+          <span class="ablt-title">Is the decoding strategy important?</span>
+          <span class="ablt-hook">Greedy, top-p and top-k freeze the body on many captions. Multinomial is the only sampler that doesn't.</span>
+        </a>
+      </div>
+
+    </div>
   </div>
 </section>
 
@@ -2744,7 +2605,7 @@ median retrieval rank of the correct motion
           <h3 class="title is-5">Limitations and future work</h3>
           <p>
             Our body decoder inherits the foot-skating ceiling of frame-level discrete
-            codecs, which is the main remaining gap to Kimodo on the foot-contact suite.
+            VQ-VAEs, which is the main remaining gap to Kimodo on the foot-contact suite.
             A Kimodo-style foot re-projection post-processing step would close most of
             that gap and is left to future work. The recompose step also assumes a planar
             floor and a single root XZ trajectory, so it does not yet generalise to
