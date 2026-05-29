@@ -832,7 +832,7 @@
       and protocol details live in the <a href="./report.html#sec-experiments">Report</a>.
     </p>
 
-    <h3 class="title is-4" style="margin-top: 1rem;">1. Can the model generate good motions?</h3>
+    <h3 class="title is-4" style="margin-top: 1rem;">1. Text to Motion</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
       We first evaluate the unconstrained text-to-motion behaviour of our pipeline: given a
       caption alone (no path constraint), can the model generate plausible motion that matches
@@ -1811,62 +1811,516 @@ median retrieval rank of the correct motion
     </div>
 
 
-    <!-- Per-block latency breakdown -->
-        <br> </br>
+    <!-- Per-block latency breakdown (animated timeline) -->
+        <br><br>
         <strong>Per-block inference cost of the decoupled pipeline</strong>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Single A100 80GB, fp32, batch size 1, clip length 200 frames, mean ± standard
-          deviation over 50 measured runs after 10 warmups. End-to-end latency is 413 ms per
-          clip (2.4 clips per second). The autoregressive body sampler and the trajectory
-          controller together account for 96 % of the cost; the VQ decoder and the CPU
-          recompose step are effectively free.
+          From caption to motion in <strong>413&nbsp;ms</strong>. Press play to watch
+          the pipeline run: the playhead advances through each block at scaled
+          real-time, the current block lights up and its name appears below. The
+          path controller and the body GPT account for 96&nbsp;% of the wall-clock
+          cost.
         </p>
-        <!-- Plot view: share of end-to-end latency per block -->
-        <div class="chart-wrap" style="height: 260px; max-width: 760px; margin: 0 auto;">
-          <canvas id="latencyChart"></canvas>
+
+        <style>
+          .lat-timeline {
+            max-width: 880px;
+            margin: 0.5rem auto 0;
+            background: #f6f8fc;
+            border: 1px solid #e3e8f3;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem 1.5rem;
+          }
+          .lat-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.9rem;
+            flex-wrap: wrap;
+          }
+          .lat-prompt {
+            color: #4a5568;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: #fff;
+            border: 1px solid #e3e8f3;
+            border-radius: 6px;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.85rem;
+          }
+          .lat-current {
+            font-weight: 600;
+            color: #2596be;
+            transition: color 0.2s ease;
+          }
+          .lat-current.is-done { color: #2BAD94; }
+          .lat-track {
+            position: relative;
+            height: 38px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #e2e8f0;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            display: flex;
+          }
+          .lat-row {
+            display: grid;
+            grid-template-columns: 86px 1fr;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 0.4rem;
+          }
+          .lat-row + .lat-row { margin-top: 0.7rem; }
+          .lat-row-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: right;
+          }
+          .lat-row-label small {
+            display: block;
+            font-weight: 400;
+            color: #6b7280;
+            font-size: 0.72rem;
+            margin-top: 0.1rem;
+          }
+          @media (max-width: 540px) {
+            .lat-row { grid-template-columns: 1fr; }
+            .lat-row-label { text-align: left; }
+          }
+          .lat-segment {
+            height: 100%;
+            position: relative;
+            transition: filter 0.15s ease, transform 0.15s ease;
+            filter: saturate(0.55) brightness(1.05);
+            min-width: 28px;
+            border-right: 1px solid rgba(255,255,255,0.55);
+          }
+          .lat-segment:last-of-type { border-right: none; }
+          .lat-segment.is-active {
+            filter: saturate(1.3) brightness(1.05);
+            box-shadow: 0 0 0 2px rgba(31, 41, 51, 0.18) inset;
+          }
+          .lat-segment.is-done {
+            filter: saturate(1) brightness(1);
+          }
+          .lat-playhead {
+            position: absolute;
+            top: -6px;
+            bottom: -6px;
+            width: 2px;
+            background: #1f2933;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.6),
+                        0 4px 12px rgba(31, 41, 51, 0.3);
+            transform: translateX(-1px);
+            transition: opacity 0.2s ease;
+            z-index: 2;
+          }
+          .lat-playhead::before {
+            content: '';
+            position: absolute;
+            top: -6px; left: 50%;
+            transform: translateX(-50%);
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #1f2933;
+            box-shadow: 0 2px 6px rgba(31, 41, 51, 0.35);
+          }
+          .lat-axis {
+            position: relative;
+            height: 1.4rem;
+            margin-top: 0.4rem;
+            font-size: 0.72rem;
+            color: #6b7280;
+          }
+          .lat-axis span {
+            position: absolute;
+            transform: translateX(-50%);
+            white-space: nowrap;
+          }
+          .lat-axis span.anchor-start { transform: none; }
+          .lat-axis span.anchor-end   { transform: translateX(-100%); }
+          .lat-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+          }
+          .lat-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #2596be;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 0.5rem 1.1rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 8px rgba(37, 150, 190, 0.25);
+          }
+          .lat-btn:hover { background: #1f7c9d; transform: translateY(-1px); }
+          .lat-btn.is-secondary {
+            background: #fff;
+            color: #2c3e50;
+            border: 1px solid #d0d4da;
+            box-shadow: none;
+          }
+          .lat-btn.is-secondary:hover { background: #eef2fb; border-color: #2596be; color: #2596be; }
+          .lat-time {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.95rem;
+            color: #1f2933;
+            min-width: 5.5rem;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #e3e8f3;
+            border-radius: 6px;
+            padding: 0.3rem 0.7rem;
+          }
+          .lat-blocks-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.4rem 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.78rem;
+            color: #4a5568;
+          }
+          .lat-blocks-legend .legend-item {
+            display: inline-flex; align-items: center; gap: 0.4em;
+          }
+          .lat-blocks-legend .legend-swatch {
+            width: 0.85em; height: 0.85em; border-radius: 2px;
+          }
+        </style>
+
+        <div class="lat-timeline" id="lat-timeline">
+          <div class="lat-status">
+            <span class="lat-prompt">caption: "a person walks forward"</span>
+            <span class="lat-current" id="lat-current">Idle. Press play to run.</span>
+          </div>
+
+          <!-- Ours -->
+          <div class="lat-row">
+            <div class="lat-row-label">Ours<small>413 ms total</small></div>
+            <div>
+              <div class="lat-track" id="lat-track">
+                <div class="lat-playhead" id="lat-playhead" style="left: 0px;"></div>
+              </div>
+              <div class="lat-axis" id="lat-axis">
+                <span class="anchor-start" style="left: 0%;">0 ms</span>
+                <span class="anchor-end" style="left: 100%;">413 ms</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kimodo (baseline, much slower) -->
+          <div class="lat-row">
+            <div class="lat-row-label">Kimodo<small>4280 ms total</small></div>
+            <div>
+              <div class="lat-track" id="lat-track-k">
+                <div class="lat-playhead" id="lat-playhead-k" style="left: 0px;"></div>
+              </div>
+              <div class="lat-axis" id="lat-axis-k">
+                <span class="anchor-start" style="left: 0%;">0 ms</span>
+                <span class="anchor-end" style="left: 100%;">4280 ms</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lat-controls">
+            <button class="lat-btn" id="lat-play" type="button">
+              <i class="fas fa-play"></i><span id="lat-play-label">Play (x10 slower)</span>
+            </button>
+            <button class="lat-btn" id="lat-realtime" type="button" style="background:#8A6FCB; box-shadow:0 2px 8px rgba(138,111,203,0.25);">
+              <i class="fas fa-bolt"></i><span>Play (real time)</span>
+            </button>
+            <button class="lat-btn is-secondary" id="lat-reset" type="button">
+              <i class="fas fa-rotate-left"></i><span>Reset</span>
+            </button>
+            <span class="lat-time" id="lat-time">0.0 ms</span>
+          </div>
+          <div class="lat-blocks-legend" id="lat-blocks-legend"></div>
         </div>
+
         <script>
           (function () {
-            var BLOCKS = [
-              { name: 'CLIP caption encoder',            ms: 7.40,   pct: 1.79,  c: '#94a3b8' },
-              { name: 'Path controller (GRU)',     ms: 179.73, pct: 43.47, c: '#8A6FCB' },
-              { name: 'Body GPT autoregressive sampling', ms: 217.00, pct: 52.49, c: '#2596be' },
-              { name: 'VQ decoder',                      ms: 1.51,   pct: 0.37,  c: '#2BAD94' },
-              { name: 'Recompose / reprojection (CPU)',  ms: 7.76,   pct: 1.88,  c: '#cbd5e1' }
+            // Two tracks: Ours (5 blocks) and Kimodo (1 block).
+            // Each track has its own internal time axis filling 100% of its bar width.
+            // In real-time mode, wall ms = virtual ms, so Ours finishes ~10x sooner than Kimodo (visible race).
+            var OURS_BLOCKS = [
+              { name: 'CLIP caption encoder',      ms: 7.40,   c: '#F2B341', short: 'Encoding caption with CLIP' },
+              { name: 'Path controller (GRU)',     ms: 179.73, c: '#8A6FCB', short: 'Rolling out the root XZ path' },
+              { name: 'Body GPT (autoregressive)', ms: 217.00, c: '#2596be', short: 'Sampling 51 motion tokens' },
+              { name: 'VQ decoder',                ms: 1.51,   c: '#2BAD94', short: 'Decoding tokens to motion' },
+              { name: 'Recompose (CPU)',           ms: 7.76,   c: '#EB6E4C', short: 'Warping body onto controller path' }
             ];
-            function draw() {
-              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
-              var el = document.getElementById('latencyChart');
-              if (!el) { return setTimeout(draw, 50); }
-              new Chart(el, {
-                type: 'bar',
-                data: {
-                  labels: BLOCKS.map(function (b) { return b.name; }),
-                  datasets: [{
-                    label: '% of total latency',
-                    data: BLOCKS.map(function (b) { return b.pct; }),
-                    backgroundColor: BLOCKS.map(function (b) { return b.c; })
-                  }]
+            var KIMODO_BLOCKS = [
+              { name: 'Diffusion (100 DDIM steps)', ms: 4280, c: '#94a3b8', short: 'Kimodo diffusion sampling' }
+            ];
+
+            function makeTrack(cfg) {
+              // cfg: { blocks, trackId, axisId, playheadId }
+              var blocks = cfg.blocks;
+              var total = blocks.reduce(function (s, b) { return s + b.ms; }, 0);
+              var acc = 0;
+              blocks.forEach(function (b) { b.start = acc; b.end = acc + b.ms; acc = b.end; });
+
+              var trackEl    = document.getElementById(cfg.trackId);
+              var axisEl     = document.getElementById(cfg.axisId);
+              var playheadEl = document.getElementById(cfg.playheadId);
+              if (!trackEl || !axisEl || !playheadEl) return null;
+
+              var segEls = [];
+              blocks.forEach(function (b, i) {
+                var seg = document.createElement('div');
+                seg.className = 'lat-segment';
+                seg.style.flex = b.ms + ' 0 28px';
+                seg.style.background = b.c;
+                seg.title = b.name + ' (' + b.ms.toFixed(2) + ' ms)';
+                trackEl.insertBefore(seg, playheadEl);
+                segEls.push(seg);
+              });
+
+              function virtualMsToX(virtualMs) {
+                var i = 0;
+                while (i < blocks.length - 1 && virtualMs > blocks[i].end) i++;
+                var x = 0;
+                for (var j = 0; j < i; j++) x += segEls[j].offsetWidth;
+                var b = blocks[i];
+                var frac = b.ms > 0 ? (virtualMs - b.start) / b.ms : 0;
+                if (frac < 0) frac = 0;
+                if (frac > 1) frac = 1;
+                x += segEls[i].offsetWidth * frac;
+                return x;
+              }
+
+              function buildAxisTicks() {
+                Array.from(axisEl.querySelectorAll('span.tick')).forEach(function (n) { n.remove(); });
+                blocks.forEach(function (b, i) {
+                  if (i === blocks.length - 1) return;
+                  var tk = document.createElement('span');
+                  tk.className = 'tick';
+                  tk.style.left = virtualMsToX(b.end) + 'px';
+                  tk.textContent = Math.round(b.end) + ' ms';
+                  axisEl.appendChild(tk);
+                });
+              }
+              buildAxisTicks();
+              setTimeout(buildAxisTicks, 50);
+              window.addEventListener('resize', buildAxisTicks);
+
+              return {
+                blocks: blocks,
+                total: total,
+                playheadEl: playheadEl,
+                segEls: segEls,
+                virtualMsToX: virtualMsToX,
+                applyVirtualMs: function (vMs) {
+                  playheadEl.style.left = virtualMsToX(vMs) + 'px';
+                  var activeIdx = -1;
+                  blocks.forEach(function (b, i) {
+                    if (vMs >= b.start && vMs < b.end) activeIdx = i;
+                  });
+                  segEls.forEach(function (seg, i) {
+                    seg.classList.toggle('is-active', i === activeIdx);
+                    seg.classList.toggle('is-done',   vMs >= blocks[i].end);
+                  });
+                  return activeIdx;
                 },
-                options: {
-                  indexAxis: 'y',
-                  responsive: true, maintainAspectRatio: false,
-                  scales: {
-                    x: { beginAtZero: true, suggestedMax: 60,
-                         title: { display: true, text: '% of 413 ms total' },
-                         grid: { color: 'rgba(0,0,0,0.05)' } },
-                    y: { grid: { display: false } }
-                  },
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: function (c) {
-                      var b = BLOCKS[c.dataIndex];
-                      return b.pct + '%, ' + b.ms.toFixed(2) + ' ms / clip'; } } }
-                  }
+                reset: function () {
+                  playheadEl.style.left = '0px';
+                  segEls.forEach(function (seg) { seg.classList.remove('is-active', 'is-done'); });
+                },
+                markDone: function () {
+                  playheadEl.style.left = virtualMsToX(total) + 'px';
+                  segEls.forEach(function (seg) {
+                    seg.classList.remove('is-active');
+                    seg.classList.add('is-done');
+                  });
                 }
+              };
+            }
+
+            function init() {
+              var legend = document.getElementById('lat-blocks-legend');
+              var playBtn   = document.getElementById('lat-play');
+              var playLabel = document.getElementById('lat-play-label');
+              var realtimeBtn = document.getElementById('lat-realtime');
+              var resetBtn  = document.getElementById('lat-reset');
+              var timeEl    = document.getElementById('lat-time');
+              var currentEl = document.getElementById('lat-current');
+              if (!playBtn || !resetBtn || !legend) return;
+
+              var ours = makeTrack({
+                blocks: OURS_BLOCKS,
+                trackId: 'lat-track',
+                axisId: 'lat-axis',
+                playheadId: 'lat-playhead'
+              });
+              var kimodo = makeTrack({
+                blocks: KIMODO_BLOCKS,
+                trackId: 'lat-track-k',
+                axisId: 'lat-axis-k',
+                playheadId: 'lat-playhead-k'
+              });
+              if (!ours || !kimodo) return;
+
+              // Legend: ours blocks + Kimodo entry
+              OURS_BLOCKS.forEach(function (b) {
+                var item = document.createElement('span');
+                item.className = 'legend-item';
+                item.innerHTML = '<span class="legend-swatch" style="background:' + b.c + ';"></span>' + b.name;
+                legend.appendChild(item);
+              });
+              var kItem = document.createElement('span');
+              kItem.className = 'legend-item';
+              kItem.innerHTML = '<span class="legend-swatch" style="background:' + KIMODO_BLOCKS[0].c + ';"></span>Kimodo diffusion';
+              legend.appendChild(kItem);
+
+              // ---- Animation state ----
+              // Both modes use a shared virtual-ms axis. The scrub factor is "wall ms per virtual ms";
+              // real-time = 1×, slow = 4× (so each block is readable, while preserving the 10× gap).
+              var SCRUB_FACTOR = 4;
+              var state = 'idle';    // idle | playing | paused | done
+              var mode  = 'scrub';   // 'scrub' or 'realtime'
+              var startedAtWall = 0;
+              var pausedAtWall  = 0;
+              var rafId = null;
+              var fallbackTimer = null;
+
+              function setPlayBtn(icon, label) {
+                playLabel.textContent = label;
+                var i = playBtn.querySelector('i');
+                if (i) i.className = 'fas fa-' + icon;
+              }
+
+              function setStatus(activeIdxOurs, oursDone, kimodoDone) {
+                if (oursDone && kimodoDone) {
+                  currentEl.textContent = 'Both done — Ours: 413 ms · Kimodo: 4280 ms (about 10× slower) ✓';
+                  currentEl.classList.add('is-done');
+                  return;
+                }
+                if (oursDone) {
+                  currentEl.textContent = 'Ours done in 413 ms ✓ — Kimodo still running…';
+                  currentEl.classList.remove('is-done');
+                  return;
+                }
+                if (activeIdxOurs >= 0) {
+                  var b = OURS_BLOCKS[activeIdxOurs];
+                  currentEl.textContent = b.short + '… (' + b.ms.toFixed(0) + ' ms)';
+                  currentEl.classList.remove('is-done');
+                }
+              }
+
+              function render(elapsedWall) {
+                // Wall ms per virtual ms (1 in real-time, SCRUB_FACTOR in slow mode)
+                var factor = (mode === 'realtime') ? 1 : SCRUB_FACTOR;
+                var virtualMs = elapsedWall / factor;
+                var oursVMs   = Math.min(virtualMs, ours.total);
+                var kimodoVMs = Math.min(virtualMs, kimodo.total);
+                var aIdx = ours.applyVirtualMs(oursVMs);
+                kimodo.applyVirtualMs(kimodoVMs);
+                var oursDone   = oursVMs   >= ours.total;
+                var kimodoDone = kimodoVMs >= kimodo.total;
+                timeEl.textContent = virtualMs.toFixed(1) + ' ms';
+                setStatus(aIdx, oursDone, kimodoDone);
+                return oursDone && kimodoDone;
+              }
+
+              function loop() {
+                if (state !== 'playing') return;
+                var elapsed = performance.now() - startedAtWall;
+                var done = render(elapsed);
+                if (!done) {
+                  rafId = requestAnimationFrame(loop);
+                } else {
+                  finish();
+                }
+              }
+
+              function finish() {
+                state = 'done';
+                cancelAnimationFrame(rafId);
+                if (fallbackTimer) { clearInterval(fallbackTimer); fallbackTimer = null; }
+                ours.markDone();
+                kimodo.markDone();
+                timeEl.textContent = '4280.0 ms';
+                currentEl.textContent = 'Both done — Ours: 413 ms · Kimodo: 4280 ms (about 10× slower) ✓';
+                currentEl.classList.add('is-done');
+                setPlayBtn('play', mode === 'realtime' ? 'Race again' : 'Replay (x10 slower)');
+              }
+
+              function startPlayback(newMode) {
+                if (state === 'done') reset();
+                mode = newMode;
+                if (state === 'paused') {
+                  startedAtWall = performance.now() - pausedAtWall;
+                } else {
+                  startedAtWall = performance.now();
+                }
+                state = 'playing';
+                setPlayBtn('pause', mode === 'realtime' ? 'Pause race' : 'Pause');
+                rafId = requestAnimationFrame(loop);
+
+                if (fallbackTimer) clearInterval(fallbackTimer);
+                fallbackTimer = setInterval(function () {
+                  if (state !== 'playing') return;
+                  var elapsed = performance.now() - startedAtWall;
+                  if (render(elapsed)) finish();
+                }, 40);
+              }
+
+              function pause() {
+                if (state !== 'playing') return;
+                cancelAnimationFrame(rafId);
+                if (fallbackTimer) { clearInterval(fallbackTimer); fallbackTimer = null; }
+                pausedAtWall = performance.now() - startedAtWall;
+                state = 'paused';
+                setPlayBtn('play', mode === 'realtime' ? 'Resume race' : 'Resume');
+              }
+
+              function reset() {
+                cancelAnimationFrame(rafId);
+                if (fallbackTimer) { clearInterval(fallbackTimer); fallbackTimer = null; }
+                state = 'idle';
+                pausedAtWall = 0;
+                ours.reset();
+                kimodo.reset();
+                timeEl.textContent = '0.0 ms';
+                currentEl.textContent = 'Idle. Press play to run.';
+                currentEl.classList.remove('is-done');
+                setPlayBtn('play', 'Play (x10 slower)');
+              }
+
+              playBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (state === 'playing') pause();
+                else startPlayback('scrub');
+              });
+              realtimeBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (state === 'playing') pause();
+                reset();
+                startPlayback('realtime');
+              });
+              resetBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                reset();
               });
             }
-            draw();
+
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', init);
+            } else {
+              init();
+            }
           })();
         </script>
 
