@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="C-T2M: a decoupled text-to-motion pipeline that follows user-specified XZ path constraints.">
+  <meta name="keywords" content="text-to-motion, motion generation, controllable motion, T2M-GPT">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C-T2M Report</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+
+  <style>
+    /* Paper-style report-specific overrides */
+    .report-section {
+      padding-top: 2rem;
+      padding-bottom: 1rem;
+    }
+    .report-section h2.section-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1f2933;
+      border-bottom: 2px solid #2b4eff;
+      padding-bottom: 0.35rem;
+      margin-bottom: 1rem;
+    }
+    .report-section h3.subsection-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .report-body {
+      font-size: 1rem;
+      line-height: 1.65;
+      color: #2c3e50;
+      text-align: justify;
+    }
+    .report-body p { margin-bottom: 0.9rem; }
+    .report-body ul, .report-body ol { margin-left: 1.5rem; margin-bottom: 0.9rem; }
+    .report-body li { margin-bottom: 0.3rem; }
+    .report-figure {
+      text-align: center;
+      margin: 1.25rem auto;
+    }
+    .report-figure img { max-width: 100%; border-radius: 6px; }
+    .report-figure figcaption {
+      font-size: 0.9rem;
+      color: #4a4a4a;
+      margin-top: 0.5rem;
+      text-align: justify;
+    }
+    .report-table-wrap {
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    .report-table-wrap table {
+      font-size: 0.92rem;
+    }
+    .report-table-wrap caption {
+      caption-side: top;
+      font-size: 0.9rem;
+      color: #4a4a4a;
+      margin-bottom: 0.4rem;
+      text-align: left;
+    }
+    .nav-anchor {
+      display: block;
+      position: relative;
+      top: -90px;
+      visibility: hidden;
+    }
+    .report-toc {
+      background: #f6f7fa;
+      border: 1px solid #e0e3e8;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .report-toc h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .report-toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      column-count: 2;
+      column-gap: 2rem;
+    }
+    .report-toc li { margin-bottom: 0.2rem; }
+    .report-toc a {
+      color: #2b4eff;
+      text-decoration: none;
+    }
+    .report-toc a:hover { text-decoration: underline; }
+    @media (max-width: 700px) {
+      .report-toc ol { column-count: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="./index.html">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span>Home</span>
+      </a>
+      <a class="navbar-item" href="./ablations.html">
+        <span class="icon"><i class="fas fa-flask"></i></span>
+        <span>Ablations</span>
+      </a>
+      <a class="navbar-item is-active" href="./report.html">
+        <span class="icon"><i class="fas fa-file-alt"></i></span>
+        <span>Report</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title" style="margin-bottom: 0.5rem;">
+            C-T2M: Controllable Autoregressive Text-to-Motion Generation
+          </h1>
+          <p class="is-size-6" style="color:#888; margin-bottom: 1rem;">
+            Project Report &middot; CS-503, EPFL, 2026
+          </p>
+          <div class="is-size-6 publication-authors">
+            <span class="author-block">
+              <a href="https://mpilligua.github.io">Maria Pilligua</a><sup>1, 2</sup> (444123),
+            </span>
+            <span class="author-block">
+              <a href="">Pau Amargant</a><sup>1</sup> (408221),
+            </span>
+            <span class="author-block">
+              <a href="">Miquel Lopez</a><sup>1</sup> (415700),
+            </span>
+            <span class="author-block">
+              <a href="">Nahush Rajesh Kolhe</a><sup>1</sup> (407562)
+            </span>
+          </div>
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>1</sup>EPFL</span>
+            <span class="author-block"><sup>2</sup>CVLab</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" style="padding-top: 0;">
+  <div class="container is-max-desktop">
+
+    <!-- Table of contents -->
+    <div class="report-toc">
+      <h4>Contents</h4>
+      <ol>
+        <li><a href="#sec-abstract">Abstract</a></li>
+        <li><a href="#sec-intro">Introduction</a></li>
+        <li><a href="#sec-related">Related Work</a></li>
+        <li><a href="#sec-method">Method</a></li>
+        <li><a href="#sec-experiments">Experiments</a></li>
+        <li><a href="#sec-conclusion">Conclusion &amp; Limitations</a></li>
+        <li><a href="#sec-contributions">Individual Contributions</a></li>
+        <li><a href="#sec-references">References</a></li>
+      </ol>
+    </div>
+
+
+    <!-- ABSTRACT -->
+    <a class="nav-anchor" id="sec-abstract"></a>
+    <div class="report-section">
+      <h2 class="section-title">Abstract</h2>
+      <div class="report-body">
+        <p>
+          We present <strong>C-T2M</strong>, a decoupled approach to controllable
+          text-to-motion generation that combines an autoregressive language model over
+          discrete motion tokens with an explicit trajectory controller. Our pipeline
+          consists of three components: (i) a closed-loop GRU-based <em>trajectory
+          controller</em> that generates smooth XZ root paths from user-specified
+          waypoints and captions, (ii) a caption-driven <em>body GPT</em> that
+          synthesizes motion tokens over a learned VQ-VAE codebook conditioned on text,
+          and (iii) a deterministic <em>recompose</em> step that blends the body's
+          predicted gait onto the controller's trajectory. By decoupling path control
+          from body motion generation, our system runs in 413&nbsp;ms per 200-frame clip,
+          an order of magnitude faster than the state-of-the-art diffusion baseline
+          Kimodo, while following user constraints with 3.94&nbsp;cm root error
+          (vs.&nbsp;Kimodo's 4.88&nbsp;cm). We train on the BONES dataset and evaluate
+          against Kimodo on both the Repetition Text-to-Motion split and a dedicated
+          constraint-following protocol. We additionally study a residual VQ-VAE codec
+          (RVQ-VAE) and ablate the constraint-conditioning architecture, the temporal
+          compression rate, the heading representation, and the token sampling strategy.
+        </p>
+      </div>
+    </div>
+
+
+    <!-- INTRODUCTION -->
+    <a class="nav-anchor" id="sec-intro"></a>
+    <div class="report-section">
+      <h2 class="section-title">1. Introduction</h2>
+      <div class="report-body">
+        <p>
+          Generating realistic human motion from natural-language descriptions has made
+          significant progress in recent years. Diffusion-based systems such as
+          <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a> are
+          now capable of producing high-fidelity human motion conditioned on free-form
+          text, and additionally support a rich set of kinematic constraints
+          (pose, joint trajectory, root path). Kimodo is trained on the
+          <a href="https://bones.studio/info/seed-license">BONES</a> dataset, a
+          large-scale motion capture corpus roughly ten times larger than the commonly
+          used <a href="https://ericguo5513.github.io/text-to-motion/">HumanML3D</a>
+          benchmark, which enables this quality improvement.
+        </p>
+        <p>
+          Despite these advances, current state-of-the-art systems share a common
+          limitation: they generate the entire motion clip in a single, expensive
+          forward pass (typically requiring tens to hundreds of denoising steps).
+          This makes them unsuitable for <em>online</em> settings, where the user
+          wants to update waypoints, captions, or scene geometry mid-execution, and
+          for <em>interactive</em> settings, where latency directly bounds usability.
+          A robotics policy, a digital twin, or an interactive game character all
+          need motion generation that reacts to changing input without recomputing
+          everything from scratch.
+        </p>
+
+        <h3 class="subsection-title">1.1. Problem Statement</h3>
+        <p>
+          We design a controllable text-to-motion model that takes as input
+          <em>(i)</em> a free-form caption and <em>(ii)</em> a root XZ path constraint
+          (either a small set of waypoints or a dense trajectory), and produces
+          frame-by-frame 3D joint positions of a humanoid skeleton that obey both
+          inputs. Our goals are:
+        </p>
+        <ul>
+          <li>
+            Follow root XZ path constraints accurately, comparable to a diffusion
+            baseline of much higher capacity.
+          </li>
+          <li>
+            Run substantially faster than diffusion baselines, in particular fast
+            enough to recompute the response to a new constraint without restarting
+            the rollout.
+          </li>
+          <li>
+            Maintain motion quality (text alignment, foot-contact behaviour) at a
+            level acceptable for downstream use.
+          </li>
+        </ul>
+
+        <h3 class="subsection-title">1.2. Contributions</h3>
+        <ul>
+          <li>
+            A <strong>decoupled architecture</strong> that separates trajectory
+            control (a small GRU) from body motion generation (a Transformer over
+            VQ-VAE tokens), connected by a deterministic recompose step.
+          </li>
+          <li>
+            A <strong>closed-loop trajectory controller</strong> trained with a
+            travel-relative heading loss plus a still-frame target that fixes the
+            spin-on-spot pathology common to absolute-heading parameterisations.
+          </li>
+          <li>
+            A <strong>residual VQ-VAE (RVQ-VAE)</strong> codec that lifts
+            reconstruction-side R-Precision by 9-12 points over a single VQ-VAE
+            baseline, halves the reconstruction FID, and reduces foot-skating.
+          </li>
+          <li>
+            A systematic <strong>ablation</strong> of constraint-conditioning
+            architectures showing that our decoupled design dominates four
+            end-to-end variants on every constraint-following metric we report.
+          </li>
+          <li>
+            An evaluation against
+            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a>
+            on a 256-testcase path-following protocol, where our system reaches
+            3.94&nbsp;cm 2D root error versus Kimodo's 4.88&nbsp;cm at roughly
+            10&times; lower latency.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <!-- RELATED WORK -->
+    <a class="nav-anchor" id="sec-related"></a>
+    <div class="report-section">
+      <h2 class="section-title">2. Related Work</h2>
+      <div class="report-body">
+        <p>
+          Recent text-to-motion literature has been dominated by diffusion models
+          (<a href="https://guytevet.github.io/mdm-page/">MDM</a>,
+          <a href="https://mingyuan-zhang.github.io/projects/MotionDiffuse.html">MotionDiffuse</a>,
+          FLAME,
+          <a href="https://mingyuan-zhang.github.io/projects/ReMoDiffuse.html">ReMoDiffuse</a>),
+          which synthesise high-fidelity human movement by iteratively denoising
+          continuous latent representations. A key advantage of the diffusion
+          formulation is its amenability to complex spatial and temporal
+          conditioning. Frameworks such as
+          <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a>,
+          <a href="https://neu-vi.github.io/omnicontrol/">OmniControl</a> and
+          <a href="https://priormdm.github.io/priorMDM-page/">PriorMDM</a>
+          leverage this capability to introduce fine-grained kinematic constraints,
+          including end-effector trajectories, root paths, and keyframe poses,
+          typically via guided denoising or latent inpainting. However, their
+          reliance on multiple reverse diffusion steps incurs high inference
+          latency, severely limiting their deployment in real-time, dynamic
+          environments.
+        </p>
+        <p>
+          To overcome this latency bottleneck, a parallel line of research
+          reformulates motion generation as a discrete sequence prediction task.
+          <a href="https://mael-zys.github.io/T2M-GPT/">T2M-GPT</a> pioneered this
+          approach by compressing continuous 3D motion into a discrete vocabulary
+          via a VQ-VAE and using a causal Transformer to autoregressively predict
+          motion tokens from text. This paradigm has inspired numerous variants,
+          including <a href="https://motion-gpt.github.io/">MotionGPT</a> for
+          unified multimodal tasks and
+          <a href="https://arxiv.org/abs/2312.10628">T2M-HiFiGPT</a> for enhanced
+          artifact reduction. Notably, while successors like
+          <a href="https://ericguo5513.github.io/momask/">MoMask</a> achieve
+          superior generation fidelity by employing masked bidirectional
+          modelling, this non-causal iterative refinement process breaks the
+          strict left-to-right generation required for online, streaming
+          applications. Consequently, we select the strictly causal T2M-GPT
+          architecture as our baseline and extend it with an explicit, decoupled
+          trajectory controller.
+        </p>
+      </div>
+    </div>
+
+
+    <!-- METHOD -->
+    <a class="nav-anchor" id="sec-method"></a>
+    <div class="report-section">
+      <h2 class="section-title">3. Method</h2>
+      <div class="report-body">
+        <p>
+          At its core, text-to-motion predicts the 3D position of each joint of a
+          humanoid skeleton, frame by frame, from a natural-language description. Our
+          approach extends the T2M-GPT baseline with one key addition: an
+          <strong>explicit path controller</strong> that lets the model follow spatial
+          constraints, instead of leaving the trajectory entirely up to the language
+          model. The pipeline consists of four blocks, summarised in Figure 1, that we
+          describe in detail below.
+        </p>
+
+        <figure class="report-figure">
+          <img src="./static/images/architecture_final.png"
+               alt="C-T2M architecture diagram">
+          <figcaption>
+            <strong>Figure 1.</strong> C-T2M decoupled architecture. A VQ-VAE is
+            pretrained to encode motion into a discrete codebook. The caption is
+            encoded by CLIP and the path waypoints by a small linear projection.
+            A GRU path controller predicts the next (x, y, heading) at each frame.
+            A Transformer decoder autoregressively predicts motion tokens, conditioned
+            on the caption and on the controller's injected path. The predicted tokens
+            are decoded back to motion through the VQ-VAE decoder, and the controller's
+            trajectory is then blended onto the result by a deterministic recompose
+            step.
+          </figcaption>
+        </figure>
+
+        <h3 class="subsection-title">3.1. VQ-VAE Motion Codec</h3>
+        <p>
+          The body decoder is a temporal vector-quantised autoencoder (VQ-VAE). The
+          encoder maps a window of raw motion features into a sequence of discrete
+          tokens drawn from a learned codebook; the decoder reconstructs continuous
+          motion from those tokens. The autoregressive language model is then trained
+          to predict these tokens, so "predicting motion" is reduced to "predicting
+          codebook indices". We use a codebook of 2048 entries, a 2x temporal
+          downsampling rate, and a window size of 64 frames. The choice of
+          compression rate is studied in Section 3.4 and on the
+          <a href="./ablations.html">Ablations</a> page; 4x converges to the lowest
+          reconstruction loss and the highest per-clip code diversity, while 2x
+          retains a denser token stream that the autoregressive model benefits from.
+        </p>
+
+        <h3 class="subsection-title">3.2. Residual VQ-VAE (RVQ-VAE)</h3>
+        <p>
+          We additionally explore a <strong>residual</strong> VQ-VAE in which
+          quantisation is performed at <em>K</em> hierarchical levels: at each level,
+          the residual error left by the previous level is itself quantised by a
+          dedicated codebook. The body language model is then adapted to predict
+          <em>K</em> token streams per frame. We use <em>K</em> = 4 levels with 1024
+          codebook entries per level, trained with a cosine-weighted reconstruction
+          loss that emphasises higher-frequency details at deeper levels. On the
+          codec reconstruction benchmark this lifts R-Precision by roughly 9 points
+          on the Overview split and 12 points on the Timeline-multi split, halves the
+          FID, and shaves about 6&nbsp;cm/s off the foot-skating; full numbers are
+          reported in the <a href="./ablations.html#codec-reconstruction">codec
+          reconstruction ablation</a>.
+        </p>
+
+        <h3 class="subsection-title">3.3. Text and Path Conditioning</h3>
+        <p>
+          The caption is embedded by a frozen <strong>CLIP</strong> text encoder
+          (ViT-B/32) into a single 512-dimensional vector. Path constraints are
+          encoded by a small linear projection that takes, for each frame, the next
+          four waypoints (x, y, t) expressed relative to the skeleton's current
+          position, plus its absolute position and current frame index. This compact
+          representation is shared between the trajectory controller and the body
+          GPT.
+        </p>
+
+        <h3 class="subsection-title">3.4. Trajectory Controller</h3>
+        <p>
+          The trajectory controller is a closed-loop <strong>GRU</strong> (about 2&nbsp;M
+          parameters) that takes the caption embedding and path conditioning features
+          and predicts, for each frame of the rollout, the next root (x, y) position
+          and a heading angle. It is trained to minimise the regression loss to the
+          ground-truth waypoint trajectory, plus a heading-smoothness regulariser
+          that removes per-frame jitter and an arrive-radius gating that prevents
+          orbiting around the final waypoint. The heading parameterisation is
+          <em>travel-relative</em> (turn rate w.r.t. the direction of motion) rather
+          than absolute world-frame yaw; on still frames, where the travel direction
+          is ill-defined, we add an explicit target-zero loss on the predicted turn
+          rate, which fixes the spin-on-spot pathology that arises with the naive
+          travel-relative formulation. See the <a href="./ablations.html#heading">heading
+          representation ablation</a>.
+        </p>
+
+        <h3 class="subsection-title">3.5. Body GPT</h3>
+        <p>
+          The body GPT is a causal <strong>Transformer decoder</strong> over the
+          VQ-VAE token vocabulary. At each step it predicts the next motion token
+          conditioned on (a) the CLIP caption embedding, (b) the path conditioning
+          features at the current frame, and (c) the previously predicted tokens.
+          We use a 9-layer decoder with embedding dimension 1024, 16 attention heads,
+          a block size of 51 tokens, and a feed-forward expansion factor of 4.
+          Because the trajectory is provided to the GPT through the path
+          conditioning, the GPT is no longer in charge of global position: it is
+          conditioned on it, and instead focuses on producing motion that is
+          consistent with the chosen trajectory. Trajectory comes from the controller,
+          naturalness from the GPT.
+        </p>
+        <p>
+          At inference time we sample tokens with a sliding window of size SW = 25.
+          We use plain <em>multinomial</em> sampling rather than greedy, top-<em>p</em>,
+          or top-<em>k</em>; the <a href="./ablations.html#decoder">decoder ablation</a>
+          shows that multinomial is the only sampler whose body motion does not
+          collapse to a held pose on a non-trivial fraction of captions.
+        </p>
+
+        <h3 class="subsection-title">3.6. Deterministic Recompose</h3>
+        <p>
+          Finally, a deterministic <strong>recompose</strong> step blends the body
+          GPT's predicted motion onto the controller's trajectory. The GPT outputs a
+          locally-coherent gait; the controller produces a globally-correct root
+          trajectory. The recompose step warps the body's local frames so that the
+          root XZ position matches the controller's rollout exactly, while leaving
+          the limbs, heading, and vertical motion untouched. This keeps the body GPT
+          decoupled from the global path: it does not need to memorise long-range
+          path-following, the controller does. Because the recompose step is closed
+          form, it adds negligible latency.
+        </p>
+      </div>
+    </div>
+
+
+    <!-- EXPERIMENTS -->
+    <a class="nav-anchor" id="sec-experiments"></a>
+    <div class="report-section">
+      <h2 class="section-title">4. Experiments</h2>
+      <div class="report-body">
+        <p>
+          We evaluate C-T2M against Kimodo on the BONES benchmark in two settings:
+          standard text-to-motion (Section 4.2) and constraint following (Section
+          4.3). We then summarise the key ablations (Section 4.4), with full results
+          on the <a href="./ablations.html">Ablations</a> page.
+        </p>
+
+        <h3 class="subsection-title">4.1. Setup</h3>
+        <p>
+          We train on the <strong>BONES</strong> dataset (full 127k clips). All
+          quantitative results in this section use the BONES <em>Repetition
+          Text-to-Motion</em> split (6,539 testcases), with held-out captions. We
+          run stages 2-5 of the Kimodo benchmark pipeline (token decoding, motion
+          synthesis, TMR text-encoder embedding, R-Precision and FID computation,
+          and foot-skate scoring), so that all systems are evaluated by exactly the
+          same downstream code. Latency is measured end-to-end on a single A100
+          80&nbsp;GB GPU at fp32, batch size 1, 200-frame clip, averaged over 50
+          runs with 10 warm-ups.
+        </p>
+
+        <h3 class="subsection-title">4.2. Main Results (Text-to-Motion vs. Kimodo)</h3>
+        <p>
+          Table 1 reports the headline comparison on the Repetition Text-to-Motion
+          split. Our 9L single-VQ system reaches R@3 = 58.66 on the Overview split,
+          a 10&times; latency reduction over Kimodo (413&nbsp;ms vs. 4280&nbsp;ms per
+          clip) and roughly 20&times; fewer effective parameters (395&nbsp;M vs.
+          8.3&nbsp;B). We accept a quality deficit on this generic-text benchmark,
+          driven by a much narrower training vocabulary (walk-and-jog subset for our
+          baseline ablations; full BONES for the headline system) and by a single
+          autoregressive pass per clip instead of 100 denoising steps. The
+          foot-skate gap reflects the codec ceiling on frame-level discrete codecs;
+          a Kimodo-style foot-contact re-projection step would close most of this
+          gap and is left to future work.
+        </p>
+
+        <div class="report-table-wrap">
+          <table class="table is-bordered is-striped is-narrow is-fullwidth has-text-centered">
+            <caption><strong>Table 1.</strong> Main results on the BONES Repetition Text-to-Motion split (Overview, 2380 testcases). Higher is better for R@3 and Contact; lower for FID, Skate, and latency. See <a href="./index.html#sec-experiments">Home / Experiments</a> for the full three-split table including Timeline-single and Timeline-multi.</caption>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Params (M)</th>
+                <th>Latency (ms/clip) &darr;</th>
+                <th>R@3 &uarr;</th>
+                <th>FID &darr;</th>
+                <th>Skate &darr;</th>
+                <th>Cont &uarr;</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ground Truth</td>
+                <td>&ndash;</td><td>&ndash;</td>
+                <td>94.03</td><td>0.000</td><td>2.11</td><td>1.000</td>
+              </tr>
+              <tr>
+                <td>Kimodo-SOMA-SEED-v1.1</td>
+                <td>8 300</td><td>4280</td>
+                <td>88.07</td><td>0.007</td><td>3.74</td><td>0.978</td>
+              </tr>
+              <tr>
+                <td><strong>Ours (decoupled, 9L sVQ)</strong></td>
+                <td><strong>395</strong></td><td><strong>413</strong></td>
+                <td><strong>58.66</strong></td><td><strong>0.191</strong></td><td><strong>33.07</strong></td><td><strong>0.617</strong></td>
+              </tr>
+              <tr>
+                <td>Ours (RVQ-GPT)</td>
+                <td>565</td><td>486</td>
+                <td>18.74</td><td>0.644</td><td>39.24</td><td>0.481</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">4.3. Constraint Following vs. Kimodo</h3>
+        <p>
+          On Kimodo's dedicated path-following split
+          (<code>content/constraints_withtext/root/path_2dpos</code>, 256
+          testcases), C-T2M reaches a 2D root error of 3.94&nbsp;cm, slightly below
+          Kimodo's 4.88&nbsp;cm on the same testcases under the same evaluator.
+          Root-accuracy (fraction of frames within 10&nbsp;cm of the target path)
+          is 95.7&nbsp;% for ours versus 93.4&nbsp;% for Kimodo. Foot-skate and
+          contact consistency favour Kimodo, consistent with the codec ceiling
+          discussed in Section 4.2.
+        </p>
+
+        <div class="report-table-wrap">
+          <table class="table is-bordered is-striped is-narrow is-fullwidth has-text-centered">
+            <caption><strong>Table 2.</strong> Constraint-following head-to-head vs. Kimodo on the 256-testcase root XZ subset. All values from a single shared evaluator.</caption>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>2D root error (cm) &darr;</th>
+                <th>Acc &le; 10 cm &uarr;</th>
+                <th>Foot skate &darr;</th>
+                <th>Contact &uarr;</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ground truth (lower bound)</td>
+                <td>3.76</td><td>1.000</td><td>0.103</td><td>1.000</td>
+              </tr>
+              <tr>
+                <td>Kimodo-SOMA-SEED-v1.1 (DDIM 100)</td>
+                <td>4.88</td><td>0.934</td><td>0.117</td><td>0.966</td>
+              </tr>
+              <tr>
+                <td><strong>Ours (decoupled)</strong></td>
+                <td><strong>3.94</strong></td><td><strong>0.957</strong></td><td>0.583</td><td>0.582</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">4.4. Ablations</h3>
+        <p>
+          The full set of ablation tables and qualitative comparisons lives on the
+          <a href="./ablations.html">Ablations</a> page. The key findings are:
+        </p>
+        <ul>
+          <li>
+            <strong>Constraint-conditioning architecture.</strong> Our decoupled
+            controller-and-recompose design dominates four end-to-end variants
+            (static cross-attention, per-position relative cross-attention, prepend
+            constraint tokens, body-GPT-without-constraint) on every constraint-
+            following and quality metric, achieving roughly 2.5-4&times; lower root
+            error and 2-3&times; higher motion-to-motion retrieval recall in a
+            neutral encoder space.
+          </li>
+          <li>
+            <strong>Heading representation.</strong> A travel-relative heading loss
+            with a still-frame target halves the all-frame heading error compared to
+            the naive travel-relative formulation, at a modest cost in waypoint
+            accuracy. This fixes the spin-on-spot pathology on non-locomotion
+            captions.
+          </li>
+          <li>
+            <strong>VQ-VAE temporal compression.</strong> 4&times; downsampling
+            converges fastest and to the lowest reconstruction loss with the
+            highest unique-codes-per-clip; 16&times; collapses on reconstruction.
+          </li>
+          <li>
+            <strong>Codec reconstruction.</strong> RVQ-VAE retains roughly 88&nbsp;%
+            of ground-truth R@3 on the Overview split and 87&nbsp;% on
+            Timeline-multi, halves FID, and reduces foot-skate compared to a single
+            VQ-VAE baseline.
+          </li>
+          <li>
+            <strong>Body decoder sampler.</strong> Multinomial sampling dominates
+            greedy, top-<em>p</em>, top-<em>k</em>, and top-<em>p</em>-with-
+            repetition-penalty on every motion-quality metric and is the only
+            sampler that never collapses to a held pose.
+          </li>
+        </ul>
+
+        <h3 class="subsection-title">4.5. Qualitative Results</h3>
+        <p>
+          Beyond the quantitative tables, we report a representative set of
+          qualitative samples. All clips are rendered with pyrender on top of the
+          SOMA skeleton; foot contacts are post-processed with the Kimodo
+          motion-correction solver. Captions are held out from training.
+        </p>
+
+        <h4 style="font-weight:600; color:#2c3e50; margin-top:1rem; margin-bottom:0.5rem;">4.5.1 Free text-to-motion samples</h4>
+        <p>
+          A grid of free-generation samples from our body GPT (single-VQ codebook
+          2048, sliding window 25, multinomial sampling). Each clip is produced
+          from the caption alone; no path constraint is given.
+        </p>
+
+        <div class="columns is-multiline" style="margin-top: 0.75rem;">
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/qualitative_t2m/flip_180_R_001__A416_M.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              <em>&ldquo;a person executes a front flip with a smooth landing&rdquo;</em>
+            </p>
+          </div>
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/qualitative_t2m/high_jump_R_004__A310.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              <em>&ldquo;high jump over a moving pole in one place&rdquo;</em>
+            </p>
+          </div>
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/qualitative_t2m/dance_retro_charleston_jump_R_001__A308_M.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              <em>&ldquo;lively charleston dance with a forward leg kick&rdquo;</em>
+            </p>
+          </div>
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/qualitative_t2m/throw_ball_R_002__A346.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              <em>&ldquo;a neutral throw and release of a ball&rdquo;</em>
+            </p>
+          </div>
+        </div>
+        <p class="is-size-7" style="color:#666; text-align:center; margin-top:0.4rem;">
+          <strong>Figure 2.</strong> Free text-to-motion samples on held-out captions.
+        </p>
+
+        <h4 style="font-weight:600; color:#2c3e50; margin-top:1.5rem; margin-bottom:0.5rem;">4.5.2 Model comparison: Kimodo vs. RVQ-GPT vs. VQ-GPT</h4>
+        <p>
+          Side-by-side comparison of three text-to-motion models on the same
+          held-out captions. Kimodo is a diffusion-based baseline (state-of-the-art
+          quality, slow); VQ-GPT is our single-codebook autoregressive model;
+          RVQ-GPT is our residual-quantisation variant.
+        </p>
+
+        <figure class="report-figure">
+          <video autoplay muted loop playsinline controls style="width:100%; border-radius:8px; background:#000;">
+            <source src="./0004__merged.mp4" type="video/mp4">
+          </video>
+          <figcaption>
+            <strong>Figure 3.</strong> Example A. RVQ-GPT (left) | VQ-GPT (center) |
+            Kimodo (right). All three systems generate motion from the same caption;
+            Kimodo produces the smoothest result while our two systems trade
+            quality for an order-of-magnitude latency reduction.
+          </figcaption>
+        </figure>
+
+        <figure class="report-figure">
+          <video autoplay muted loop playsinline controls style="width:100%; border-radius:8px; background:#000;">
+            <source src="./0072__merged.mp4" type="video/mp4">
+          </video>
+          <figcaption>
+            <strong>Figure 4.</strong> Example B. Same layout as Figure 3.
+          </figcaption>
+        </figure>
+
+        <h4 style="font-weight:600; color:#2c3e50; margin-top:1.5rem; margin-bottom:0.5rem;">4.5.3 Constraint following</h4>
+        <p>
+          Walking along several user-specified XZ paths. The GRU controller rolls
+          out the trajectory; the body GPT supplies the gait; the recompose step
+          stitches them together. The same body GPT handles sparse waypoints,
+          dense trajectories, and curves without retraining.
+        </p>
+
+        <div class="columns is-multiline" style="margin-top: 0.75rem;">
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/constraint_exports/walk__spiral__dense_raw_trim1p5s.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              Dense spiral path.
+            </p>
+          </div>
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/constraint_exports/walk__wavy__dense_raw.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              Wavy dense trajectory.
+            </p>
+          </div>
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/constraint_exports/walk__arc_right__sparse_raw.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              Sparse waypoints, right arc.
+            </p>
+          </div>
+          <div class="column is-half">
+            <video autoplay muted loop playsinline preload="metadata" style="width:100%; border-radius:8px; background:#111;">
+              <source src="./assets/constraint_exports/walk__diagonal__single_trim05.mp4" type="video/mp4">
+            </video>
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              Single diagonal waypoint.
+            </p>
+          </div>
+        </div>
+        <p class="is-size-7" style="color:#666; text-align:center; margin-top:0.4rem;">
+          <strong>Figure 5.</strong> Path-following samples with varying constraint
+          densities.
+        </p>
+
+        <h4 style="font-weight:600; color:#2c3e50; margin-top:1.5rem; margin-bottom:0.5rem;">4.5.4 Online adaptation</h4>
+        <p>
+          Because trajectory and body are decoupled, the path can be edited mid
+          rollout without restarting generation. The controller absorbs the new
+          waypoints immediately and the body GPT continues synthesizing motion
+          along the updated trajectory.
+        </p>
+
+        <div class="columns is-multiline" style="margin-top: 0.75rem;">
+          <div class="column is-half">
+            <img src="./assets/online_generation/manual_path.gif"
+                 alt="Manual path update mid-rollout"
+                 style="width:100%; border-radius:8px; background:#111;">
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              User redraws the path mid-rollout.
+            </p>
+          </div>
+          <div class="column is-half">
+            <img src="./assets/online_generation/a_star_path.gif"
+                 alt="A* planned path around obstacles"
+                 style="width:100%; border-radius:8px; background:#111;">
+            <p class="is-size-7 has-text-centered" style="color:#555; margin-top:0.4rem;">
+              A* planned path around obstacles.
+            </p>
+          </div>
+        </div>
+        <p class="is-size-7" style="color:#666; text-align:center; margin-top:0.4rem;">
+          <strong>Figure 6.</strong> Online adaptation: the controller responds to
+          waypoint edits in real time without re-running the body generator.
+        </p>
+      </div>
+    </div>
+
+
+    <!-- CONCLUSION -->
+    <a class="nav-anchor" id="sec-conclusion"></a>
+    <div class="report-section">
+      <h2 class="section-title">5. Conclusion &amp; Limitations</h2>
+      <div class="report-body">
+        <p>
+          We presented C-T2M, a decoupled autoregressive text-to-motion pipeline
+          that follows user-specified root XZ paths. By delegating trajectory
+          control to a small closed-loop GRU and letting a caption-driven body GPT
+          focus on plausible gait, our method matches Kimodo's constraint-following
+          quality (3.94&nbsp;cm vs. 4.88&nbsp;cm 2D root error) with an order of
+          magnitude lower latency and roughly twenty times fewer effective
+          parameters. Path and gait turn out to be separable problems, and the
+          decoupled solution is cheap, modular, and faster than diffusion-based
+          alternatives, making it suitable for online and interactive settings.
+        </p>
+
+        <h3 class="subsection-title">Limitations and future work</h3>
+        <p>
+          Our body decoder inherits the foot-skating ceiling of frame-level
+          discrete codecs, which is the main remaining gap to Kimodo on the
+          foot-contact suite. A Kimodo-style foot re-projection post-processing
+          step would close most of that gap and is left to future work. The
+          recompose step also assumes a planar floor and a single root XZ
+          trajectory, so it does not yet generalise to end-effector or full-body
+          keyframe constraints. Finally, the trajectory controller currently
+          accounts for almost half of the end-to-end latency; a learned
+          feed-forward controller could replace the closed-loop GRU and remove the
+          largest single latency block.
+        </p>
+      </div>
+    </div>
+
+
+    <!-- CONTRIBUTIONS -->
+    <a class="nav-anchor" id="sec-contributions"></a>
+    <div class="report-section">
+      <h2 class="section-title">6. Individual Contributions</h2>
+      <div class="report-body">
+        <ul>
+          <li><strong>Maria Pilligua</strong> &mdash; TODO: list contributions (e.g. path controller, training, benchmarks).</li>
+          <li><strong>Pau Amargant</strong> &mdash; TODO: list contributions (e.g. VQ-VAE / RVQ-VAE codec).</li>
+          <li><strong>Miquel Lopez</strong> &mdash; TODO: list contributions (e.g. body GPT, decoder ablations).</li>
+          <li><strong>Nahush Rajesh Kolhe</strong> &mdash; TODO: list contributions (e.g. Kimodo baseline, evaluation pipeline).</li>
+        </ul>
+      </div>
+    </div>
+
+
+    <!-- REFERENCES -->
+    <a class="nav-anchor" id="sec-references"></a>
+    <div class="report-section">
+      <h2 class="section-title">7. References</h2>
+      <div class="report-body">
+        <ol>
+          <li>
+            J. Zhang et al. <em>T2M-GPT: Generating Human Motion from Textual
+            Descriptions with Discrete Representations.</em> CVPR, 2023.
+            <a href="https://arxiv.org/abs/2301.06052">arXiv:2301.06052</a>
+          </li>
+          <li>
+            C. Guo et al. <em>MoMask: Generative Masked Modeling of 3D Human
+            Motions.</em> CVPR, 2024.
+            <a href="https://arxiv.org/abs/2312.00063">arXiv:2312.00063</a>
+          </li>
+          <li>
+            G. Tevet et al. <em>Human Motion Diffusion Model.</em> ICLR, 2023.
+            <a href="https://openreview.net/pdf?id=SJ1kSyO2jwu">OpenReview</a>
+          </li>
+          <li>
+            M. Zhang et al. <em>MotionDiffuse: Text-Driven Human Motion Generation
+            with Diffusion Model.</em> 2022.
+            <a href="https://arxiv.org/abs/2208.15001">arXiv:2208.15001</a>
+          </li>
+          <li>
+            B. Jiang et al. <em>MotionGPT: Human Motion as a Foreign Language.</em>
+            NeurIPS, 2023.
+            <a href="https://arxiv.org/abs/2306.14795">arXiv:2306.14795</a>
+          </li>
+          <li>
+            Y. Xie et al. <em>OmniControl: Control Any Joint at Any Time for Human
+            Motion Generation.</em>
+            <a href="https://neu-vi.github.io/omnicontrol/">project page</a>
+          </li>
+          <li>
+            Y. Shafir et al. <em>Human Motion Diffusion as a Generative Prior.</em>
+            <a href="https://priormdm.github.io/priorMDM-page/">project page</a>
+          </li>
+          <li>
+            C. Guo et al. <em>Generating Diverse and Natural 3D Human Motions
+            from Text.</em> CVPR, 2022. (HumanML3D dataset.)
+            <a href="https://ericguo5513.github.io/text-to-motion/">project page</a>
+          </li>
+          <li>
+            NVIDIA. <em>Kimodo: Foundation Model for Human Motion.</em> Tech
+            report, 2026.
+            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">project page</a>
+          </li>
+          <li>
+            A. Radford et al. <em>Learning Transferable Visual Models from Natural
+            Language Supervision.</em> ICML, 2021. (CLIP.)
+            <a href="https://arxiv.org/abs/2103.00020">arXiv:2103.00020</a>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+
+    <!-- BibTeX -->
+    <div class="report-section">
+      <h2 class="section-title">BibTeX</h2>
+      <pre style="background:#f6f7fa; padding:1rem; border-radius:6px; font-size:0.9rem;"><code>@misc{ct2m2026,
+  title  = {Controllable Autoregressive Text-to-Motion Generation},
+  author = {Amargant, Pau and Lopez, Miquel and Pilligua, Maria and Kolhe, Nahush Rajesh},
+  year   = {2026},
+  note   = {CS-503 Project, EPFL},
+}</code></pre>
+    </div>
+
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link" href="https://github.com/mpilligua/CAR-T2M" class="external-link">
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
