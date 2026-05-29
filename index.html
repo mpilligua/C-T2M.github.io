@@ -2584,6 +2584,62 @@ median retrieval rank of the correct motion
           </div>
         </figcaption>
 
+    <!-- Text prompt injection -->
+        <br></br>
+        <strong>Qualitative results: Text prompt injection</strong>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          We can change what the character does mid-sequence by injecting a new text prompt.
+          For example, starting from <em>"a person walking forward at a steady pace"</em> we
+          can inject <em>"a person sits criss-cross"</em> or <em>"a person starts walking
+          right"</em> and the motion adapts accordingly.
+        </p>
+        <div class="columns is-vcentered" style="margin: 1rem 0;">
+          <div class="column">
+            <img src="./assets/online_generation/online_text_1.gif"
+                 alt="Walking forward, then sits criss-cross" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              "a person walking forward" &rarr; "a person sits criss-cross"
+            </p>
+          </div>
+          <div class="column">
+            <img src="./assets/online_generation/online_text_2.gif"
+                 alt="Walking forward, then starts walking right" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              "a person walking forward" &rarr; "a person starts walking right"
+            </p>
+          </div>
+        </div>
+
+    <!-- Path constraint injection -->
+    <div class="columns is-centered" style="margin-top: 2rem;">
+      <div class="column is-full">
+        <strong>Qualitative results: Path constraint injection</strong>
+        <!-- TODO: generate more path-injection result GIFs and add them to the gallery below. -->
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          We can also inject a new path constraint mid-sequence. This is useful when the
+          environment changes, for instance when a new obstacle appears and the character
+          must reroute. We show two cases: waypoints specified manually, and waypoints
+          computed automatically with the A* algorithm to avoid obstacles.
+        </p>
+        <div class="columns is-vcentered" style="margin: 1rem 0;">
+          <div class="column has-text-centered">
+            <img src="./assets/online_generation/manual_path.gif"
+                 alt="Path injection with manually placed waypoints" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              Manual waypoints
+            </p>
+          </div>
+          <div class="column has-text-centered">
+            <img src="./assets/online_generation/a_star_path.gif"
+                 alt="Path injection with A* computed detour around obstacle" style="max-width: 100%; border-radius: 6px;">
+            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
+              A* path around a new obstacle
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -2598,25 +2654,46 @@ median retrieval rank of the correct motion
         prompt ablation. We start from a basic walking prompt and progressively add more specific
         motion details:
       </p>
-      <pre style="background:#f5f5f5; border-radius:6px; padding:1rem; font-size:0.82rem; line-height:1.6;">level_1: "a person walks"
-level_2: "a person walks forward slowly"
-level_3: "a person walks forward slowly while waving the right hand"
-level_4: "a person walks forward slowly while waving the right hand and nodding their head"
-level_5: "a person walks forward slowly while waving the right hand, nodding their head, and raising their left arm"</pre>
+
+      <div style="background:#f8f9fa; border:1px solid #e8ecf0; border-radius:8px; padding:1rem 1.25rem; margin:0.75rem 0 1.25rem;">
+        <div style="display:flex; align-items:baseline; gap:0.75rem; margin-bottom:0.55rem;">
+          <span style="background:#e8f4fa; color:#2596be; font-weight:700; font-size:0.78rem; padding:0.15rem 0.55rem; border-radius:4px; white-space:nowrap; flex-shrink:0;">Level 1</span>
+          <span style="font-style:italic; color:#333;">"a person walks forward"</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:0.75rem; margin-bottom:0.55rem;">
+          <span style="background:#e8f4fa; color:#2596be; font-weight:700; font-size:0.78rem; padding:0.15rem 0.55rem; border-radius:4px; white-space:nowrap; flex-shrink:0;">Level 2</span>
+          <span style="font-style:italic; color:#333;">"a person walks forward <strong>slowly</strong>"</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:0.75rem; margin-bottom:0.55rem;">
+          <span style="background:#e8f4fa; color:#2596be; font-weight:700; font-size:0.78rem; padding:0.15rem 0.55rem; border-radius:4px; white-space:nowrap; flex-shrink:0;">Level 3</span>
+          <span style="font-style:italic; color:#333;">"a person walks forward slowly <strong>and then stops</strong>"</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:0.75rem; margin-bottom:0.55rem;">
+          <span style="background:#f5e8fa; color:#8a4fcb; font-weight:700; font-size:0.78rem; padding:0.15rem 0.55rem; border-radius:4px; white-space:nowrap; flex-shrink:0;">Level 4</span>
+          <span style="font-style:italic; color:#333;">"a person walks forward slowly, then stops <strong>and raises the right hand</strong>"</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:0.75rem;">
+          <span style="background:#f5e8fa; color:#8a4fcb; font-weight:700; font-size:0.78rem; padding:0.15rem 0.55rem; border-radius:4px; white-space:nowrap; flex-shrink:0;">Level 5</span>
+          <span style="font-style:italic; color:#333;">"a person walks forward slowly, then stops, raises the right hand, <strong>and waves</strong>"</span>
+        </div>
+      </div>
+
       <p>
-        The generated motions show that the model captures the main semantic content well up to
-        <strong>Level 3</strong>. At Level 4, the motion still contains walking and right-hand
-        waving, but the head nodding is weak and not as clear as expected. At Level 5, the motion
-        becomes less consistent: the model keeps the dominant walking behavior, but it does not
-        clearly preserve the added head nodding and left-arm raising details.
+        The generated motions show that the model captures the text well up to <strong>Level 3</strong>:
+        walking, slowing down, and stopping are all reproduced faithfully. At <strong>Level 4</strong>
+        and <strong>Level 5</strong>, however, the character no longer stops — it keeps walking
+        throughout. The right-hand raising and waving are partially present, but the sequential
+        structure ("walks … <em>then</em> stops") is lost. 
       </p>
       <p>
-        This suggests that the model handles simple prompts and one additional action reasonably
-        well, but struggles when several fine-grained constraints are combined in the same sentence.
-        In practice, the text condition acts as a bottleneck: the model tends to preserve the most
-        salient parts of the prompt while dropping or weakening secondary details. This supports
-        the idea that <em>text is a lossy representation of motion</em>, especially when the caption
-        contains multiple simultaneous body-part-specific actions.
+        We can also see that each of those actions can be generated correctly on its own. This suggests that the model handles
+        simple prompts and one additional modifier well,
+        but struggles to follow temporal structure when several steps are chained in a single
+        sentence. The text condition acts as a bottleneck: the model preserves the most salient
+        continuous action (walking) while dropping the discontinuity (stopping) required to
+        transition into the next phase. This supports the idea that <em>text is a lossy
+        representation of motion</em>, especially for prompts that encode explicit temporal
+        transitions between actions.
       </p>
     </div>
 
@@ -2624,50 +2701,58 @@ level_5: "a person walks forward slowly while waving the right hand, nodding the
 
       <div class="column is-one-fifth" style="padding: 0.4rem;">
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
-          <source src="./assets/fine_graining/level_1.mp4" type="video/mp4">
+          <source src="./assets/experiment_9/level_1.mp4" type="video/mp4">
         </video>
         <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
-          <strong>Level 1</strong><br>"a person walks"
+          <span style="background:#e8f4fa; color:#2596be; font-weight:700; font-size:0.75rem; padding:0.1rem 0.45rem; border-radius:4px;">Level 1</span><br>
+          <span style="font-style:italic;">"a person walks forward"</span>
         </p>
       </div>
 
       <div class="column is-one-fifth" style="padding: 0.4rem;">
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
-          <source src="./assets/fine_graining/level_2.mp4" type="video/mp4">
+          <source src="./assets/experiment_9/level_2.mp4" type="video/mp4">
         </video>
         <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
-          <strong>Level 2</strong><br>"a person walks forward slowly"
+          <span style="background:#e8f4fa; color:#2596be; font-weight:700; font-size:0.75rem; padding:0.1rem 0.45rem; border-radius:4px;">Level 2</span><br>
+          <span style="font-style:italic;">"…walks forward slowly"</span>
         </p>
       </div>
 
       <div class="column is-one-fifth" style="padding: 0.4rem;">
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
-          <source src="./assets/fine_graining/level_3.mp4" type="video/mp4">
+          <source src="./assets/experiment_9/level_3.mp4" type="video/mp4">
         </video>
         <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
-          <strong>Level 3</strong><br>"…while waving the right hand"
+          <span style="background:#e8f4fa; color:#2596be; font-weight:700; font-size:0.75rem; padding:0.1rem 0.45rem; border-radius:4px;">Level 3</span><br>
+          <span style="font-style:italic;">"…and then stops"</span>
         </p>
       </div>
 
       <div class="column is-one-fifth" style="padding: 0.4rem;">
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
-          <source src="./assets/fine_graining/level_4.mp4" type="video/mp4">
+          <source src="./assets/experiment_9/level_4.mp4" type="video/mp4">
         </video>
         <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
-          <strong>Level 4</strong><br>"…and nodding their head"
+          <span style="background:#f5e8fa; color:#8a4fcb; font-weight:700; font-size:0.75rem; padding:0.1rem 0.45rem; border-radius:4px;">Level 4</span><br>
+          <span style="font-style:italic;">"…raises the right hand"</span>
         </p>
       </div>
 
       <div class="column is-one-fifth" style="padding: 0.4rem;">
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
-          <source src="./assets/fine_graining/level_5.mp4" type="video/mp4">
+          <source src="./assets/experiment_9/level_5.mp4" type="video/mp4">
         </video>
         <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
-          <strong>Level 5</strong><br>"…and raising their left arm"
+          <span style="background:#f5e8fa; color:#8a4fcb; font-weight:700; font-size:0.75rem; padding:0.1rem 0.45rem; border-radius:4px;">Level 5</span><br>
+          <span style="font-style:italic;">"…and waves"</span>
         </p>
       </div>
 
     </div>
+    <p class="is-size-7 has-text-centered" style="margin-top:0.6rem; color:#888;">
+      Blue = model captures the prompt correctly &nbsp;·&nbsp; Purple = model fails to follow the prompt
+    </p>
 
   </div>
 </section>

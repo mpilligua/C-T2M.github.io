@@ -760,6 +760,66 @@ Ablations
       </div>
     </div>
 
+    <h3 class="title is-5" style="margin-top: 2rem;">Fine-grained prompt experiment</h3>
+    <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+      We test how well the model handles prompts that combine multiple simultaneous body-part
+      actions. Each level adds one new action — slow walking, right-hand waving, head nodding,
+      left-arm raising — and each of those actions can be generated correctly on its own.
+      However, when combined in a single caption the model starts dropping secondary details
+      at Level 4 and 5: the walking and waving dominate, while nodding and arm-raising are
+      weakened or absent. The text embedding acts as a bottleneck — it preserves the most
+      salient actions but loses the finer-grained ones when there are too many at once.
+    </p>
+
+    <div class="columns is-multiline" style="margin: 0 -0.4rem;">
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_1.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 1</strong><br><em>"a person walks"</em>
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_2.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 2</strong><br><em>"…walks forward slowly"</em>
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_3.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 3</strong><br><em>"…waving the right hand"</em>
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_4.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 4</strong><br><em>"…nodding their head"</em>
+        </p>
+      </div>
+
+      <div class="column is-one-fifth" style="padding: 0.4rem;">
+        <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
+          <source src="./assets/fine_graining/level_5.mp4" type="video/mp4">
+        </video>
+        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+          <strong>Level 5</strong><br><em>"…raising their left arm"</em>
+        </p>
+      </div>
+
+    </div>
+
   </div>
 </section>
 
