@@ -176,7 +176,7 @@ Ablations
       </div>
     </div>
 
-    <!-- Table 5 - Trajectory controller comparison - COMMENTED OUT per Maria 2026-05-24
+    <!-- Table 5 - Path controller comparison - COMMENTED OUT per Maria 2026-05-24
          (ctrl_full_v1 is the final v18-arch model finetuned on full BONES; the v9 vs v18
           comparison does not carry the constraint-injection story we want here. The
           constraint-architecture story moves to Table 4; the constraint-following vs
@@ -185,9 +185,9 @@ Ablations
     <!--
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <h3 class="title is-5">Table 5. Trajectory controller comparison. <span style="color:#c0392b;">(TODO: Check what to do, if retrain or not)</span></h3>
+        <h3 class="title is-5">Table 5. Path controller comparison. <span style="color:#c0392b;">(TODO: Check what to do, if retrain or not)</span></h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          The trajectory controller is a small closed-loop GRU (about 2 M parameters)
+          The path controller is a small closed-loop GRU (about 2 M parameters)
           trained to roll out a root XZ path that hits user-specified waypoints. Beyond the
           basic waypoint-regression loss, our final controller adds a heading-smoothness
           regulariser to remove per-frame jitter, an arrive-radius gating that prevents

@@ -279,7 +279,7 @@
           </p>
           <p>
             We present <strong>C-T2M</strong>, a decoupled approach that splits
-            the problem in two: a small <strong>trajectory controller</strong>
+            the problem in two: a small <strong>path controller</strong>
             that rolls out an XZ root path from waypoints, and a caption-driven
             <strong>body GPT</strong> that synthesizes natural motion along that
             path. A deterministic recompose step blends them. The controller can
@@ -618,7 +618,7 @@
           <a href="https://mael-zys.github.io/T2M-GPT/">T2M-GPT</a> baseline, an
           autoregressive Transformer that predicts discrete motion tokens from
           text, and add one key piece: a separate
-          <strong>trajectory controller</strong> that decides
+          <strong>path controller</strong> that decides
           <em>where</em> the character goes, leaving the body GPT free to focus
           on <em>what</em> it does.
         </p>
@@ -1972,7 +1972,7 @@ median retrieval rank of the correct motion
           (function () {
             var BLOCKS = [
               { name: 'CLIP caption encoder',            ms: 7.40,   pct: 1.79,  c: '#90a4ae' },
-              { name: 'Trajectory controller (GRU)',     ms: 179.73, pct: 43.47, c: '#e8710a' },
+              { name: 'Path controller (GRU)',     ms: 179.73, pct: 43.47, c: '#e8710a' },
               { name: 'Body GPT autoregressive sampling', ms: 217.00, pct: 52.49, c: '#2b4eff' },
               { name: 'VQ decoder',                      ms: 1.51,   pct: 0.37,  c: '#26a69a' },
               { name: 'Recompose / reprojection (CPU)',  ms: 7.76,   pct: 1.88,  c: '#bdbdbd' }
@@ -2025,7 +2025,7 @@ median retrieval rank of the correct motion
               </thead>
               <tbody>
                 <tr><td>CLIP caption encoder</td><td>7.40 ± 0.24</td><td>1.79</td></tr>
-                <tr><td>Trajectory controller (GRU, 2M parameters)</td><td>179.73 ± 4.45</td><td>43.47</td></tr>
+                <tr><td>Path controller (GRU, 2M parameters)</td><td>179.73 ± 4.45</td><td>43.47</td></tr>
                 <tr><td>Body GPT autoregressive sampling (51 tokens, 30M parameters)</td><td><strong>217.00 ± 1.70</strong></td><td><strong>52.49</strong></td></tr>
                 <tr><td>VQ decoder</td><td>1.51 ± 0.08</td><td>0.37</td></tr>
                 <tr><td>Recompose, time-warp and reprojection (CPU)</td><td>7.76 ± 2.52</td><td>1.88</td></tr>
@@ -2051,7 +2051,7 @@ median retrieval rank of the correct motion
             <p>Measured on a single A100 80GB, fp32, batch size 1, 200-frame clip, mean &plusmn;
             standard deviation over 50 runs after 10 warmups. The two autoregressive components
             dominate: body GPT sampling over 51 tokens (217.00&nbsp;ms, 52.5&nbsp;%) and the GRU
-            trajectory controller (179.73&nbsp;ms, 43.5&nbsp;%). The CLIP caption encoder
+            path controller (179.73&nbsp;ms, 43.5&nbsp;%). The CLIP caption encoder
             (7.40&nbsp;ms), VQ decoder (1.51&nbsp;ms) and CPU recompose/reprojection
             (7.76&nbsp;ms) together add under 4&nbsp;% of the total.</p>
           </div>

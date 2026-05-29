@@ -205,7 +205,7 @@
         <p>
           We present <strong>C-T2M</strong>, a decoupled approach to controllable
           text-to-motion generation that combines an autoregressive language model over
-          discrete motion tokens with an explicit trajectory controller. Our pipeline
+          discrete motion tokens with an explicit path controller. Our pipeline
           consists of three components: (i) a closed-loop GRU-based <em>trajectory
           controller</em> that generates smooth XZ root paths from user-specified
           waypoints and captions, (ii) a caption-driven <em>body GPT</em> that
@@ -286,7 +286,7 @@
             VQ-VAE tokens), connected by a deterministic recompose step.
           </li>
           <li>
-            A <strong>closed-loop trajectory controller</strong> trained with a
+            A <strong>closed-loop path controller</strong> trained with a
             travel-relative heading loss plus a still-frame target that fixes the
             spin-on-spot pathology common to absolute-heading parameterisations.
           </li>
@@ -354,7 +354,7 @@
           strict left-to-right generation required for online, streaming
           applications. Consequently, we select the strictly causal T2M-GPT
           architecture as our baseline and extend it with an explicit, decoupled
-          trajectory controller.
+          path controller.
         </p>
       </div>
     </div>
@@ -429,13 +429,13 @@
           encoded by a small linear projection that takes, for each frame, the next
           four waypoints (x, y, t) expressed relative to the skeleton's current
           position, plus its absolute position and current frame index. This compact
-          representation is shared between the trajectory controller and the body
+          representation is shared between the path controller and the body
           GPT.
         </p>
 
-        <h3 class="subsection-title">3.4. Trajectory Controller</h3>
+        <h3 class="subsection-title">3.4. Path Controller</h3>
         <p>
-          The trajectory controller is a closed-loop <strong>GRU</strong> (about 2&nbsp;M
+          The path controller is a closed-loop <strong>GRU</strong> (about 2&nbsp;M
           parameters) that takes the caption embedding and path conditioning features
           and predicts, for each frame of the rollout, the next root (x, y) position
           and a heading angle. It is trained to minimise the regression loss to the
@@ -837,7 +837,7 @@
           step would close most of that gap and is left to future work. The
           recompose step also assumes a planar floor and a single root XZ
           trajectory, so it does not yet generalise to end-effector or full-body
-          keyframe constraints. Finally, the trajectory controller currently
+          keyframe constraints. Finally, the path controller currently
           accounts for almost half of the end-to-end latency; a learned
           feed-forward controller could replace the closed-loop GRU and remove the
           largest single latency block.
