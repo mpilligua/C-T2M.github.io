@@ -274,7 +274,7 @@
             generate high-fidelity human motion from captions and even support
             spatial constraints, but they produce the entire clip in one shot. If
             the user wants to change the path mid-motion, everything is recomputed
-            from scratch &mdash; too slow for interactive use, too rigid for
+            from scratch. Too slow for interactive use, too rigid for
             robotics, digital twins, or game characters.
           </p>
           <p>
@@ -488,7 +488,7 @@
     }
     .arch-tour-stage.is-touring .arch-highlight { opacity: 1; }
 
-    /* a separate layer that punches the dim — uses box-shadow trick */
+    /* a separate layer that punches the dim (uses box-shadow trick) */
     .arch-spotlight {
       position: absolute;
       border-radius: 8px;
@@ -672,19 +672,19 @@
               },
               {
                 title: '1. VQ-VAE pretraining (motion codec)',
-                body: 'A VQ-VAE is pretrained as an autoencoder: an encoder maps raw motion into a learned codebook of K entries, and a decoder reconstructs motion from those discrete tokens. From now on, "predicting motion" reduces to "predicting tokens" — which is what the language model below will do.',
+                body: 'A VQ-VAE is pretrained as an autoencoder: an encoder maps raw motion into a learned codebook of K entries, and a decoder reconstructs motion from those discrete tokens. From now on, "predicting motion" reduces to "predicting tokens", which is what the language model below will do.',
                 kind: 'baseline',
                 highlight: { left: 0.5, top: 0.9, width: 51, height: 33 }
               },
               {
                 title: '2. Text + path conditioning',
-                body: 'The caption is embedded by a frozen CLIP text encoder (top half of the block). The path constraints — next four waypoints (x, y, t) relative to the skeleton, plus current position and frame index — are encoded by a small linear projection (bottom half). Both encodings are shared by the Path Controller and the body GPT.',
+                body: 'The caption is embedded by a frozen CLIP text encoder (top half of the block). The path constraints (next four waypoints (x, y, t) relative to the skeleton, plus current position and frame index) are encoded by a small linear projection (bottom half). Both encodings are shared by the Path Controller and the body GPT.',
                 kind: 'both',
                 highlight: { left: 0.5, top: 31, width: 26, height: 52 }
               },
               {
                 title: '3. Path Controller',
-                body: 'A small closed-loop GRU reads the caption and path encodings and rolls out, frame by frame, the next (x, y, heading) — the orange squares in the diagram. It is solely responsible for where the character goes. The "Path injection" arrow on the right shows that its predictions are then fed into the body GPT.',
+                body: 'A small closed-loop GRU reads the caption and path encodings and rolls out, frame by frame, the next (x, y, heading), which are the orange squares in the diagram. It is solely responsible for where the character goes. The "Path injection" arrow on the right shows that its predictions are then fed into the body GPT.',
                 kind: 'ours',
                 highlight: { left: 26, top: 31, width: 25, height: 52 }
               },
@@ -696,7 +696,7 @@
               },
               {
                 title: '5. VQ-VAE decoding',
-                body: 'The predicted tokens flow back through the VQ-VAE decoder, which turns each token into one body pose. Strung together they form the final motion — which follows the caption (via the GPT) and the user-specified path (via the controller and the path injection).',
+                body: 'The predicted tokens flow back through the VQ-VAE decoder, which turns each token into one body pose. Strung together they form the final motion, which follows the caption (via the GPT) and the user-specified path (via the controller and the path injection).',
                 kind: 'baseline',
                 highlight: { left: 50.5, top: 1, width: 47, height: 32 }
               }
@@ -855,7 +855,7 @@
         </figure>
         <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
           <span class="fig-caption-summary"><strong>Figure 2.</strong> SOMA skeleton and constraint
-          representation &mdash; we control motion through 2D root (XZ) waypoints.</span>
+          representation: we control motion through 2D root (XZ) waypoints.</span>
           <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
             <span class="fig-caption-toggle-label">Show details</span>
             <i class="fas fa-chevron-down"></i>
@@ -979,23 +979,23 @@
           </a>
           <div class="metrics-legend-body">
           <ul>
-            <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span> &mdash;
-              text&ndash;motion retrieval: how often the right motion lands in the top&nbsp;3
+            <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span>:
+text&ndash;motion retrieval: how often the right motion lands in the top&nbsp;3
               for its caption (higher&nbsp;=&nbsp;better text match).</li>
-            <li><span class="metric-name">FID</span> <span class="metric-dir">↓</span> &mdash;
-              distance between generated and real motion distributions
+            <li><span class="metric-name">FID</span> <span class="metric-dir">↓</span>:
+distance between generated and real motion distributions
               (lower&nbsp;=&nbsp;more realistic).</li>
-            <li><span class="metric-name">Skate</span> <span class="metric-dir">↓</span> &mdash;
-              foot-skating: how much the feet slide while in contact with the ground
+            <li><span class="metric-name">Skate</span> <span class="metric-dir">↓</span>:
+foot-skating: how much the feet slide while in contact with the ground
               (lower&nbsp;=&nbsp;cleaner footwork).</li>
-            <li><span class="metric-name">Cont</span> <span class="metric-dir">↑</span> &mdash;
-              foot-contact consistency: how stable ground contacts are
+            <li><span class="metric-name">Cont</span> <span class="metric-dir">↑</span>:
+foot-contact consistency: how stable ground contacts are
               (higher&nbsp;=&nbsp;steadier).</li>
-            <li><span class="metric-name">2D root error</span> <span class="metric-dir">↓</span> &mdash;
-              average distance between the generated path and the target path, in cm
+            <li><span class="metric-name">2D root error</span> <span class="metric-dir">↓</span>:
+average distance between the generated path and the target path, in cm
               (lower&nbsp;=&nbsp;follows the path better).</li>
-            <li><span class="metric-name">MedR</span> <span class="metric-dir">↓</span> &mdash;
-              median retrieval rank of the correct motion
+            <li><span class="metric-name">MedR</span> <span class="metric-dir">↓</span>:
+median retrieval rank of the correct motion
               (lower&nbsp;=&nbsp;better).</li>
           </ul>
           </div>
@@ -1020,7 +1020,7 @@
         <!-- Plot view: efficiency (Kimodo vs Ours, log scale) -->
         <div class="columns is-centered" style="margin-bottom: 0.5rem;">
           <div class="column is-three-quarters">
-            <p class="chart-title">Efficiency &mdash; Kimodo vs. Ours (log scale, lower is better)</p>
+            <p class="chart-title">Efficiency: Kimodo vs. Ours (log scale, lower is better)</p>
             <div class="chart-wrap" style="height: 280px;">
               <canvas id="mainEffChart"></canvas>
             </div>
@@ -1172,7 +1172,7 @@
         </div>
         <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
           <span class="fig-caption-summary"><strong>Results.</strong> Text-to-motion quality and
-          efficiency on the Kimodo Repetition split &mdash; we trade some text-match quality for a
+          efficiency on the Kimodo Repetition split: we trade some text-match quality for a
           model roughly 20&times; smaller and 10&times; faster than Kimodo.</span>
           <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
             <span class="fig-caption-toggle-label">Show details</span>
@@ -1310,7 +1310,7 @@
                     tooltip: {
                       callbacks: {
                         label: function (c) {
-                          return c.dataset.label + ' — R@' + c.parsed.x + ': ' +
+                          return c.dataset.label + ', R@' + c.parsed.x + ': ' +
                                  c.parsed.y + '%  (MedR ' + c.dataset._medr + ')';
                         }
                       }
@@ -1326,7 +1326,7 @@
         <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
           <span class="fig-caption-summary"><strong>Figure.</strong> Text-to-motion retrieval
           on a neutral encoder (TMR-petrovich). Our model tracks the BONES ground truth and
-          stays within ~2 points of Kimodo (R@3 9.5 vs. 11.6) &mdash; the large gap seen on
+          stays within ~2 points of Kimodo (R@3 9.5 vs. 11.6); the large gap seen on
           Kimodo's own encoder is mostly encoder bias, not a quality difference.</span>
           <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
             <span class="fig-caption-toggle-label">Show details</span>
@@ -1766,7 +1766,7 @@
         </div>
         <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
           <span class="fig-caption-summary"><strong>Results.</strong> We beat Kimodo on path
-          adherence (~24% lower 2D root error) but trade away foot-skate quality &mdash; the
+          adherence (~24% lower 2D root error) but trade away foot-skate quality: the
           expected cost of decoupling the controller from the body GPT.</span>
           <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
             <span class="fig-caption-toggle-label">Show details</span>
@@ -1935,7 +1935,7 @@
         </figure>
         <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
           <span class="fig-caption-summary"><strong>Figure 8.</strong> Online adaptation via
-          cap-and-reinfer &mdash; cut the sequence, keep recent tokens as context, and reinfer the
+          cap-and-reinfer: cut the sequence, keep recent tokens as context, and reinfer the
           rest under a new condition.</span>
           <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
             <span class="fig-caption-toggle-label">Show details</span>
@@ -1943,8 +1943,8 @@
           </a>
           <div class="fig-caption-details">
             <p>At an arbitrary frame the sequence is <strong>cut</strong> and the last few generated
-            tokens are kept as <strong>context</strong>. A new condition &mdash; a different text
-            prompt, a new path constraint, or both &mdash; is then fed to the model, which
+            tokens are kept as <strong>context</strong>. A new condition (a different text
+            prompt, a new path constraint, or both) is then fed to the model, which
             <strong>reinfers</strong> the remainder of the sequence from that point. Because the
             warm-start context comes from the already-generated tokens, the transition is smooth
             rather than an abrupt reset.</p>
@@ -2004,7 +2004,7 @@
                     legend: { display: false },
                     tooltip: { callbacks: { label: function (c) {
                       var b = BLOCKS[c.dataIndex];
-                      return b.pct + '% — ' + b.ms.toFixed(2) + ' ms / clip'; } } }
+                      return b.pct + '%, ' + b.ms.toFixed(2) + ' ms / clip'; } } }
                   }
                 }
               });
@@ -2040,7 +2040,7 @@
         </div>
         <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
           <span class="fig-caption-summary"><strong>Latency.</strong> End-to-end inference is
-          413&nbsp;ms per clip (2.4 clips/s) &mdash; the body GPT sampler and trajectory
+          413&nbsp;ms per clip (2.4 clips/s): the body GPT sampler and trajectory
           controller together account for 96&nbsp;% of the cost, while the VQ decoder and CPU
           recompose are effectively free.</span>
           <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
