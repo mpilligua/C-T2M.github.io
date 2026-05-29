@@ -474,7 +474,7 @@
 
     .arch-highlight {
       position: absolute;
-      border: 3px solid #2b4eff;
+      border: 3px solid #2596be;
       border-radius: 8px;
       box-shadow: 0 0 0 4px rgba(43, 78, 255, 0.18),
                   0 0 30px rgba(43, 78, 255, 0.45);
@@ -508,7 +508,7 @@
       align-items: center;
       gap: 0.55rem;
       padding: 0.65rem 1.4rem;
-      background: #2b4eff;
+      background: #2596be;
       color: #fff;
       border: none;
       border-radius: 999px;
@@ -527,7 +527,7 @@
       padding: 1.25rem 1.5rem;
       background: #f6f8fc;
       border: 1px solid #dfe5f2;
-      border-left: 4px solid #2b4eff;
+      border-left: 4px solid #2596be;
       border-radius: 10px;
       display: none;
     }
@@ -549,7 +549,7 @@
     }
     .tour-step-badge {
       display: inline-block;
-      background: #2b4eff;
+      background: #2596be;
       color: #fff;
       font-size: 0.65rem;
       font-weight: 700;
@@ -588,9 +588,9 @@
       font-weight: 500;
       transition: all 0.15s ease;
     }
-    .tour-nav button:hover { background: #eef2fb; border-color: #2b4eff; color: #2b4eff; }
+    .tour-nav button:hover { background: #eef2fb; border-color: #2596be; color: #2596be; }
     .tour-nav button.primary {
-      background: #2b4eff; color: #fff; border-color: #2b4eff;
+      background: #2596be; color: #fff; border-color: #2596be;
     }
     .tour-nav button.primary:hover { background: #1f3ce0; color: #fff; }
     .tour-nav button:disabled {
@@ -604,7 +604,7 @@
       background: #cbd5e1; border: none; padding: 0; cursor: pointer;
       transition: all 0.2s ease;
     }
-    .tour-dot.active { background: #2b4eff; transform: scale(1.3); }
+    .tour-dot.active { background: #2596be; transform: scale(1.3); }
   </style>
 
   <div class="container is-max-widescreen">
@@ -828,11 +828,11 @@
 
     <p class="has-text-centered" style="color:#666; margin: 0.5rem auto 2rem;">
       We evaluate on the <strong>BONES-SEED</strong> benchmark, comparing against
-      <strong>Kimodo</strong> under the same evaluation pipeline. Full setup, metrics,
+      <strong>Kimodo</strong> under the same evaluation pipeline. Full setup,
       and protocol details live in the <a href="./report.html#sec-experiments">Report</a>.
     </p>
 
-    <h3 class="title is-4" style="margin-top: 1rem;">1. Text to motion</h3>
+    <h3 class="title is-4" style="margin-top: 1rem;">1. Can the model generate good motions?</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
       We first evaluate the unconstrained text-to-motion behaviour of our pipeline: given a
       caption alone (no path constraint), can the model generate plausible motion that matches
@@ -843,29 +843,13 @@
     <!-- Table 2 - Main results -->
     <div class="columns is-centered" style="margin-top: 1.5rem;">
       <div class="column is-full">
-        <strong>Quantitative results.</strong><br>
+        <strong>Quantitative results.</strong>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          We compare our system against Kimodo on the Repetition Text-to-Motion split of the
-          Kimodo BONES benchmark (6 539 testcases). Both systems are evaluated under
-          <em>the same evaluation pipeline</em> (stages 2 to 5 of
-          <code>jobs/08_run_gpt_benchmark_pipeline.sh</code>): we generate motions with each
-          system, embed them with the TMR-SOMA-RP text encoder, and compute R-Precision,
-          FID, foot-skating and contact consistency in the same space. Inference latency is
-          measured end-to-end on a single A100 80GB, fp32, batch size 1, 200-frame clip,
-          mean over 50 runs (10 warmups).
-        </p>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Our system is designed to operate <strong>under root XZ path constraints with
-          streaming, autoregressive inference</strong>, a setting Kimodo does not target:
-          Kimodo runs one diffusion process per clip with one hundred denoising steps and
-          is not autoregressive, so a constraint introduced mid-sequence requires re-running
-          the whole diffusion process. The headline numbers below should be read in that
-          light. Our model is also roughly twenty times smaller than Kimodo in effective
-          parameters and runs an order of magnitude faster on the same hardware. Kimodo's
-          quality advantage on the generic text-to-motion benchmark comes from a much
-          larger architecture, a richer training corpus (the full SOMA-SEED, roughly four
-          times larger than the walk-jog-run subset we train on) and a hundred denoising
-          steps per clip; we trade those for size, speed, and streaming controllability.
+          On Kimodo's Repetition Text-to-Motion split (6 539 captions). The first two
+          charts show that we trail Kimodo on text alignment (R@3) and realism (FID).
+          The third chart, on a log scale, shows where we win: an order of magnitude
+          fewer parameters, fewer GFLOPs per clip, and faster inference on the same
+          A100.
         </p>
 
         <!-- How to read these metrics (applies to all result figures below) -->
@@ -928,15 +912,15 @@ median retrieval rank of the correct motion
 
         <!-- One shared legend for all three charts above (Ground Truth absent from Efficiency) -->
         <div class="chart-legend" aria-hidden="true">
-          <span class="legend-item"><span class="legend-swatch" style="background:#2e7d32;"></span>Ground Truth</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#e8710a;"></span>Kimodo</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#2b4eff;"></span>Ours (VQ-GPT)</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#9c27b0;"></span>Ours (RVQ-GPT)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2BAD94;"></span>Ground Truth</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#EB6E4C;"></span>Kimodo</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2596be;"></span>Ours (VQ-GPT)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#8A6FCB;"></span>Ours (RVQ-GPT)</span>
         </div>
 
         <script>
           (function () {
-            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff', rvq: '#9c27b0' };
+            var COLORS = { gt: '#2BAD94', kimodo: '#EB6E4C', ours: '#2596be', rvq: '#8A6FCB' };
             var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
             function draw() {
               if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
@@ -1180,13 +1164,13 @@ median retrieval rank of the correct motion
                 data: {
                   datasets: [
                     { label: 'Ground Truth (BONES)', data: pts([4.6, 11.1, 16.5, 25.4]),
-                      borderColor: '#2e7d32', backgroundColor: '#2e7d32', borderDash: [6, 4],
+                      borderColor: '#2BAD94', backgroundColor: '#2BAD94', borderDash: [6, 4],
                       borderWidth: 2, pointRadius: 4, pointStyle: 'rectRot', tension: 0.25, _medr: 48 },
                     { label: 'Kimodo-SOMA-SEED-v1.1', data: pts([5.4, 11.6, 16.8, 27.5]),
-                      borderColor: '#e8710a', backgroundColor: '#e8710a',
+                      borderColor: '#EB6E4C', backgroundColor: '#EB6E4C',
                       borderWidth: 2, pointRadius: 4, pointStyle: 'triangle', tension: 0.25, _medr: 39 },
                     { label: 'Ours (9L VQ-VAE)', data: pts([4.5, 9.5, 13.8, 23.3]),
-                      borderColor: '#2b4eff', backgroundColor: '#2b4eff',
+                      borderColor: '#2596be', backgroundColor: '#2596be',
                       borderWidth: 3, pointRadius: 5, pointStyle: 'circle', tension: 0.25, _medr: 51 }
                   ]
                 },
@@ -1325,7 +1309,7 @@ median retrieval rank of the correct motion
         transition: background-color 0.3s, transform 0.3s;
       }
       .qual-dot.active {
-        background-color: #2b4eff;
+        background-color: #2596be;
         transform: scale(1.3);
       }
       @media (max-width: 900px) {
@@ -1521,16 +1505,13 @@ median retrieval rank of the correct motion
     <!-- Table 12 - Constraint following head-to-head vs Kimodo (second main table) -->
     <div class="columns is-centered" style="margin-top: 1.5rem;">
       <div class="column is-full">
-        <strong>Quantitative results.</strong><br>
+        <strong>Quantitative results.</strong>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          We evaluate constraint following on the same testsuite split Kimodo publishes
-          numbers for: <code>content/constraints_withtext/root/path_2dpos</code>, the
-          path-following root-XZ constraint subset (256 testcases). Each testcase pairs a
-          caption with a target root-XZ trajectory; the model must generate motion that
-          matches the caption while keeping the root within a small tolerance of the
-          specified path. We re-ran Kimodo-SOMA-SEED-v1.1 under our own pipeline on the
-          same 256 testcases so the comparison is apples-to-apples (same evaluator, same
-          testcases, same skeleton handling).
+          On Kimodo's path-following subset (256 root-XZ testcases). The left chart
+          shows 2D root error in cm: we match the ground-truth lower bound and beat
+          Kimodo. The right chart shows where Kimodo still wins: foot-skate and
+          contact consistency. Path adherence is ours; foot quality is the next gap
+          to close.
         </p>
         <!-- Plot view: path adherence (cm) + foot-quality ratios -->
         <div class="columns is-vcentered" style="margin-bottom: 0.25rem;">
@@ -1550,14 +1531,14 @@ median retrieval rank of the correct motion
 
         <!-- One shared legend for both charts above (same three groups) -->
         <div class="chart-legend" aria-hidden="true">
-          <span class="legend-item"><span class="legend-swatch" style="background:#2e7d32;"></span>Ground truth</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#e8710a;"></span>Kimodo</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#2b4eff;"></span>Ours</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2BAD94;"></span>Ground truth</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#EB6E4C;"></span>Kimodo</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2596be;"></span>Ours</span>
         </div>
 
         <script>
           (function () {
-            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff' };
+            var COLORS = { gt: '#2BAD94', kimodo: '#EB6E4C', ours: '#2596be' };
             function draw() {
               if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
               var errEl = document.getElementById('constErrChart');
@@ -1870,11 +1851,11 @@ median retrieval rank of the correct motion
         <script>
           (function () {
             var BLOCKS = [
-              { name: 'CLIP caption encoder',            ms: 7.40,   pct: 1.79,  c: '#90a4ae' },
-              { name: 'Path controller (GRU)',     ms: 179.73, pct: 43.47, c: '#e8710a' },
-              { name: 'Body GPT autoregressive sampling', ms: 217.00, pct: 52.49, c: '#2b4eff' },
-              { name: 'VQ decoder',                      ms: 1.51,   pct: 0.37,  c: '#26a69a' },
-              { name: 'Recompose / reprojection (CPU)',  ms: 7.76,   pct: 1.88,  c: '#bdbdbd' }
+              { name: 'CLIP caption encoder',            ms: 7.40,   pct: 1.79,  c: '#94a3b8' },
+              { name: 'Path controller (GRU)',     ms: 179.73, pct: 43.47, c: '#8A6FCB' },
+              { name: 'Body GPT autoregressive sampling', ms: 217.00, pct: 52.49, c: '#2596be' },
+              { name: 'VQ decoder',                      ms: 1.51,   pct: 0.37,  c: '#2BAD94' },
+              { name: 'Recompose / reprojection (CPU)',  ms: 7.76,   pct: 1.88,  c: '#cbd5e1' }
             ];
             function draw() {
               if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
