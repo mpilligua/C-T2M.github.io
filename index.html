@@ -656,7 +656,7 @@
 
         <script>
           (function () {
-            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff' };
+            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff', rvq: '#9c27b0' };
             var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
             function draw() {
               if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
@@ -685,24 +685,27 @@
               }
 
               gbar(r3, [
-                { label: 'Ground Truth', data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
-                { label: 'Kimodo',       data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
-                { label: 'Ours',         data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours }
+                { label: 'Ground Truth',    data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',          data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
+                { label: 'Ours (VQ-GPT)',   data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours },
+                { label: 'Ours (RVQ-GPT)',  data: [18.74, 22.18, 15.12], backgroundColor: COLORS.rvq }
               ], 'R@3 (%)', 100);
 
               gbar(fid, [
-                { label: 'Ground Truth', data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
-                { label: 'Kimodo',       data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
-                { label: 'Ours',         data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours }
-              ], 'FID', 0.35);
+                { label: 'Ground Truth',    data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',          data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
+                { label: 'Ours (VQ-GPT)',   data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours },
+                { label: 'Ours (RVQ-GPT)',  data: [0.644, 0.411, 0.670], backgroundColor: COLORS.rvq }
+              ], 'FID', 0.75);
 
               new Chart(eff, {
                 type: 'bar',
                 data: {
                   labels: ['Params (M)', 'GFLOPs / clip', 'Latency (ms / clip)'],
                   datasets: [
-                    { label: 'Kimodo', data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
-                    { label: 'Ours',   data: [395, 470, 413],    backgroundColor: COLORS.ours }
+                    { label: 'Kimodo',         data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
+                    { label: 'Ours (VQ-GPT)',  data: [395, 470, 413],    backgroundColor: COLORS.ours },
+                    { label: 'Ours (RVQ-GPT)', data: [565, 640, 486],    backgroundColor: COLORS.rvq }
                   ]
                 },
                 options: {
