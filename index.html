@@ -262,35 +262,32 @@
 </section>
 
 
-<!-- Motivation (sets up the rest of the page) -->
-<section class="section" id="motivation" style="padding-top: -3rem; padding-bottom: 1.5rem;">
+<!-- Abstract + Introduction merged into a single setup block -->
+<section class="section" id="motivation" style="padding-top: 0; padding-bottom: 1.5rem;">
   <div class="container is-max-widescreen">
     <div class="columns is-centered">
-      <div class="column is-three-quarters">
+      <div class="column is-full">
         <div class="content has-text-justified" style="font-size: 1.1rem; line-height: 1.65;">
           <p>
-            Generating realistic human motion from natural language has improved
-            remarkably, but most state-of-the-art systems share a limitation: they
-            produce an entire clip in one shot. If the user wants the character to
-            follow a precise spatial path, or update that path mid-motion, the
-            system has to recompute everything from scratch. That is too slow for
-            interactive use, and too rigid for applications like robotics, digital
-            twins, or game characters that need to react to a changing environment.
+            Text-to-motion systems like
+            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a>
+            generate high-fidelity human motion from captions and even support
+            spatial constraints, but they produce the entire clip in one shot. If
+            the user wants to change the path mid-motion, everything is recomputed
+            from scratch &mdash; too slow for interactive use, too rigid for
+            robotics, digital twins, or game characters.
           </p>
           <p>
-            We present <strong>C-T2M</strong>, a decoupled approach that splits the
-            problem into two independent modules: a small <strong>trajectory
-            controller</strong> that rolls out an XZ root path from user-specified
-            waypoints, and a caption-driven <strong>body GPT</strong> that
-            synthesizes natural body motion along that path. A deterministic
-            recompose step then blends them. Because the two modules are
-            independent, the controller can react to new constraints
-            instantly without re-running the body generator, the body GPT stays
-            simple and fast, and the whole pipeline runs in
-            <strong>413&nbsp;ms per 200-frame clip</strong>: an order of magnitude
-            faster than Kimodo, the state-of-the-art diffusion baseline, while
-            following constraints with comparable accuracy (3.94&nbsp;cm vs.
-            4.88&nbsp;cm root error).
+            We present <strong>C-T2M</strong>, a decoupled approach that splits
+            the problem in two: a small <strong>trajectory controller</strong>
+            that rolls out an XZ root path from waypoints, and a caption-driven
+            <strong>body GPT</strong> that synthesizes natural motion along that
+            path. A deterministic recompose step blends them. The controller can
+            react to new constraints instantly without re-running the body
+            generator, and the whole pipeline runs an order of magnitude faster
+            than Kimodo while following constraints with comparable accuracy. The
+            full paper version of this writeup lives on the
+            <a href="./report.html">Report</a> page.
           </p>
         </div>
       </div>
@@ -451,113 +448,7 @@
 
 
 
-<!-- 2. Introduction -->
-<section class="section">
-  <div class="container is-max-widescreen">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-full">
-        <h2 class="title is-3">Introduction</h2>
-        <div class="content has-text-justified">
-          <p>
-            Recent advances in text-to-motion (T2M) generation have enabled models to
-            synthesize realistic human motion from natural language descriptions. Diffusion
-            based approaches such as
-            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a>
-            have further improved motion quality and introduced flexible control through
-            kinematic constraints, including pose, joint, and trajectory specifications.
-            Notably, Kimodo is trained on the
-            <a href="https://bones.studio/info/seed-license">BONES</a> dataset, a large-scale
-            motion capture dataset that is significantly (around ten times) larger than commonly
-            used benchmarks such as <a href="https://ericguo5513.github.io/text-to-motion/">HumanML3D</a>,
-            enabling higher quality and more diverse motion generation.
-          </p>
-          <p>
-            However, Kimodo generates the full motion sequence in one shot, which makes it
-            less suitable for settings where the motion should be updated online as new
-            constraints or environment changes appear during execution. Motivated by this
-            limitation, we explore an alternative approach based on latent autoregressive (AR)
-            modeling, where motion is generated sequentially and can therefore be controlled
-            more dynamically through kinematic constraints during inference.
-          </p>
-
-          <h3 class="title is-5">Problem statement</h3>
-          <p>
-            In this project we design a controllable autoregressive text-to-motion model
-            trained on the BONES dataset. Our goals are:
-          </p>
-          <ul>
-            <li>
-              Incorporate explicit root XZ path constraints (waypoints or dense trajectories)
-              into the model to guide the generated motion along a user-specified ground path.
-            </li>
-            <li>
-              Enable sequential motion generation that can be updated during inference,
-              allowing dynamic and controllable behaviour while reducing inference time.
-            </li>
-          </ul>
-
-          <h3 class="title is-5">Significance</h3>
-          <p>
-            Real-time and controllable human motion generation is essential for applications
-            such as robotics, digital twin simulation, and interactive systems. These require
-            models that can adapt to new goals and environmental changes.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- 3. Related Works -->
-<section class="section">
-  <div class="container is-max-widescreen">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-full">
-        <h2 class="title is-3">Related Works</h2>
-        <div class="content has-text-justified">
-          <p>
-            Recent text-to-motion literature has been dominated by diffusion models
-            (<a href="https://guytevet.github.io/mdm-page/">MDM</a>,
-            <a href="https://mingyuan-zhang.github.io/projects/MotionDiffuse.html">MotionDiffuse</a>,
-            FLAME,
-            <a href="https://mingyuan-zhang.github.io/projects/ReMoDiffuse.html">ReMoDiffuse</a>),
-            which synthesize high-fidelity human movements by iteratively denoising
-            continuous latent representations. A key advantage of the diffusion formulation
-            is its amenability to complex spatial and temporal conditioning. Frameworks such
-            as <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a>,
-            <a href="https://neu-vi.github.io/omnicontrol/">OmniControl</a> and
-            <a href="https://priormdm.github.io/priorMDM-page/">PriorMDM</a> leverage this
-            capability to introduce fine-grained kinematic constraints, including
-            end-effector trajectories, root paths, and keyframe poses, typically via guided
-            denoising or latent inpainting. However, their reliance on multiple reverse
-            diffusion steps incurs high inference latency, severely limiting their
-            deployment in real-time, dynamic environments.
-          </p>
-          <p>
-            To overcome this latency bottleneck, a parallel line of research reformulates
-            motion generation as a discrete sequence prediction task.
-            <a href="https://mael-zys.github.io/T2M-GPT/">T2M-GPT</a> pioneered this approach
-            by compressing continuous 3D motion into a discrete vocabulary via a VQ-VAE and
-            utilizing a causal Transformer to autoregressively predict motion tokens from
-            text. This paradigm inspired numerous variants, including
-            <a href="https://motion-gpt.github.io/">MotionGPT</a> for unified multimodal
-            tasks and <a href="https://arxiv.org/abs/2312.10628">T2M-HiFiGPT</a> for enhanced
-            artifact reduction. Notably, while successors like
-            <a href="https://ericguo5513.github.io/momask/">MoMask</a> achieve superior
-            generation fidelity by employing masked bidirectional modeling, this non-causal
-            iterative refinement process breaks the strict left-to-right generation required
-            for online, streaming applications. Consequently, we select the strictly causal
-            T2M-GPT architecture as our baseline.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- 4. Method -->
+<!-- Method -->
 <section class="section">
   <div class="container is-max-widescreen">
     <div class="columns is-centered has-text-centered">
