@@ -78,6 +78,23 @@
       text-align: center;
       margin-bottom: 0.35rem;
     }
+    /* One shared legend for figures whose charts plot the same groups */
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem 1.2rem;
+      margin: 0.4rem 0 0.25rem;
+      font-size: 0.85rem;
+      color: #4a4a4a;
+    }
+    .chart-legend .legend-item { display: inline-flex; align-items: center; gap: 0.4em; }
+    .chart-legend .legend-swatch {
+      width: 0.85em;
+      height: 0.85em;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
 
     /* "How to read these metrics" legend */
     .metrics-legend {
@@ -820,9 +837,17 @@
           </div>
         </div>
 
+        <!-- One shared legend for all three charts above (Ground Truth absent from Efficiency) -->
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item"><span class="legend-swatch" style="background:#2e7d32;"></span>Ground Truth</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#e8710a;"></span>Kimodo</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2b4eff;"></span>Ours (VQ-GPT)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#9c27b0;"></span>Ours (RVQ-GPT)</span>
+        </div>
+
         <script>
           (function () {
-            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff' };
+            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff', rvq: '#9c27b0' };
             var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
             function draw() {
               if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
@@ -845,30 +870,33 @@
                            title: { display: true, text: yTitle },
                            grid: { color: 'rgba(0,0,0,0.05)' } }
                     },
-                    plugins: { legend: { position: 'bottom' } }
+                    plugins: { legend: { display: false } }
                   }
                 });
               }
 
               gbar(r3, [
-                { label: 'Ground Truth', data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
-                { label: 'Kimodo',       data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
-                { label: 'Ours',         data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours }
+                { label: 'Ground Truth',    data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',          data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
+                { label: 'Ours (VQ-GPT)',   data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours },
+                { label: 'Ours (RVQ-GPT)',  data: [18.74, 22.18, 15.12], backgroundColor: COLORS.rvq }
               ], 'R@3 (%)', 100);
 
               gbar(fid, [
-                { label: 'Ground Truth', data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
-                { label: 'Kimodo',       data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
-                { label: 'Ours',         data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours }
-              ], 'FID', 0.35);
+                { label: 'Ground Truth',    data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',          data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
+                { label: 'Ours (VQ-GPT)',   data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours },
+                { label: 'Ours (RVQ-GPT)',  data: [0.644, 0.411, 0.670], backgroundColor: COLORS.rvq }
+              ], 'FID', 0.75);
 
               new Chart(eff, {
                 type: 'bar',
                 data: {
                   labels: ['Params (M)', 'GFLOPs / clip', 'Latency (ms / clip)'],
                   datasets: [
-                    { label: 'Kimodo', data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
-                    { label: 'Ours',   data: [395, 470, 413],    backgroundColor: COLORS.ours }
+                    { label: 'Kimodo',         data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
+                    { label: 'Ours (VQ-GPT)',  data: [395, 470, 413],    backgroundColor: COLORS.ours },
+                    { label: 'Ours (RVQ-GPT)', data: [565, 640, 486],    backgroundColor: COLORS.rvq }
                   ]
                 },
                 options: {
@@ -881,7 +909,7 @@
                          grid: { color: 'rgba(0,0,0,0.05)' } }
                   },
                   plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { display: false },
                     tooltip: { callbacks: { label: function (c) {
                       return c.dataset.label + ': ' + c.parsed.y; } } }
                   }
@@ -1431,6 +1459,13 @@
           </div>
         </div>
 
+        <!-- One shared legend for both charts above (same three groups) -->
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item"><span class="legend-swatch" style="background:#2e7d32;"></span>Ground truth</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#e8710a;"></span>Kimodo</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2b4eff;"></span>Ours</span>
+        </div>
+
         <script>
           (function () {
             var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff' };
@@ -1459,7 +1494,7 @@
                          grid: { color: 'rgba(0,0,0,0.05)' } }
                   },
                   plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { display: false },
                     tooltip: { callbacks: { label: function (c) {
                       return c.dataset.label + ': ' + c.parsed.y.toFixed(2) + ' cm'; } } }
                   }
@@ -1486,7 +1521,7 @@
                          grid: { color: 'rgba(0,0,0,0.05)' } }
                   },
                   plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { display: false },
                     tooltip: { callbacks: { label: function (c) {
                       return c.dataset.label + ': ' + c.parsed.y.toFixed(3); } } }
                   }
@@ -1539,22 +1574,30 @@
             </table>
           </div>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          Our pipeline matches the ground-truth lower bound on root-2D adherence to within
-          two millimetres and undercuts Kimodo by roughly one centimetre (24 percent
-          relative error reduction), with a higher fraction of frames inside the
-          ten-centimetre tolerance (95.7 percent versus 93.4 percent). Kimodo wins
-          decisively on the foot-skate suite: a five-fold lower skate ratio and a
-          1.66 higher contact consistency. This is the expected trade-off of decoupling:
-          our explicit controller produces a clean world-frame path that the body GPT was
-          not jointly trained to follow, so when the controller-imposed path disagrees
-          with the body's predicted gait the feet slide. Kimodo's diffusion model jointly
-          generates body and root, avoiding the disagreement; the same property is
-          consistent with the codec-ceiling foot-skate reported in the codec reconstruction
-          ablation. A
-          foot-projection post-processing step would close most of this gap (Kimodo
-          enables one by default) and is left to future work.
-        </p>
+        <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
+          <span class="fig-caption-summary"><strong>Results.</strong> We beat Kimodo on path
+          adherence (~24% lower 2D root error) but trade away foot-skate quality &mdash; the
+          expected cost of decoupling the controller from the body GPT.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p>Our pipeline matches the ground-truth lower bound on root-2D adherence to within
+            two millimetres and undercuts Kimodo by roughly one centimetre (24 percent
+            relative error reduction), with a higher fraction of frames inside the
+            ten-centimetre tolerance (95.7 percent versus 93.4 percent). Kimodo wins
+            decisively on the foot-skate suite: a five-fold lower skate ratio and a
+            1.66 higher contact consistency. This is the expected trade-off of decoupling:
+            our explicit controller produces a clean world-frame path that the body GPT was
+            not jointly trained to follow, so when the controller-imposed path disagrees
+            with the body's predicted gait the feet slide. Kimodo's diffusion model jointly
+            generates body and root, avoiding the disagreement; the same property is
+            consistent with the codec-ceiling foot-skate reported in the codec reconstruction
+            ablation. A foot-projection post-processing step would close most of this gap
+            (Kimodo enables one by default) and is left to future work.</p>
+          </div>
+        </figcaption>
       </div>
     </div>
 
@@ -1805,6 +1848,24 @@
             </table>
           </div>
         </div>
+        <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
+          <span class="fig-caption-summary"><strong>Latency.</strong> End-to-end inference is
+          413&nbsp;ms per clip (2.4 clips/s) &mdash; the body GPT sampler and trajectory
+          controller together account for 96&nbsp;% of the cost, while the VQ decoder and CPU
+          recompose are effectively free.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p>Measured on a single A100 80GB, fp32, batch size 1, 200-frame clip, mean &plusmn;
+            standard deviation over 50 runs after 10 warmups. The two autoregressive components
+            dominate: body GPT sampling over 51 tokens (217.00&nbsp;ms, 52.5&nbsp;%) and the GRU
+            trajectory controller (179.73&nbsp;ms, 43.5&nbsp;%). The CLIP caption encoder
+            (7.40&nbsp;ms), VQ decoder (1.51&nbsp;ms) and CPU recompose/reprojection
+            (7.76&nbsp;ms) together add under 4&nbsp;% of the total.</p>
+          </div>
+        </figcaption>
 
     <!-- Text prompt injection -->
         <br></br>
