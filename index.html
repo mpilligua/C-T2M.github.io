@@ -2157,12 +2157,12 @@
 
               function setStatus(activeIdxOurs, oursDone, kimodoDone) {
                 if (oursDone && kimodoDone) {
-                  currentEl.textContent = 'Both done — Ours: 413 ms · Kimodo: 4280 ms (about 10× slower) ✓';
+                  currentEl.textContent = 'Both done. Ours: 413 ms · Kimodo: 4280 ms (about 10× slower) ✓';
                   currentEl.classList.add('is-done');
                   return;
                 }
                 if (oursDone) {
-                  currentEl.textContent = 'Ours done in 413 ms ✓ — Kimodo still running…';
+                  currentEl.textContent = 'Ours done in 413 ms ✓ · Kimodo still running…';
                   currentEl.classList.remove('is-done');
                   return;
                 }
@@ -2206,7 +2206,7 @@
                 ours.markDone();
                 kimodo.markDone();
                 timeEl.textContent = '4280.0 ms';
-                currentEl.textContent = 'Both done — Ours: 413 ms · Kimodo: 4280 ms (about 10× slower) ✓';
+                currentEl.textContent = 'Both done. Ours: 413 ms · Kimodo: 4280 ms (about 10× slower) ✓';
                 currentEl.classList.add('is-done');
                 setPlayBtn('play', mode === 'realtime' ? 'Race again' : 'Replay (x10 slower)');
               }
@@ -2322,15 +2322,16 @@
           </div>
         </figcaption>
 
-    <h3 class="title is-4" style="margin-top: 3rem;">4. Fine-grained Prompts</h3>
+    <h3 class="title is-4" style="margin-top: 3rem;">4. Sequential prompts (&ldquo;and then&rdquo;)</h3>
     <div class="content has-text-justified">
       <p>
         Sections 1 to 3 showed that the model can generate motion, follow paths, and adapt
-        online. One question is still open: how much of the <em>text</em> actually makes it
-        into the motion? Captions encode intent, modifiers, and ordering all at once, but
-        the body GPT only has so much capacity to bind them. To probe this, we start from a
-        basic walking prompt and progressively add more specific details, one modifier at a
-        time:
+        online. One question is still open: how much of the <em>text</em> actually makes
+        it into the motion? Here we test captions that chain actions in time
+        (<em>do X, and then Y</em>); a
+        <a href="./ablations.html#fine-grained-simultaneous">complementary ablation</a>
+        tests simultaneous actions (<em>do X while doing Y</em>). We start from a basic
+        walking prompt and add one modifier at a time:
       </p>
 
       <div style="background:#f8f9fa; border:1px solid #e8ecf0; border-radius:8px; padding:1rem 1.25rem; margin:0.75rem 0 1.25rem;">
@@ -2357,35 +2358,13 @@
       </div>
 
       <p>
-        The generated motions show that the model captures the text well up to <strong>Level 3</strong>:
-        walking, slowing down, and stopping are all reproduced faithfully. At <strong>Level 4</strong>
-        and <strong>Level 5</strong>, however, the character no longer stops — it keeps walking
-        throughout. The right-hand raising and waving are partially present, but the sequential
-        structure ("walks … <em>then</em> stops") is lost.
-      </p>
-      <p>
-        We can also see that each of those actions can be generated correctly on its own. This suggests that the model handles
-        simple prompts and one additional modifier well,
-        but struggles to follow temporal structure when several steps are chained in a single
-        sentence. The text condition acts as a bottleneck: the model preserves the most salient
-        continuous action (walking) while dropping the discontinuity (stopping) required to
-        transition into the next phase. This supports the idea that <em>text is a lossy
-        representation of motion</em>, especially for prompts that encode explicit temporal
-        transitions between actions.
-      </p>
-      <p>
-        <strong>Where the bottleneck likely sits.</strong> We use a frozen
-        <a href="https://openai.com/research/clip">CLIP</a> text encoder that was
-        trained on web image-text pairs, never on motion, and BONES captions
-        themselves rarely describe ordered sequences of actions. Two follow-ups are
-        worth trying: (i) replace CLIP with a text encoder fine-tuned on
-        motion-paired captions (e.g. TMR-style), and (ii) augment the training set
-        with multi-action captions that explicitly carry temporal connectives
-        (<em>then</em>, <em>after</em>, <em>while</em>). The online-adaptation
-        section already shows that the architecture itself <em>can</em> handle
-        discontinuities when the prompt is changed mid-rollout, so the gap is in
-        how transitions get encoded into a single sentence, not in the model's
-        ability to execute them.
+        Up to <strong>Level 3</strong> the motion follows the caption: walking,
+        slowing down, stopping. From <strong>Level 4</strong> onwards the character
+        no longer stops, the hand-raise and wave are partial, and the
+        <em>"and then"</em> structure is lost. Each action on its own is generated
+        correctly, so the gap is in chaining them: <em>text is a lossy
+        representation of motion</em> when one caption tries to encode an explicit
+        temporal sequence.
       </p>
     </div>
 
@@ -2652,10 +2631,41 @@
         <h2 class="title is-3">Individual Contributions</h2>
         <div class="content has-text-justified">
           <ul>
-            <li><strong>Maria Pilligua</strong> - TODO: list contributions (e.g. path controller, training, benchmarks).</li>
-            <li><strong>Pau Amargant</strong> -   RVQ-VAE and GPT-RVQ-VAE, VQ-VAE tuning, model evaluation.</li>
-            <li><strong>Miquel Lopez</strong> - Designed and implemented the data preprocessing pipeline. Set up the initial training pipeline for the VQ-VAE codec and the body GPT. Attempted to train a full constraint model supporting root-path, joint, and end-keypoint-frame constraints (unsuccessful). Ran the heavy compute training runs. Designed and implemented the online adaptation architecture and produced the online adaptation demos.</li>
-            <li><strong>Nahush Rajesh Kolhe</strong> - TODO: list contributions (e.g. Kimodo baseline, evaluation pipeline).</li>
+            <li>
+              <strong>Maria Pilligua</strong>:
+              ran the initial experiments to replicate T2M-GPT and preprocessed the
+              BONES dataset (multiple times, with different pipelines). Prepared the
+              model and dataloaders to retrain on the Kimodo benchmark. Trained the
+              VQ-VAE at both small and large scale, trained our main model, and explored
+              several architectures for injecting constraints before arriving at and
+              training our current decoupled design. Rendered all visuals shown on the
+              page (except the online-adaptation demos) and designed every architecture
+              figure. Designed and ran all ablations and evaluations reported here.
+              Consistently pushed for results, kept the meetings on track, and helped
+              organise the team.
+            </li>
+            <li>
+              <strong>Pau Amargant</strong>:
+              developed the RVQ-VAE and the GPT-RVQ-VAE end-to-end variant, tuned the
+              VQ-VAE, and contributed to model evaluation.
+            </li>
+            <li>
+              <strong>Miquel Lopez</strong>:
+              designed and implemented the data preprocessing pipeline, and set up the
+              initial training pipeline for the VQ-VAE and the body GPT. Attempted to
+              train a full constraint model supporting root-path, joint, and
+              end-keypoint-frame constraints (unsuccessful). Ran the heavy-compute
+              training jobs. Designed and implemented the online-adaptation architecture
+              and produced the online-adaptation demos.
+            </li>
+            <li>
+              <strong>Nahush Rajesh Kolhe</strong>:
+              Implemented the data preparation and training scripts for the
+              larger model. Designed and implemented online generation with
+              text input injected mid-generation, using a streaming generator
+              to render the motion live. Built the visualisation and the demo
+              for online generation.
+            </li>
           </ul>
         </div>
       </div>
