@@ -335,6 +335,12 @@
             kind: 'img',
             src: './assets/online_generation/manual_path.gif',
             caption: 'Update on the fly: because trajectory and body are decoupled, paths or text can be edited mid-rollout without restarting generation.'
+          },
+          {
+            title: 'Mid-generation Prompt Switch',
+            kind: 'img',
+            src: './assets/online_generation/online_text_1.gif',
+            caption: 'Change the caption mid-rollout: starting from "a person walking forward", we inject "a person sits criss-cross" and the body GPT smoothly transitions without restarting.'
           }
         ];
 
@@ -610,7 +616,7 @@
   <div class="container is-max-widescreen">
     <div class="columns is-centered">
       <div class="column is-full">
-        <h2 class="title is-3 has-text-centered">How does it work?</h2>
+        <h2 class="title is-3 has-text-centered" style="margin-top: 1rem;">How does it work?</h2>
         <p class="has-text-justified" style="font-size: 1.05rem; line-height: 1.65;">
           Text-to-motion is, at its core, the problem of placing every joint of a
           humanoid skeleton frame-by-frame from a sentence. We start from the
@@ -1070,28 +1076,83 @@
           Qualitative comparison of three text-to-motion models on the same held-out captions. Kimodo is a diffusion-based baseline (state-of-the-art quality, slow); VQ-GPT is our single-codebook autoregressive model; RVQ-GPT swaps that codec for a residual VQ-VAE. The residual codec reconstructs motion more faithfully on its own, but that advantage did not transfer end-to-end &mdash; RVQ-GPT came out worse than the plain VQ-VAE, so the single-codebook model remains our reference. We detail the residual codec and this trade-off in the <a href="./ablations.html#codec-reconstruction">codec ablation</a>.
         </p>
 
+        <!-- Residual VQ-VAE codec architecture -->
+        <figure class="image" style="max-width: 620px; margin: 0 auto 0.75rem;">
+          <img src="./assets/rvq_vae/rvq_vae_arch.png"
+               alt="Residual VQ-VAE motion codec (left) versus a single-codebook VQ-VAE (right): a stack of quantizers each encode the residual left by the previous level, so one motion token is a tuple of codebook indices."
+               style="width: 100%; height: auto; display: block;">
+        </figure>
+        <figcaption class="fig-caption is-size-7 has-text-justified" style="max-width: 950px; margin: 0 auto 1.5rem;">
+          <span class="fig-caption-summary"><strong>The residual VQ-VAE codec behind RVQ-GPT.</strong>
+          The RVQ-VAE (left) replaces the single quantizer of a plain VQ-VAE (right) with a
+          stack of quantizers, each encoding the residual the previous levels left behind. This
+          reconstructs motion more faithfully than a single codebook, but it represents every
+          timestep with four codebook indices (b0, b1, b2, b3) instead of one.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p class="has-text-justified">
+              <strong>Left (RVQ-VAE).</strong> The encoder maps a motion frame to a continuous
+              feature. The first quantizer <code>VQ&nbsp;0</code> snaps it to its nearest
+              codebook entry (<code>argmin</code>), giving feature <code>b0</code>. The residual
+              (input minus <code>b0</code>) is passed to <code>VQ&nbsp;1</code>, whose residual
+              feeds <code>VQ&nbsp;2</code>, and so on: each level quantizes only the error left
+              by the levels above it. The selected features <code>b0&hellip;b3</code> are summed
+              and the running sum is sent to the decoder. The four codebook indices stacked
+              together form a single motion token, so one frame is represented by an ordered
+              coarse-to-fine tuple <code>(b0,&nbsp;b1,&nbsp;b2,&nbsp;b3)</code>.
+            </p>
+            <p class="has-text-justified">
+              <strong>Right (VQ-VAE).</strong> The single-codebook baseline uses one quantizer:
+              the encoder feature is snapped to a single codebook entry <code>b</code> and
+              decoded directly, so each motion token is a single index.
+            </p>
+            <p class="has-text-justified">
+              <strong>The trade-off.</strong> Measured purely as a codec, the residual stack
+              reconstructs motion more faithfully than the single VQ-VAE. The cost is that it
+              quadruples the tokens per frame, which makes the generation problem harder: rather
+              than predicting one token per timestep, the body GPT must predict all four
+              codebook indices, and in our setup it generates them sequentially. We were not
+              able to train this RVQ-VAE + GPT setup effectively: its end-to-end results came
+              out worse than the plain VQ-VAE (see the metrics above), so the single-codebook
+              model remains our reference point. Making the residual codec pay off end-to-end
+              likely needs a more elaborate design, possibly a hierarchical one.
+            </p>
+          </div>
+        </figcaption>
+
+        <p class="has-text-centered" style="margin-top: 2rem; margin-bottom: 1rem;">
+          <strong>Comparison between our two models and Kimodo (SOTA)</strong>
+        </p>
+
         <!-- Example 1 (ID 0004) -->
         <div style="margin-bottom: 2rem;">
-          <p class="is-size-6 has-text-centered" style="margin-bottom: 1rem; font-weight: 500;">Example 1</p>
+          <p class="is-size-18 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
+            Caption: <em>"TODO: insert prompt used for example 0004"</em>
+          </p>
           <div class="columns is-centered">
             <div class="column is-full has-text-centered">
               <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
                 <source src="./0004__merged.mp4" type="video/mp4">
               </video>
-              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
+              <p class="is-size-12" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
             </div>
           </div>
         </div>
 
         <!-- Example 2 (ID 0072) -->
         <div>
-          <p class="is-size-6 has-text-centered" style="margin-bottom: 1rem; font-weight: 500;">Example 2</p>
+          <p class="is-size-18 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
+            Caption: <em>"TODO: insert prompt used for example 0072"</em>
+          </p>
           <div class="columns is-centered">
             <div class="column is-full has-text-centered">
               <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
                 <source src="./0072__merged.mp4" type="video/mp4">
               </video>
-              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
+              <p class="is-size-12" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
             </div>
           </div>
         </div>
@@ -1834,10 +1895,142 @@ median retrieval rank of the correct motion
     </div>
 
 
+    <!-- Online adaptation gallery (single carousel: text prompt + path constraint injection) -->
+    <div class="columns is-centered" style="margin-top: 1.5rem;">
+      <div class="column is-full">
+        <h3 id="online-adapt-title" class="has-text-centered" style="font-size:1.2rem; font-weight:600; color:#2c3e50; margin-bottom: 0.9rem;">
+          Text prompt injection
+        </h3>
+
+        <div class="qual-carousel-container">
+          <div id="online-adapt-slides"></div>
+          <button class="qual-nav-button prev" type="button"
+                  onclick="onlineAdaptCarousel.navigate(-1)">&#10094;</button>
+          <button class="qual-nav-button next" type="button"
+                  onclick="onlineAdaptCarousel.navigate(1)">&#10095;</button>
+        </div>
+        <p id="online-adapt-caption" class="qual-carousel-caption"></p>
+        <div class="qual-dots" id="online-adapt-dots"></div>
+
+        <script>
+          (function () {
+            const data = [
+              {
+                title: 'Text prompt injection',
+                kind: 'img',
+                src: './assets/online_generation/online_text_1.gif',
+                caption: '"a person walking forward" → "a person sits criss-cross"'
+              },
+              {
+                title: 'Text prompt injection',
+                kind: 'img',
+                src: './assets/online_generation/online_text_2.gif',
+                caption: '"a person walking forward" → "a person starts walking right"'
+              },
+              {
+                title: 'Path constraint injection',
+                kind: 'img',
+                src: './assets/online_generation/manual_path.gif',
+                caption: 'Manual waypoints injected mid-rollout.'
+              },
+              {
+                title: 'Path constraint injection',
+                kind: 'img',
+                src: './assets/online_generation/a_star_path.gif',
+                caption: 'A* path around a new obstacle.'
+              }
+            ];
+
+            class OnlineAdaptCarousel {
+              constructor(cfg) {
+                this.data = cfg.data;
+                this.slidesId = cfg.slidesId;
+                this.dotsId = cfg.dotsId;
+                this.captionId = cfg.captionId;
+                this.titleId = cfg.titleId;
+                this.currentIndex = 0;
+              }
+              build() {
+                const slidesContainer = document.getElementById(this.slidesId);
+                const dotsContainer = document.getElementById(this.dotsId);
+                if (!slidesContainer || !dotsContainer) return;
+                slidesContainer.innerHTML = '';
+                dotsContainer.innerHTML = '';
+
+                this.data.forEach((item, index) => {
+                  const slide = document.createElement('div');
+                  slide.className = 'qual-carousel-slide';
+                  slide.dataset.index = index;
+                  slide.onclick = () => { if (index !== this.currentIndex) this.setIndex(index); };
+                  slide.innerHTML = `<img src="${item.src}" alt="${item.title}"
+                      style="width:100%; height:auto; border-radius:16px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); display:block; background:#111;">`;
+                  slidesContainer.appendChild(slide);
+
+                  const dot = document.createElement('button');
+                  dot.className = 'qual-dot';
+                  dot.dataset.index = index;
+                  dot.onclick = () => this.setIndex(index);
+                  dotsContainer.appendChild(dot);
+                });
+
+                this.setIndex(0);
+              }
+              navigate(direction) {
+                let newIndex = this.currentIndex + direction;
+                if (newIndex < 0) newIndex = this.data.length - 1;
+                else if (newIndex >= this.data.length) newIndex = 0;
+                this.setIndex(newIndex);
+              }
+              setIndex(index) {
+                this.currentIndex = index;
+                const slides = document.getElementById(this.slidesId)
+                                       .querySelectorAll('.qual-carousel-slide');
+                const dots = document.getElementById(this.dotsId)
+                                     .querySelectorAll('.qual-dot');
+                const captionEl = document.getElementById(this.captionId);
+                const titleEl = document.getElementById(this.titleId);
+                const n = this.data.length;
+
+                slides.forEach((slide, i) => {
+                  slide.classList.remove('active', 'prev', 'next', 'hidden');
+                  if (i === index) {
+                    slide.classList.add('active');
+                  } else if (i === (index - 1 + n) % n) {
+                    slide.classList.add('prev');
+                  } else if (i === (index + 1) % n) {
+                    slide.classList.add('next');
+                  } else {
+                    slide.classList.add('hidden');
+                  }
+                });
+
+                dots.forEach((dot, i) => {
+                  dot.classList.toggle('active', i === index);
+                });
+
+                if (captionEl) captionEl.textContent = this.data[index].caption;
+                if (titleEl) titleEl.textContent = this.data[index].title;
+              }
+            }
+
+            window.onlineAdaptCarousel = new OnlineAdaptCarousel({
+              data: data,
+              slidesId: 'online-adapt-slides',
+              dotsId: 'online-adapt-dots',
+              captionId: 'online-adapt-caption',
+              titleId: 'online-adapt-title'
+            });
+            onlineAdaptCarousel.build();
+          })();
+        </script>
+      </div>
+    </div>
+
+
     <!-- Per-block latency breakdown (animated timeline) -->
         <br><br>
         <strong>Per-block inference cost of the decoupled pipeline</strong>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+        <p class="has-text-justified" style="margin-bottom: 0.75rem; margin-top: 0.75rem;">
           From caption to motion in <strong>413&nbsp;ms</strong>. Press play to watch
           the pipeline run: the playhead advances through each block at scaled
           real-time, the current block lights up and its name appears below. The
@@ -2348,7 +2541,7 @@ median retrieval rank of the correct motion
         </script>
 
         <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
-          <span class="numbers-toggle-label">Show full table</span>
+          <span class="numbers-toggle-label">See exact time</span>
           <i class="fas fa-chevron-down"></i>
         </a>
         <div class="numbers-details">
@@ -2391,62 +2584,6 @@ median retrieval rank of the correct motion
           </div>
         </figcaption>
 
-    <!-- Text prompt injection -->
-        <br></br>
-        <strong>Qualitative results: Text prompt injection</strong>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          We can change what the character does mid-sequence by injecting a new text prompt.
-          For example, starting from <em>"a person walking forward at a steady pace"</em> we
-          can inject <em>"a person sits criss-cross"</em> or <em>"a person starts walking
-          right"</em> and the motion adapts accordingly.
-        </p>
-        <div class="columns is-vcentered" style="margin: 1rem 0;">
-          <div class="column">
-            <img src="./assets/online_generation/online_text_1.gif"
-                 alt="Walking forward, then sits criss-cross" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              "a person walking forward" &rarr; "a person sits criss-cross"
-            </p>
-          </div>
-          <div class="column">
-            <img src="./assets/online_generation/online_text_2.gif"
-                 alt="Walking forward, then starts walking right" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              "a person walking forward" &rarr; "a person starts walking right"
-            </p>
-          </div>
-        </div>
-
-    <!-- Path constraint injection -->
-    <div class="columns is-centered" style="margin-top: 2rem;">
-      <div class="column is-full">
-        <strong>Qualitative results: Path constraint injection</strong>
-        <!-- TODO: generate more path-injection result GIFs and add them to the gallery below. -->
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          We can also inject a new path constraint mid-sequence. This is useful when the
-          environment changes, for instance when a new obstacle appears and the character
-          must reroute. We show two cases: waypoints specified manually, and waypoints
-          computed automatically with the A* algorithm to avoid obstacles.
-        </p>
-        <div class="columns is-vcentered" style="margin: 1rem 0;">
-          <div class="column has-text-centered">
-            <img src="./assets/online_generation/manual_path.gif"
-                 alt="Path injection with manually placed waypoints" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              Manual waypoints
-            </p>
-          </div>
-          <div class="column has-text-centered">
-            <img src="./assets/online_generation/a_star_path.gif"
-                 alt="Path injection with A* computed detour around obstacle" style="max-width: 100%; border-radius: 6px;">
-            <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              A* path around a new obstacle
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </section>
 
@@ -2454,9 +2591,7 @@ median retrieval rank of the correct motion
 <!-- Other Experiments -->
 <section class="section" id="other-experiments">
   <div class="container is-max-widescreen">
-    <h2 class="title is-3 has-text-centered">Other Experiments</h2>
-
-    <h3 class="title is-4">Fine-grained Prompt Experiment</h3>
+    <h3 class="title is-4">4. Fine-grained Prompt</h3>
     <div class="content has-text-justified">
       <p>
         To study how much fine-grained information the model can capture from text, we run a simple
