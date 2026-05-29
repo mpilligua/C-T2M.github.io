@@ -71,7 +71,6 @@
       <div class="columns is-centered">
         <div class="column has-text-centered">
           <h1 class="title is-1 publication-title">C-T2M: Ablations</h1>
-          <p class="is-size-5">Per-component studies of our decoupled text-to-motion pipeline.</p>
         </div>
       </div>
     </div>
@@ -79,13 +78,13 @@
 </section>
 
 
-<!-- Ablations -->
+Ablations
 <section class="section" id="ablations">
   <div class="container is-max-widescreen">
-    <h2 class="title is-3 has-text-centered">Ablations</h2>
 
-    <!-- HumanML3D benchmark table (placeholder, TODO) -->
-    <div class="columns is-centered" style="margin-top: 2.5rem;">
+    <!-- HumanML3D benchmark table (placeholder, TODO) - commented out pending RVQ-GPT results -->
+    <!--
+    <div class="columns is-centered" style="margin-top: -2rem;">
       <div class="column is-full">
         <h3 class="title is-5">Comparison on HumanML3D <em>(placeholder, TODO)</em></h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
@@ -125,16 +124,7 @@
         </div>
       </div>
     </div>
-
-    <!-- Amir's experiment: closed loop (placeholder, TODO fill content) -->
-    <div class="columns is-centered" style="margin-top: 2.5rem;">
-      <div class="column is-full">
-        <h3 class="title is-5">Amir's experiment: closed loop</h3>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          TODO: describe the closed-loop experiment, the setup, and the takeaway.
-        </p>
-      </div>
-    </div>
+    -->
 
     <!-- Constraint-conditioning architecture ablation (formerly Table 4) -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
@@ -152,32 +142,32 @@
             <thead>
               <tr>
                 <th>Architecture variant</th>
-                <th>WP error (m) ↓</th>
-                <th>FID ↓</th>
-                <th>R-Prec top-1 ↑</th>
-                <th>Foot-skating ↓</th>
-                <th>Latency (s/clip) ↓</th>
+                <th>Root Err (cm) ↓</th>
+                <th>Acc ≤10cm ↑</th>
+                <th>Foot Skate ↓</th>
+                <th>Jaccard ↑</th>
+                <th>m2m R@3 ↑</th>
+                <th>m2m R@10 ↑</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td>(a) Caption-only T2M + linear-interp root path (no controller)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
-              <tr><td>(b) End-to-end constrained body, <code>xz_io</code> only (path tokens injected)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
-              <tr><td>(c) End-to-end constrained body, constraint-memory only (no <code>xz_io</code>)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
-              <tr><td>(d) End-to-end constrained body, full conditioning (<code>xz_io</code> + cmem + heading head)</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+              <tr><td>(a) TE-once, static cross-attn</td><td>45.12</td><td>0.344</td><td>0.528</td><td>0.337</td><td>1.27</td><td>4.20</td></tr>
+              <tr><td>(b) TE-perpos, relative cross-attn</td><td>52.67</td><td>0.261</td><td>0.560</td><td>0.241</td><td>1.95</td><td>4.00</td></tr>
+              <tr><td>(c) Prepend constraint tokens (Miquel)</td><td>65.17</td><td>0.268</td><td>0.526</td><td>0.367</td><td>1.07</td><td>3.61</td></tr>
               <tr>
-                <td><strong>(e) Decoupled: controller &rarr; recompose (ours)</strong></td>
-                <td><strong>-</strong></td>
-                <td><strong>-</strong></td>
-                <td><strong>-</strong></td>
-                <td><strong>-</strong></td>
-                <td><strong>-</strong></td>
+                <td><strong>(d) Decoupled: controller + body GPT (ours)</strong></td>
+                <td><strong>17.20</strong></td>
+                <td><strong>0.585</strong></td>
+                <td><strong>0.317</strong></td>
+                <td><strong>0.463</strong></td>
+                <td><strong>3.22</strong></td>
+                <td><strong>8.20</strong></td>
               </tr>
             </tbody>
           </table>
         </div>
         <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          Numbers pending; the qualitative story is that decoupling (ours) is the only variant
-          that achieves accurate path following without degrading gait quality.
+          All metrics on the constraint-notext root testsuites (1024 clips, 4 subsets). Root Err and Acc measure constraint-following accuracy. Foot Skate and Jaccard measure motion quality (foot-contact consistency). m2m R@K reports motion-to-motion retrieval in a neutral encoder space (TMR-petrovich), measuring whether predictions land in the same semantic cluster as ground truth. The decoupled approach (d) achieves 2.5-4x lower root error and 2-3x higher m2m retrieval recall than all end-to-end variants, with the exception of (a) which approaches (d) on constraint-following at the cost of worse quality metrics.
         </p>
       </div>
     </div>

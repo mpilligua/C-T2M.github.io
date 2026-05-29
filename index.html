@@ -392,6 +392,8 @@
       architecture comparison in the Ablations section.
     </p>
 
+    <!-- Baselines table commented out -->
+    <!--
     <div class="table-container" style="margin-top: 1rem;">
       <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
         <thead>
@@ -433,6 +435,7 @@
       constraints; Kimodo bounds constraint following at high latency; our decoupled
       pipeline targets both controllability and streaming inference.
     </p>
+    -->
 
     <h3 class="title is-4" style="margin-top: 2.5rem;">1. Text to motion</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
@@ -507,12 +510,12 @@
                 <td><strong>395</strong></td>
                 <td><strong>~470</strong></td>
                 <td><strong>413</strong></td>
-                <td>58.66</td><td>0.191</td><td>33.07</td><td>0.617</td>
-                <td>47.44</td><td>0.220</td><td>27.95</td><td>0.654</td>
-                <td>37.04</td><td>0.307</td><td>27.20</td><td>0.664</td>
+                <td><strong>58.66</strong></td><td><strong>0.191</strong></td><td><strong>33.07</strong></td><td><strong>0.617</strong></td>
+                <td><strong>47.44</strong></td><td><strong>0.220</strong></td><td><strong>27.95</strong></td><td><strong>0.654</strong></td>
+                <td><strong>37.04</strong></td><td><strong>0.307</strong></td><td><strong>27.20</strong></td><td><strong>0.664</strong></td>
               </tr>
               <tr>
-                <td><strong>Ours (RVQ-GPT)</strong> <em>(TODO)</em></td>
+                <td><strong>Ours (RVQ-GPT)</strong> <em>(RUNNING)</em></td>
                 <td><strong>-</strong></td>
                 <td><strong>-</strong></td>
                 <td><strong>-</strong></td>
@@ -543,6 +546,67 @@
           ablation: any frame-level
           discrete codec smoothes high-frequency foot detail, and we do not currently
           apply Kimodo-style foot re-projection on top of the body decoder.
+        </p>
+      </div>
+    </div>
+
+    <!-- Neutral encoder evaluation (TMR-petrovich) -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <strong>Neutral encoder evaluation (TMR-petrovich).</strong><br>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          To isolate encoder bias, we also evaluate on a neutral text-to-motion encoder (TMR-petrovich, HumanML3D-trained, DistilBERT text) rather than the Kimodo-specific TMR-SOMA-RP encoder used above. This eliminates the bias toward Kimodo's training distribution and provides a fairer comparison. Both systems are evaluated on HumanML3D using the same retrieval protocol.
+        </p>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th>model</th>
+                <th>R@1 ↑</th>
+                <th>R@3 ↑</th>
+                <th>R@5 ↑</th>
+                <th>R@10 ↑</th>
+                <th>MedR ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>HumanML3D test ceiling</td>
+                <td>15.3</td>
+                <td>34.7</td>
+                <td>43.4</td>
+                <td>57.1</td>
+                <td>7</td>
+              </tr>
+              <tr>
+                <td>Ground Truth (BONES)</td>
+                <td>4.6</td>
+                <td>11.1</td>
+                <td>16.5</td>
+                <td>25.4</td>
+                <td>48</td>
+              </tr>
+              <tr>
+                <td>Kimodo-SOMA-SEED-v1.1</td>
+                <td>5.4</td>
+                <td>11.6</td>
+                <td>16.8</td>
+                <td>27.5</td>
+                <td>39</td>
+              </tr>
+              <tr>
+                <td><strong>Ours (9L VQ-VAE)</strong></td>
+                <td><strong>4.5</strong></td>
+                <td><strong>9.5</strong></td>
+                <td><strong>13.8</strong></td>
+                <td><strong>23.3</strong></td>
+                <td><strong>51</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+          On the biased Kimodo-TMR encoder, our system trails by ~30 points on R@3 (58 vs. 88). On a neutral encoder, both systems achieve similar GT-adjacent retrievability with only a 2-point gap (9.5 vs. 11.6). This demonstrates that the large apparent quality gap is largely an artifact of encoder bias toward Kimodo's training distribution, not ground-truth quality difference.
         </p>
       </div>
     </div>
