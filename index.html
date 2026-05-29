@@ -831,30 +831,39 @@
       </div>
     </div>
 
-    <!-- RVQ-GPT vs VQ-GPT qualitative comparison (placeholder) -->
+    <!-- RVQ-GPT vs VQ-GPT vs Kimodo qualitative comparison -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
         <p class="has-text-centered" style="margin-bottom: 0.5rem;">
-          <strong>Comparison between RVQ-GPT vs VQ-GPT</strong>
+          <strong>Model comparison: Kimodo, RVQ-GPT, and VQ-GPT</strong>
         </p>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          TODO: run the same set of held-out prompts through both the single-codebook VQ-GPT
-          and our final RVQ-GPT, render the two clips side by side, and add them here. The goal
-          is to visually show the quality lift the residual codec provides on top of the
-          quantitative gain reported in the codec reconstruction ablation.
+        <p class="has-text-justified" style="margin-bottom: 1.5rem;">
+          Qualitative comparison of three text-to-motion models on the same held-out captions. Kimodo is a diffusion-based baseline (state-of-the-art quality, slow); VQ-GPT is our single-codebook autoregressive baseline; RVQ-GPT is our final model with residual quantization. The RVQ codec provides measurable quality improvements, particularly in joint smoothness and foot contact stability.
         </p>
-        <div class="columns is-vcentered">
-          <div class="column has-text-centered">
-            <div style="background:#eee;border-radius:8px;padding:3rem;color:#777;">
-              VQ-GPT video placeholder
+
+        <!-- Example 1 (ID 0004) -->
+        <div style="margin-bottom: 2rem;">
+          <p class="is-size-6 has-text-centered" style="margin-bottom: 1rem; font-weight: 500;">Example 1</p>
+          <div class="columns is-centered">
+            <div class="column is-full has-text-centered">
+              <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
+                <source src="./0004__merged.mp4" type="video/mp4">
+              </video>
+              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
             </div>
-            <p class="is-size-7" style="margin-top: 0.4rem; color:#555;">Single VQ-GPT</p>
           </div>
-          <div class="column has-text-centered">
-            <div style="background:#eee;border-radius:8px;padding:3rem;color:#777;">
-              RVQ-GPT video placeholder
+        </div>
+
+        <!-- Example 2 (ID 0072) -->
+        <div>
+          <p class="is-size-6 has-text-centered" style="margin-bottom: 1rem; font-weight: 500;">Example 2</p>
+          <div class="columns is-centered">
+            <div class="column is-full has-text-centered">
+              <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
+                <source src="./0072__merged.mp4" type="video/mp4">
+              </video>
+              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
             </div>
-            <p class="is-size-7" style="margin-top: 0.4rem; color:#555;">RVQ-GPT (ours)</p>
           </div>
         </div>
       </div>
