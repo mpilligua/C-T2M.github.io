@@ -327,7 +327,7 @@
           {
             title: 'Path Constraints',
             kind: 'video',
-            src: './assets/constraint_exports/walk__spiral__dense_raw_trim1p5s.mp4',
+            src: './assets/constraint_exports/walk__wavy__sparse_pp_trim2s.mp4',
             caption: 'Walk along any path: sparse waypoints or dense trajectories are followed by the GRU controller while the body GPT keeps the gait natural.'
           },
           {
@@ -832,9 +832,9 @@
   <div class="container is-max-widescreen">
     <h2 class="title is-3 has-text-centered">Experiments</h2>
 
-    <p class="has-text" style="color:#666; margin: 0.5rem auto 2rem;">
+    <p class="has-text-centered" style="color:#666; margin: 0.5rem auto 2rem;">
       We evaluate on the <strong>BONES-SEED</strong> benchmark, comparing against
-      <strong>Kimodo</strong> under the same evaluation pipeline. Full setup,
+      <strong>Kimodo</strong> under the same evaluation pipeline. Full setup, metrics,
       and protocol details live in the <a href="./report.html#sec-experiments">Report</a>.
     </p>
 
@@ -1086,30 +1086,30 @@
 
         <!-- Example 1 (ID 0004) -->
         <div style="margin-bottom: 2rem;">
-          <p class="is-size-18 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
-            Caption: <em>"TODO: insert prompt used for example 0004"</em>
+          <p class="is-size-7 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
+            Caption: "The person, standing upright, draws their hand back to the right diagonal before throwing the ball diagonally to the left, then stands upright."
           </p>
           <div class="columns is-centered">
             <div class="column is-full has-text-centered">
               <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
                 <source src="./0004__merged.mp4" type="video/mp4">
               </video>
-              <p class="is-size-12" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
+              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
             </div>
           </div>
         </div>
 
         <!-- Example 2 (ID 0072) -->
         <div>
-          <p class="is-size-18 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
-            Caption: <em>"TODO: insert prompt used for example 0072"</em>
+          <p class="is-size-7 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
+            Caption: "A person standing straight stretches their leg and extends their arms outward, turns left and right, and stands in an upright stance."
           </p>
           <div class="columns is-centered">
             <div class="column is-full has-text-centered">
               <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
                 <source src="./0072__merged.mp4" type="video/mp4">
               </video>
-              <p class="is-size-12" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
+              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
             </div>
           </div>
         </div>
@@ -1375,9 +1375,9 @@ median retrieval rank of the correct motion
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           Free-generation samples on caption <em>&ldquo;a person walks forward at a neutral pace&rdquo;</em>
           conditioned on the hand-drawn XZ paths shown on the ground. Same pipeline as
-          Table 12 (decoupled, ctrl_full_v2_stillzero controller, single-VQ body GPT,
-          sliding window 25, multinomial sampling). The character follows the path while
-          the body GPT freely synthesises the gait.
+          the constraint-following table below (decoupled path controller + single-VQ
+          body GPT, sliding window 25, multinomial sampling). The character follows the
+          path while the body GPT freely synthesises the gait.
         </p>
 
         <div class="qual-carousel-container">
@@ -1730,7 +1730,6 @@ median retrieval rank of the correct motion
     <div class="columns is-centered" style="margin-top: 2rem;">
       <div class="column is-full">
         <strong>Qualitative results: Path constraint injection</strong>
-        <!-- TODO: generate more path-injection result GIFs and add them to the gallery below. -->
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           We can also inject a new path constraint mid-sequence. This is useful when the
           environment changes, for instance when a new obstacle appears and the character
@@ -2313,14 +2312,7 @@ median retrieval rank of the correct motion
           </div>
         </figcaption>
 
-  </div>
-</section>
-
-
-<!-- Other Experiments -->
-<section class="section" id="other-experiments">
-  <div class="container is-max-widescreen">
-    <h3 class="title is-4">4. Fine-grained Prompt</h3>
+    <h3 class="title is-4" style="margin-top: 3rem;">4. Fine-grained Prompt</h3>
     <div class="content has-text-justified">
       <p>
         To study how much fine-grained information the model can capture from text, we run a simple
@@ -2609,7 +2601,7 @@ median retrieval rank of the correct motion
             A Kimodo-style foot re-projection post-processing step would close most of
             that gap and is left to future work. The recompose step also assumes a planar
             floor and a single root XZ trajectory, so it does not yet generalise to
-            end-effector or full-body keyframe constraints. Finally, the trajectory
+            end-effector or full-body keyframe constraints. Finally, the path
             controller currently accounts for almost half of the end-to-end latency; a
             learned feed-forward controller could replace the closed-loop GRU and remove
             the largest single latency block.
