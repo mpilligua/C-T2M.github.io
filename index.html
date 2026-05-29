@@ -273,7 +273,7 @@
             generate high-fidelity human motion from captions and even support
             spatial constraints, but they produce the entire clip in one shot. If
             the user wants to change the path mid-motion, everything is recomputed
-            from scratch. Too slow for interactive use, too rigid for
+            from scratch, which is too slow for interactive use and too rigid for
             robotics, digital twins, or game characters.
           </p>
           <p>
@@ -826,7 +826,7 @@
   <div class="container is-max-widescreen">
     <h2 class="title is-3 has-text-centered">Experiments</h2>
 
-    <p class="has-text-centered" style="color:#666; margin: 0.5rem auto 2rem;">
+    <p class="has-text" style="color:#666; margin: 0.5rem auto 2rem;">
       We evaluate on the <strong>BONES-SEED</strong> benchmark, comparing against
       <strong>Kimodo</strong> under the same evaluation pipeline. Full setup,
       and protocol details live in the <a href="./report.html#sec-experiments">Report</a>.
@@ -1067,7 +1067,7 @@
           <strong>Model comparison: Kimodo, RVQ-GPT, and VQ-GPT</strong>
         </p>
         <p class="has-text-justified" style="margin-bottom: 1.5rem;">
-          Qualitative comparison of three text-to-motion models on the same held-out captions. Kimodo is a diffusion-based baseline (state-of-the-art quality, slow); VQ-GPT is our single-codebook autoregressive model; RVQ-GPT swaps that codec for a residual VQ-VAE. On reconstruction alone the residual codec is more faithful than the single codebook, but it encodes every timestep with four tokens instead of one, which makes generation harder: the body GPT now has to predict four codebook indices per frame, which we produce sequentially. In our RVQ-VAE + GPT experiments we were not able to train this model effectively, and its results came out worse than the plain VQ-VAE (see the metrics above); a more elaborate design, possibly a hierarchical one, may be needed to make the residual codec pay off end-to-end.
+          Qualitative comparison of three text-to-motion models on the same held-out captions. Kimodo is a diffusion-based baseline (state-of-the-art quality, slow); VQ-GPT is our single-codebook autoregressive model; RVQ-GPT swaps that codec for a residual VQ-VAE. On reconstruction alone the residual codec is more faithful than the single codebook, but it encodes every timestep with four tokens instead of one, which makes generation harder: the body GPT now has to predict four codebook indices per frame, which we produce sequentially. In our RVQ-VAE + GPT experiments we were not able to train this model effectively, and its results came out worse than the plain VQ-VAE (see the metrics below); a more elaborate design, possibly a hierarchical one, may be needed to make the residual codec pay off end-to-end.
         </p>
 
         <!-- Residual VQ-VAE codec architecture -->
