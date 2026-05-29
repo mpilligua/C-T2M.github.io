@@ -53,7 +53,66 @@
       0%   { background: rgba(37, 150, 190, 0.18); }
       100% { background: transparent; }
     }
+
+    /* Horizontal separator between ablation sections.
+       Each ablation lives inside .columns.is-centered with an h3[id] inside.
+       The first one (#neutral-encoder) skips the border so the page doesn't
+       open with a stray line. */
+    section#ablations .columns.is-centered:has(> .column > h3.title.is-5[id]) {
+      border-top: 1px solid #dfe5f2;
+      padding-top: 2.25rem;
+      margin-top: 2.75rem;
+    }
+    section#ablations .columns.is-centered:has(> .column > h3#neutral-encoder) {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    /* "View table" toggle: hides the full numeric table until clicked. */
+    .numbers-details { margin-top: 0.6rem; display: none; }
+    .numbers-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      margin-top: 0.5rem;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #3273dc;
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .numbers-toggle:hover { color: #2759b5; text-decoration: underline; }
+    .numbers-toggle:focus-visible { outline: 2px solid #3273dc; outline-offset: 2px; border-radius: 2px; }
+    .numbers-toggle .fas { font-size: 0.8em; transition: transform 0.2s ease; }
+    .numbers-toggle.is-open .fas { transform: rotate(180deg); }
   </style>
+
+  <!-- Toggle behaviour for "View table" / "Show full table" buttons -->
+  <script>
+    $(function () {
+      function toggleNumbers(toggle) {
+        var $toggle  = $(toggle);
+        var $details = $toggle.siblings('.numbers-details');
+        var $label   = $toggle.find('.numbers-toggle-label');
+        var open     = $toggle.attr('aria-expanded') === 'true';
+        $toggle.attr('aria-expanded', !open).toggleClass('is-open', !open);
+        // Swap the verb so the label stays meaningful on re-open.
+        var t = $label.text();
+        $label.text(open ? t.replace(/^Hide/i, 'View') : t.replace(/^(View|Show)/i, 'Hide'));
+        $details.stop(true, true).slideToggle(180);
+      }
+      $(document).on('click', '.numbers-toggle', function (e) {
+        e.preventDefault();
+        toggleNumbers(this);
+      });
+      $(document).on('keydown', '.numbers-toggle', function (e) {
+        if (e.which === 13 || e.which === 32) { e.preventDefault(); toggleNumbers(this); }
+      });
+    });
+  </script>
 </head>
 <body>
 
@@ -304,7 +363,7 @@
             draw();
           })();
         </script>
-        <p class="is-size-7 has-text-justified" style="margin-top: 0.6rem; color: #4a4a4a;">
+        <p class="has-text-justified" style="margin-top: 0.6rem; color: #4a4a4a;">
           <strong>R@k</strong>: text-to-motion R-Precision at top-<em>k</em>, the fraction of
           queries whose correct motion is retrieved within the top <em>k</em> (higher is
           better). <strong>MedR</strong>: median rank of the correct motion (lower is
@@ -321,43 +380,183 @@
       <div class="column is-full">
         <h3 class="title is-5" id="constraint-arch">Could we just inject waypoints into the body GPT?</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Before settling on the decoupled controller, we tried three end-to-end ways of
-          feeding waypoints into the body GPT itself: static cross-attention with a single
-          path token, per-position relative cross-attention, and prepending constraint
-          tokens to the motion sequence.
+          Before settling on the decoupled controller, we tried three end-to-end ways
+          of feeding waypoints into the body GPT itself.
         </p>
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr>
-                <th>Architecture variant</th>
-                <th>Root Err (cm) ↓</th>
-                <th>Acc ≤10cm ↑</th>
-                <th>Foot Skate ↓</th>
-                <th>Jaccard ↑</th>
-                <th>m2m R@3 ↑</th>
-                <th>m2m R@10 ↑</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>(a) TE-once, static cross-attn</td><td>45.12</td><td>0.344</td><td>0.528</td><td>0.337</td><td>1.27</td><td>4.20</td></tr>
-              <tr><td>(b) TE-perpos, relative cross-attn</td><td>52.67</td><td>0.261</td><td>0.560</td><td>0.241</td><td>1.95</td><td>4.00</td></tr>
-              <tr><td>(c) Prepend constraint tokens (Miquel)</td><td>65.17</td><td>0.268</td><td>0.526</td><td>0.367</td><td>1.07</td><td>3.61</td></tr>
-              <tr>
-                <td><strong>(d) Decoupled: controller + body GPT (ours)</strong></td>
-                <td><strong>17.20</strong></td>
-                <td><strong>0.585</strong></td>
-                <td><strong>0.317</strong></td>
-                <td><strong>0.463</strong></td>
-                <td><strong>3.22</strong></td>
-                <td><strong>8.20</strong></td>
-              </tr>
-            </tbody>
-          </table>
+
+        <!-- Spider plot: every metric normalized so "outer = better" regardless of direction. -->
+        <div class="columns is-centered" style="margin-top: 1rem;">
+          <div class="column is-three-fifths">
+            <div style="position: relative; height: 360px;">
+              <canvas id="constArchRadarChart"></canvas>
+            </div>
+            <p class="has-text-centered" style="margin-top: 0.4rem; color: #666;">
+              Each axis is the variant's ratio to the best one on that metric (1.0 =
+              best). Metrics with &darr; are inverted, so bigger polygon = better.
+              Hover for raw values.
+            </p>
+          </div>
+          <div class="column is-two-fifths">
+            <ul style="margin: 0; padding-left: 1.1rem; list-style: none;">
+              <li style="margin-bottom: 0.55rem;">
+                <span style="display:inline-block; width:0.65em; height:0.65em; border-radius:50%; background:#F2B341; margin-right:0.4em;"></span>
+                <strong>(a) TE-once cross-attn</strong>: a Transformer encoder reads
+                all constraints once; the body GPT cross-attends to its output.
+              </li>
+              <li style="margin-bottom: 0.55rem;">
+                <span style="display:inline-block; width:0.65em; height:0.65em; border-radius:50%; background:#EB6E4C; margin-right:0.4em;"></span>
+                <strong>(b) TE-perpos cross-attn</strong>: same, but the encoder is
+                re-run at every decoder step.
+              </li>
+              <li style="margin-bottom: 0.55rem;">
+                <span style="display:inline-block; width:0.65em; height:0.65em; border-radius:50%; background:#8A6FCB; margin-right:0.4em;"></span>
+                <strong>(c) Prepend constraint tokens</strong>: waypoints tokenised and
+                prepended to the motion sequence.
+              </li>
+              <li>
+                <span style="display:inline-block; width:0.65em; height:0.65em; border-radius:50%; background:#2596be; margin-right:0.4em;"></span>
+                <strong>(d) Decoupled controller (ours)</strong>: a GRU rolls out the
+                path; the body GPT receives (x, y, heading) per frame.
+              </li>
+            </ul>
+            <p style="margin-top: 0.85rem; color: #4a5568;">
+              <strong>(d)</strong> dominates every axis; <strong>(a)</strong> gets
+              close on constraint-following but pays for it on motion quality.
+            </p>
+          </div>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          All metrics on the constraint-notext root testsuites (1024 clips, 4 subsets). Root Err and Acc measure constraint-following accuracy. Foot Skate and Jaccard measure motion quality (foot-contact consistency). m2m R@K reports motion-to-motion retrieval in a neutral encoder space (TMR-petrovich), measuring whether predictions land in the same semantic cluster as ground truth. The decoupled approach (d) achieves 2.5-4x lower root error and 2-3x higher m2m retrieval recall than all end-to-end variants, with the exception of (a) which approaches (d) on constraint-following at the cost of worse quality metrics.
-        </p>
+
+        <script>
+          (function () {
+            // Raw per-variant values: rootErr, acc, footSkate, jaccard, r3, r10
+            var VARIANTS = [
+              { label: '(a) TE-once, static cross-attn',           color: '#F2B341', raw: [45.12, 0.344, 0.528, 0.337, 1.27, 4.20] },
+              { label: '(b) TE-perpos, relative cross-attn',       color: '#EB6E4C', raw: [52.67, 0.261, 0.560, 0.241, 1.95, 4.00] },
+              { label: '(c) Prepend constraint tokens',            color: '#8A6FCB', raw: [65.17, 0.268, 0.526, 0.367, 1.07, 3.61] },
+              { label: '(d) Decoupled controller (ours)',          color: '#2596be', raw: [17.20, 0.585, 0.317, 0.463, 3.22, 8.20], highlight: true }
+            ];
+            // Per-axis: label and direction (true = lower-is-better, inverted in normalization)
+            var AXES = [
+              { label: 'Root Err ↓',     lowerBetter: true  },
+              { label: 'Acc ≤10cm ↑', lowerBetter: false },
+              { label: 'Foot Skate ↓',   lowerBetter: true  },
+              { label: 'Jaccard ↑',      lowerBetter: false },
+              { label: 'm2m R@3 ↑',      lowerBetter: false },
+              { label: 'm2m R@10 ↑',     lowerBetter: false }
+            ];
+            // Per-axis "best" across all variants
+            var bestVals = AXES.map(function (a, i) {
+              var vals = VARIANTS.map(function (v) { return v.raw[i]; });
+              return a.lowerBetter ? Math.min.apply(null, vals) : Math.max.apply(null, vals);
+            });
+
+            // Ratio to best: best variant sits at 1.0, others fractionally inside.
+            // For ↓ metrics, ratio = best / val (lower is better, so smaller val = larger ratio).
+            // For ↑ metrics, ratio = val / best.
+            function normalize(val, idx) {
+              if (val === 0) return AXES[idx].lowerBetter ? 1 : 0;
+              return AXES[idx].lowerBetter ? bestVals[idx] / val : val / bestVals[idx];
+            }
+
+            function hexToRgba(hex, alpha) {
+              hex = hex.replace('#', '');
+              var r = parseInt(hex.substr(0, 2), 16);
+              var g = parseInt(hex.substr(2, 2), 16);
+              var b = parseInt(hex.substr(4, 2), 16);
+              return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+            }
+
+            function draw() {
+              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var el = document.getElementById('constArchRadarChart');
+              if (!el) { return setTimeout(draw, 50); }
+
+              var datasets = VARIANTS.map(function (v) {
+                return {
+                  label: v.label,
+                  data: v.raw.map(normalize),
+                  borderColor: v.color,
+                  backgroundColor: hexToRgba(v.color, v.highlight ? 0.25 : 0.08),
+                  borderWidth: v.highlight ? 2.5 : 1.5,
+                  pointRadius: v.highlight ? 4 : 2.5,
+                  pointBackgroundColor: v.color,
+                  _raw: v.raw
+                };
+              });
+
+              new Chart(el, {
+                type: 'radar',
+                data: { labels: AXES.map(function (a) { return a.label; }), datasets: datasets },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    r: {
+                      beginAtZero: true, min: 0, max: 1,
+                      ticks: { display: false, stepSize: 0.25 },
+                      angleLines: { color: 'rgba(0,0,0,0.08)' },
+                      grid: { color: 'rgba(0,0,0,0.07)' },
+                      pointLabels: { font: { size: 11, weight: '600' }, color: '#2c3e50' }
+                    }
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: 14, boxHeight: 14, padding: 14, font: { size: 11 } }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function (ctx) {
+                          var raw = ctx.dataset._raw[ctx.dataIndex];
+                          var fmt = raw < 1 ? raw.toFixed(3) : raw.toFixed(2);
+                          return ctx.dataset.label + ': ' + fmt;
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
+        <!-- View table toggle -->
+        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="numbers-toggle-label">View table</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="numbers-details">
+          <div class="table-container">
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+              <thead>
+                <tr>
+                  <th>Architecture variant</th>
+                  <th>Root Err (cm) &darr;</th>
+                  <th>Acc &le;10cm &uarr;</th>
+                  <th>Foot Skate &darr;</th>
+                  <th>Jaccard &uarr;</th>
+                  <th>m2m R@3 &uarr;</th>
+                  <th>m2m R@10 &uarr;</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>(a) TE-once, static cross-attn</td><td>45.12</td><td>0.344</td><td>0.528</td><td>0.337</td><td>1.27</td><td>4.20</td></tr>
+                <tr><td>(b) TE-perpos, relative cross-attn</td><td>52.67</td><td>0.261</td><td>0.560</td><td>0.241</td><td>1.95</td><td>4.00</td></tr>
+                <tr><td>(c) Prepend constraint tokens</td><td>65.17</td><td>0.268</td><td>0.526</td><td>0.367</td><td>1.07</td><td>3.61</td></tr>
+                <tr>
+                  <td><strong>(d) Decoupled controller (ours)</strong></td>
+                  <td><strong>17.20</strong></td>
+                  <td><strong>0.585</strong></td>
+                  <td><strong>0.317</strong></td>
+                  <td><strong>0.463</strong></td>
+                  <td><strong>3.22</strong></td>
+                  <td><strong>8.20</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -415,7 +614,7 @@
             </tbody>
           </table>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+        <p class="has-text-justified" style="margin-top: 0.5rem;">
           The base controller already reaches the waypoints accurately but produces a body
           that frequently faces the wrong direction (heading error close to forty degrees)
           and that wobbles from one frame to the next (over two degrees of frame-to-frame
@@ -480,7 +679,7 @@
             </tbody>
           </table>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+        <p class="has-text-justified" style="margin-top: 0.5rem;">
           Same single-pass deterministic protocol on the walk-and-jog
           validation subset. Heading error is the mean absolute angle between the
           predicted facing direction and the ground-truth heading, averaged over all
@@ -494,7 +693,7 @@
           is visually disruptive on non-locomotion captions, while the absolute waypoint
           difference is well below the foot width of the character.
         </p>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
+        <p class="has-text-justified" style="margin-top: 0.5rem;">
           <sup>‡</sup> Each heading-error number is measured in its model's native heading
           convention (absolute world-frame yaw for the absolute-heading row, travel-relative
           turn-rate offset for the travel-relative row). The two values are NOT directly
@@ -575,39 +774,44 @@
           collapses on reconstruction: with only four tokens per 64-frame clip, the encoder
           runs out of latent slots before it can capture motion detail.
         </p>
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr>
-                <th>compression rate</th>
-                <th>frames per token</th>
-                <th>val recon. loss ↓</th>
-                <th>codebook usage ↑</th>
-                <th>unique codes per clip ↑</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>2x</td><td>2</td><td>0.073</td><td>0.683</td><td>9.8</td></tr>
-              <tr>
-                <td>4x</td>
-                <td>4</td>
-                <td><strong>0.012</strong></td>
-                <td>0.690</td>
-                <td><strong>12.4</strong></td>
-              </tr>
-              <tr><td>8x</td><td>8</td><td>0.020</td><td><strong>0.721</strong></td><td>7.3</td></tr>
-              <tr><td>16x</td><td>16</td><td>0.117</td><td>0.705</td><td>4.0</td></tr>
-            </tbody>
-          </table>
+        <div class="columns is-vcentered" style="margin-top: 1rem;">
+          <div class="column is-half">
+            <div class="table-container">
+              <table class="table is-bordered is-striped is-hoverable is-fullwidth is-narrow has-text-centered is-size-7">
+                <thead>
+                  <tr>
+                    <th>compression</th>
+                    <th>frames / token</th>
+                    <th>val recon. loss &darr;</th>
+                    <th>codebook usage &uarr;</th>
+                    <th>unique codes / clip &uarr;</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>2x</td><td>2</td><td>0.073</td><td>0.683</td><td>9.8</td></tr>
+                  <tr>
+                    <td>4x</td>
+                    <td>4</td>
+                    <td><strong>0.012</strong></td>
+                    <td>0.690</td>
+                    <td><strong>12.4</strong></td>
+                  </tr>
+                  <tr><td>8x</td><td>8</td><td>0.020</td><td><strong>0.721</strong></td><td>7.3</td></tr>
+                  <tr><td>16x</td><td>16</td><td>0.117</td><td>0.705</td><td>4.0</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="column is-half">
+            <figure class="image">
+              <img src="./assets/vqvae_dt_ablation/recons.png"
+                   alt="Validation reconstruction loss over training iterations for the four temporal compression rates.">
+            </figure>
+            <p class="has-text-centered" style="margin-top: 0.4rem; color: #4a4a4a;">
+              Validation reconstruction loss over training iterations (log scale).
+            </p>
+          </div>
         </div>
-
-        <figure class="image" style="margin-top: 1rem;">
-          <img src="./assets/vqvae_dt_ablation/recons.png"
-               alt="Validation reconstruction loss over training iterations for the four temporal compression rates.">
-        </figure>
-        <p class="has-text-centered is-size-7" style="margin-top: 0.5rem; color: #4a4a4a;">
-          Validation reconstruction loss over training iterations (log scale).
-        </p>
       </div>
     </div>
 
@@ -616,106 +820,328 @@
       <div class="column is-full">
         <h3 class="title is-5" id="codec-reconstruction">Is the VQ-VAE creating a bottleneck?</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Beyond temporal compression, the body VQ-VAE must preserve text alignment and
-          motion quality when it encodes a ground-truth clip and decodes it back. These
-          reconstruction numbers bound from above what the autoregressive body can achieve:
-          any token-level error of the GPT compounds on top of the VQ-VAE error reported
-          here. We pass the 6 539 testcases of the <em>Repetition Text-to-Motion</em> split
-          through both a single VQ-VAE and our residual VQ-VAE, using the same protocol
-          the body GPT will use downstream.
+          We compare two VQ-VAE variants, first
+          <strong>on their own</strong> (encode a ground-truth clip, decode it back) and
+          then <strong>plugged into the body GPT</strong> end-to-end. The first answer
+          tells us the ceiling; the second tells us what actually makes it through to
+          the generated motion.
         </p>
 
-        <!-- Residual VQ-VAE codec architecture (moved from the main page) -->
-        <figure class="image" style="max-width: 620px; margin: 1.25rem auto 0.75rem;">
+
+        <!-- ============================================================
+             Part 1: The VQ-VAE alone (no GPT in the loop)
+             ============================================================ -->
+        <h4 class="title is-6" style="margin-top: 2rem; color:#2596be;">
+          <span style="font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.78rem;">Part 1 &middot;</span>
+          The VQ-VAE on its own
+        </h4>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          We test two variants of the VQ-VAE in isolation: the
+          <strong>single-codebook</strong> baseline (one quantizer, one index per
+          frame) and a <strong>residual</strong> stack of four quantizers, each
+          encoding the error left by the previous one.
+        </p>
+
+        <figure class="image" style="max-width: 620px; margin: 1rem auto 0.75rem;">
           <img src="./assets/rvq_vae/rvq_vae_arch.png"
-               alt="Residual VQ-VAE motion codec (left) versus a single-codebook VQ-VAE (right): a stack of quantizers each encode the residual left by the previous level, so one motion token is a tuple of codebook indices."
+               alt="Residual VQ-VAE (left) versus single-codebook VQ-VAE (right)."
                style="width: 100%; height: auto; display: block;">
         </figure>
-        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
-          <strong>The residual VQ-VAE behind RVQ-GPT.</strong>
-          The RVQ-VAE (left) replaces the single quantizer of a plain VQ-VAE (right) with a
-          stack of quantizers, each encoding the residual the previous levels left behind. This
-          reconstructs motion more faithfully than a single codebook (the table above), but it
-          represents every timestep with four codebook indices (b0, b1, b2, b3) instead of one.
+
+        <p style="font-weight: 600; color: #2c3e50; margin: 1.5rem 0 0.5rem;">
+          Reconstruction quality (VQ-VAE ceiling)
         </p>
-        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
-          <strong>Left (RVQ-VAE).</strong> The encoder maps a motion frame to a continuous
-          feature. The first quantizer <code>VQ&nbsp;0</code> snaps it to its nearest
-          codebook entry (<code>argmin</code>), giving feature <code>b0</code>. The residual
-          (input minus <code>b0</code>) is passed to <code>VQ&nbsp;1</code>, whose residual
-          feeds <code>VQ&nbsp;2</code>, and so on: each level quantizes only the error left
-          by the levels above it. The selected features <code>b0&hellip;b3</code> are summed
-          and the running sum is sent to the decoder. The four codebook indices stacked
-          together form a single motion token, so one frame is represented by an ordered
-          coarse-to-fine tuple <code>(b0,&nbsp;b1,&nbsp;b2,&nbsp;b3)</code>.
-        </p>
-        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
-          <strong>Right (VQ-VAE).</strong> The single-codebook baseline uses one quantizer:
-          the encoder feature is snapped to a single codebook entry <code>b</code> and
-          decoded directly, so each motion token is a single index.
-        </p>
-        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
-          <strong>Why we did not deploy it.</strong> Quadrupling the tokens per frame makes
-          the generation problem harder: rather than predicting one token per timestep, the
-          body GPT must predict all four codebook indices, and in our setup it generates
-          them sequentially. We were not able to train this RVQ-VAE + GPT setup effectively;
-          its end-to-end results came out worse than the plain VQ-VAE (see the model
-          comparison on the main page), so the single-codebook model remains our reference
-          point. Making the residual VQ-VAE pay off end-to-end likely needs a more
-          elaborate design, possibly a hierarchical one.
-        </p>
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr>
-                <th rowspan="2">model</th>
-                <th colspan="4">Overview</th>
-                <th colspan="4">Timeline single</th>
-                <th colspan="4">Timeline multi</th>
-              </tr>
-              <tr>
-                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
-                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
-                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Ground Truth</td>
-                <td>93.95</td><td>0.000</td><td>2.11</td><td>1.000</td>
-                <td>90.04</td><td>0.000</td><td>2.04</td><td>1.000</td>
-                <td>94.49</td><td>0.000</td><td>1.93</td><td>1.000</td>
-              </tr>
-              <tr>
-                <td>Single VQ-VAE reconstruction</td>
-                <td>73.15</td><td>0.152</td><td>26.59</td><td>0.636</td>
-                <td>59.16</td><td>0.114</td><td>27.05</td><td>0.616</td>
-                <td>70.99</td><td>0.160</td><td>25.52</td><td>0.622</td>
-              </tr>
-              <tr>
-                <td><strong>RVQ-VAE reconstruction (ours)</strong></td>
-                <td><strong>82.48</strong></td><td><strong>0.076</strong></td><td><strong>20.75</strong></td><td><strong>0.721</strong></td>
-                <td><strong>69.75</strong></td><td><strong>0.055</strong></td><td><strong>20.97</strong></td><td><strong>0.713</strong></td>
-                <td><strong>82.69</strong></td><td><strong>0.076</strong></td><td><strong>19.75</strong></td><td><strong>0.719</strong></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="columns is-vcentered" style="margin-bottom: 0.25rem;">
+          <div class="column is-half">
+            <p class="chart-title" style="font-weight: 600; color:#363636; text-align:center; margin-bottom: 0.35rem;">R@3 &uarr; (text match, %)</p>
+            <div style="position: relative; height: 220px;">
+              <canvas id="vqvaeReconR3Chart"></canvas>
+            </div>
+          </div>
+          <div class="column is-half">
+            <p class="chart-title" style="font-weight: 600; color:#363636; text-align:center; margin-bottom: 0.35rem;">FID &darr; (realism)</p>
+            <div style="position: relative; height: 220px;">
+              <canvas id="vqvaeReconFidChart"></canvas>
+            </div>
+          </div>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          R@3 is text-to-motion R-Precision at top-3 with the TMR-SOMA-RP text encoder.
-          FID and Skate are computed in the same TMR-SOMA-RP space; Contact is the contact
-          consistency between predicted foot contacts and contacts inferred from foot height
-          and velocity. The reconstruction retains roughly 88 percent of the ground-truth
-          R@3 on the Overview split and 87 percent on the Timeline-multi split. The Skate
-          gap (~20 versus ~2) reflects the VQ-VAE smoothing high-frequency foot detail; this
-          is a known property of frame-level discrete VQ-VAEs and motivates the foot-contact
-          re-projection step in our pipeline. At the joint level, the residual VQ-VAE has a
-          mean per-joint position error of 9 cm, a mean root-XZ drift of 6 cm
-          (p95 = 15 cm), a mean absolute heading error of 1.86 degrees, and a foot-contact
-          F1 of 0.86. The single VQ-VAE under the same protocol nearly doubles those
-          errors (17.5 cm per-joint, 13.8 cm root drift, 7.81 degrees heading) while
-          foot-contact F1 stays essentially tied (0.85 versus 0.86); the geometric ceiling
-          confirms the perceptual gap reported above.
+        <div class="chart-legend" aria-hidden="true" style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.35rem 1.2rem; margin:0.4rem 0; font-size:0.85rem; color:#4a4a4a;">
+          <span class="legend-item" style="display:inline-flex; align-items:center; gap:0.45em;"><span style="display:inline-block; width:1.4em; height:0; border-top:2px dashed #2BAD94;"></span> Ground Truth (ceiling)</span>
+          <span class="legend-item" style="display:inline-flex; align-items:center; gap:0.4em;"><span class="legend-swatch" style="display:inline-block; width:0.85em; height:0.85em; border-radius:2px; background:#2596be;"></span> Single VQ-VAE</span>
+          <span class="legend-item" style="display:inline-flex; align-items:center; gap:0.4em;"><span class="legend-swatch" style="display:inline-block; width:0.85em; height:0.85em; border-radius:2px; background:#8A6FCB;"></span> RVQ-VAE (ours)</span>
+        </div>
+        <script>
+          (function () {
+            var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
+            var COLORS = { gt: '#2BAD94', vq: '#2596be', rvq: '#8A6FCB' };
+            function draw() {
+              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var r3 = document.getElementById('vqvaeReconR3Chart');
+              var fid = document.getElementById('vqvaeReconFidChart');
+              if (!r3 || !fid) { return setTimeout(draw, 50); }
+              // GT shown as a stepped, edge-to-edge dashed line via a hidden linear x axis.
+              function gtLine(values, label) {
+                return {
+                  type: 'line',
+                  label: label,
+                  xAxisID: 'xLine',
+                  data: [
+                    { x: -0.5, y: values[0] }, { x: 0.5, y: values[0] },
+                    { x: 0.5,  y: values[1] }, { x: 1.5, y: values[1] },
+                    { x: 1.5,  y: values[2] }, { x: 2.5, y: values[2] }
+                  ],
+                  borderColor: COLORS.gt,
+                  backgroundColor: COLORS.gt,
+                  borderWidth: 2,
+                  borderDash: [6, 4],
+                  pointRadius: 0,
+                  tension: 0,
+                  fill: false,
+                  order: 0
+                };
+              }
+              function vqBar(values, color, label) {
+                return {
+                  type: 'bar',
+                  label: label,
+                  data: values,
+                  backgroundColor: color,
+                  borderColor: color,
+                  order: 1
+                };
+              }
+              function mixed(el, datasets, yTitle, yMax) {
+                new Chart(el, {
+                  data: { labels: SPLITS, datasets: datasets },
+                  options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                      x: { grid: { display: false } },
+                      xLine: { type: 'linear', display: false, min: -0.5, max: 2.5 },
+                      y: { beginAtZero: true, suggestedMax: yMax,
+                           title: { display: true, text: yTitle },
+                           grid: { color: 'rgba(0,0,0,0.05)' } }
+                    },
+                    plugins: { legend: { display: false } }
+                  }
+                });
+              }
+              mixed(r3, [
+                gtLine([93.95, 90.04, 94.49], 'Ground Truth (ceiling)'),
+                vqBar([73.15, 59.16, 70.99], COLORS.vq,  'Single VQ-VAE'),
+                vqBar([82.48, 69.75, 82.69], COLORS.rvq, 'RVQ-VAE')
+              ], 'R@3 (%)', 100);
+              mixed(fid, [
+                gtLine([0.000, 0.000, 0.000], 'Ground Truth (floor)'),
+                vqBar([0.152, 0.114, 0.160], COLORS.vq,  'Single VQ-VAE'),
+                vqBar([0.076, 0.055, 0.076], COLORS.rvq, 'RVQ-VAE')
+              ], 'FID', 0.2);
+            }
+            draw();
+          })();
+        </script>
+        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="numbers-toggle-label">View table</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="numbers-details">
+          <div class="table-container">
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+              <thead>
+                <tr>
+                  <th rowspan="2">model</th>
+                  <th colspan="4">Overview</th>
+                  <th colspan="4">Timeline single</th>
+                  <th colspan="4">Timeline multi</th>
+                </tr>
+                <tr>
+                  <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+                  <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+                  <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ground Truth</td>
+                  <td>93.95</td><td>0.000</td><td>2.11</td><td>1.000</td>
+                  <td>90.04</td><td>0.000</td><td>2.04</td><td>1.000</td>
+                  <td>94.49</td><td>0.000</td><td>1.93</td><td>1.000</td>
+                </tr>
+                <tr>
+                  <td>Single VQ-VAE reconstruction</td>
+                  <td>73.15</td><td>0.152</td><td>26.59</td><td>0.636</td>
+                  <td>59.16</td><td>0.114</td><td>27.05</td><td>0.616</td>
+                  <td>70.99</td><td>0.160</td><td>25.52</td><td>0.622</td>
+                </tr>
+                <tr>
+                  <td><strong>RVQ-VAE reconstruction (ours)</strong></td>
+                  <td><strong>82.48</strong></td><td><strong>0.076</strong></td><td><strong>20.75</strong></td><td><strong>0.721</strong></td>
+                  <td><strong>69.75</strong></td><td><strong>0.055</strong></td><td><strong>20.97</strong></td><td><strong>0.713</strong></td>
+                  <td><strong>82.69</strong></td><td><strong>0.076</strong></td><td><strong>19.75</strong></td><td><strong>0.719</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="has-text-justified" style="margin-top: 0.75rem;">
+          <strong>The residual VQ-VAE wins on its own:</strong> ~9 points more R@3 on
+          Overview, ~12 on Timeline-multi, half the FID, and ~6&nbsp;cm/s less
+          foot-skate. The skate gap to the ground truth (~20 vs. ~2) is what
+          motivates the foot-contact re-projection step in our pipeline.
+        </p>
+
+
+        <!-- ============================================================
+             Part 2: Plugging the VQ-VAE into the body GPT (end-to-end)
+             ============================================================ -->
+        <h4 class="title is-6" style="margin-top: 2.5rem; color:#8A6FCB;">
+          <span style="font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.78rem;">Part 2 &middot;</span>
+          Paired with the body GPT (end-to-end)
+        </h4>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Does that advantage carry over once we plug each VQ-VAE into the body GPT?
+          Quadrupling the tokens per frame makes generation harder, and several training
+          recipes for the residual setup did not converge cleanly. The
+          <strong>RVQ-GPT</strong> we did manage to train underperforms
+          <strong>VQ-GPT</strong> end-to-end on every metric. Making the residual
+          pay off downstream likely needs a more elaborate design, possibly hierarchical.
+        </p>
+
+        <!-- VQ-GPT vs RVQ-GPT qualitative comparison -->
+        <div style="margin: 1.25rem 0 1.25rem;">
+
+          <!-- Example 1 (ID 0004) -->
+          <div style="margin-bottom: 1.5rem;">
+            <p class="has-text-centered" style="margin-bottom: 0.6rem; color:#555; font-style: italic;">
+              Caption: "The person, standing upright, draws their hand back to the right diagonal before throwing the ball diagonally to the left, then stands upright."
+            </p>
+            <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
+              <source src="./0004__vq_vs_rvq.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered" style="margin-top: 0.4rem; color:#555;">VQ-GPT (left) | RVQ-GPT (right)</p>
+          </div>
+
+          <!-- Example 2 (ID 0072) -->
+          <div>
+            <p class="has-text-centered" style="margin-bottom: 0.6rem; color:#555; font-style: italic;">
+              Caption: "A person standing straight stretches their leg and extends their arms outward, turns left and right, and stands in an upright stance."
+            </p>
+            <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
+              <source src="./0072__vq_vs_rvq.mp4" type="video/mp4">
+            </video>
+            <p class="has-text-centered" style="margin-top: 0.4rem; color:#555;">VQ-GPT (left) | RVQ-GPT (right)</p>
+          </div>
+        </div>
+
+        <!-- End-to-end metric comparison: VQ-GPT vs RVQ-GPT -->
+        <div style="margin: 1.5rem 0 1.25rem;">
+          <p style="font-weight: 600; color: #2c3e50; margin: 0 0 0.5rem;">
+            End-to-end metrics
+          </p>
+          <div class="columns is-vcentered" style="margin-bottom: 0.25rem;">
+            <div class="column is-half">
+              <p class="chart-title" style="font-weight: 600; color:#363636; text-align:center; margin-bottom: 0.35rem;">R@3 &uarr; (text match, %)</p>
+              <div style="position: relative; height: 220px;">
+                <canvas id="vqRvqR3Chart"></canvas>
+              </div>
+            </div>
+            <div class="column is-half">
+              <p class="chart-title" style="font-weight: 600; color:#363636; text-align:center; margin-bottom: 0.35rem;">FID &darr; (realism)</p>
+              <div style="position: relative; height: 220px;">
+                <canvas id="vqRvqFidChart"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="chart-legend" aria-hidden="true" style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.35rem 1.2rem; margin:0.4rem 0; font-size:0.85rem; color:#4a4a4a;">
+            <span class="legend-item"><span class="legend-swatch" style="display:inline-block; width:0.85em; height:0.85em; border-radius:2px; background:#2596be;"></span> VQ-GPT (deployed)</span>
+            <span class="legend-item"><span class="legend-swatch" style="display:inline-block; width:0.85em; height:0.85em; border-radius:2px; background:#8A6FCB;"></span> RVQ-GPT (residual variant)</span>
+          </div>
+          <script>
+            (function () {
+              var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
+              var COLORS = { ours: '#2596be', rvq: '#8A6FCB' };
+              function draw() {
+                if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+                var r3 = document.getElementById('vqRvqR3Chart');
+                var fid = document.getElementById('vqRvqFidChart');
+                if (!r3 || !fid) { return setTimeout(draw, 50); }
+                function bar(el, datasets, yTitle, yMax) {
+                  new Chart(el, {
+                    type: 'bar',
+                    data: { labels: SPLITS, datasets: datasets },
+                    options: {
+                      responsive: true, maintainAspectRatio: false,
+                      interaction: { mode: 'index', intersect: false },
+                      scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, suggestedMax: yMax,
+                             title: { display: true, text: yTitle },
+                             grid: { color: 'rgba(0,0,0,0.05)' } }
+                      },
+                      plugins: { legend: { display: false } }
+                    }
+                  });
+                }
+                bar(r3, [
+                  { label: 'VQ-GPT',  data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours },
+                  { label: 'RVQ-GPT', data: [18.74, 22.18, 15.12], backgroundColor: COLORS.rvq }
+                ], 'R@3 (%)', 70);
+                bar(fid, [
+                  { label: 'VQ-GPT',  data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours },
+                  { label: 'RVQ-GPT', data: [0.644, 0.411, 0.670], backgroundColor: COLORS.rvq }
+                ], 'FID', 0.75);
+              }
+              draw();
+            })();
+          </script>
+          <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="numbers-toggle-label">Show full table</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="numbers-details">
+            <div class="table-container">
+              <table class="table is-bordered is-striped is-hoverable is-fullwidth is-narrow has-text-centered is-size-7">
+                <thead>
+                  <tr>
+                    <th rowspan="2">model</th>
+                    <th rowspan="2">params (M)</th>
+                    <th rowspan="2">latency (ms / clip) &darr;</th>
+                    <th colspan="4">Overview</th>
+                    <th colspan="4">Timeline single</th>
+                    <th colspan="4">Timeline multi</th>
+                  </tr>
+                  <tr>
+                    <th>R@3 &uarr;</th><th>FID &darr;</th><th>Skate &darr;</th><th>Cont &uarr;</th>
+                    <th>R@3 &uarr;</th><th>FID &darr;</th><th>Skate &darr;</th><th>Cont &uarr;</th>
+                    <th>R@3 &uarr;</th><th>FID &darr;</th><th>Skate &darr;</th><th>Cont &uarr;</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>VQ-GPT (deployed)</strong></td>
+                    <td><strong>395</strong></td><td><strong>413</strong></td>
+                    <td><strong>58.66</strong></td><td><strong>0.191</strong></td><td><strong>33.07</strong></td><td><strong>0.617</strong></td>
+                    <td><strong>47.44</strong></td><td><strong>0.220</strong></td><td><strong>27.95</strong></td><td><strong>0.654</strong></td>
+                    <td><strong>37.04</strong></td><td><strong>0.307</strong></td><td><strong>27.20</strong></td><td><strong>0.664</strong></td>
+                  </tr>
+                  <tr>
+                    <td>RVQ-GPT (residual variant)</td>
+                    <td>565</td><td>486</td>
+                    <td>18.74</td><td>0.644</td><td>39.24</td><td>0.481</td>
+                    <td>22.18</td><td>0.411</td><td>34.93</td><td>0.507</td>
+                    <td>15.12</td><td>0.670</td><td>39.08</td><td>0.468</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <p class="has-text-justified" style="margin-top: 0.75rem; color: #2c3e50;">
+          <strong>Takeaway.</strong> A better VQ-VAE does not automatically give a better
+          generative model. The residual stack wins as a reconstructor but loses as a
+          token target. We keep the single VQ-VAE as our deployed body decoder.
         </p>
       </div>
     </div>
@@ -725,130 +1151,237 @@
       <div class="column is-full">
         <h3 class="title is-5" id="decoder-sampling">Is the decoding strategy important?</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          The body GPT predicts a sequence of discrete tokens that the VQ-VAE decodes back
-          into motion; the choice of token sampling strategy turns out to be more
-          consequential than expected. We measure decoder quality on a set of 25 diverse
-          captions (locomotion, direction, curves, transitions, style-gait, and in-place
-          actions), with five samples per caption, and report three complementary metrics:
-          <strong>body motion</strong> (mean root-relative joint velocity in mm per frame,
-          capturing limb activity independently of root translation),
-          <strong>pose diversity</strong> (standard deviation of relative pose across time,
-          high when the model produces many distinct poses, low when the same pose is
-          held), and <strong>path length</strong> (metres travelled by the root). We also
-          report a stuck count: the number of captions out of 25 on which the body motion
-          falls below 5 mm per frame, indicating that the character has stopped moving even
-          though token generation continues.
+          We compare five token-sampling strategies on 25 held-out captions (5 samples
+          each, 200-frame generations).
         </p>
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr>
-                <th>decoder</th>
-                <th>body motion (mm / frame) ↑</th>
-                <th>pose diversity ↑</th>
-                <th>path length (m) ↑</th>
-                <th>stuck captions ↓</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Greedy</td>
-                <td>7.09</td><td>0.017</td><td>3.56</td><td>19 / 25</td>
-              </tr>
-              <tr>
-                <td>Top-p (nucleus)</td>
-                <td>14.64</td><td>0.040</td><td>6.56</td><td>6 / 25</td>
-              </tr>
-              <tr>
-                <td>Top-k</td>
-                <td>14.86</td><td>0.046</td><td>6.50</td><td>3 / 25</td>
-              </tr>
-              <tr>
-                <td>Top-p + repetition penalty</td>
-                <td>14.85</td><td>0.046</td><td>5.83</td><td>8 / 25</td>
-              </tr>
-              <tr>
-                <td><strong>Multinomial (ours)</strong></td>
-                <td><strong>19.67</strong></td>
-                <td><strong>0.058</strong></td>
-                <td><strong>7.80</strong></td>
-                <td><strong>0 / 25</strong></td>
-              </tr>
-            </tbody>
-          </table>
+
+        <!-- Spider plot: same ratio-to-best normalization as the constraint-arch section -->
+        <div class="columns is-centered" style="margin-top: 1rem;">
+          <div class="column is-three-fifths">
+            <div style="position: relative; height: 360px;">
+              <canvas id="decoderRadarChart"></canvas>
+            </div>
+            <p class="has-text-centered" style="margin-top: 0.4rem; color: #666;">
+              Each axis is the decoder's ratio to the best one on that metric (1.0 =
+              best). The stuck axis is shown as &ldquo;non-stuck captions out of 25&rdquo;
+              so all axes point the same way: bigger polygon = better. Hover for raw
+              values.
+            </p>
+          </div>
+          <div class="column is-two-fifths">
+            <p style="font-weight: 600; color: #2c3e50; margin: 0 0 0.5rem;">The four metrics</p>
+            <ul style="margin: 0; padding-left: 1.1rem;">
+              <li style="margin-bottom: 0.45rem;">
+                <strong>Body motion</strong> (mm/frame, &uarr;): mean root-relative
+                joint velocity, i.e. how much the limbs are moving independently of root
+                translation. Near zero = the character has frozen in place.
+              </li>
+              <li style="margin-bottom: 0.45rem;">
+                <strong>Pose diversity</strong> (&uarr;): standard deviation of the
+                local pose over time. High = many distinct poses; low = the same pose
+                held throughout.
+              </li>
+              <li style="margin-bottom: 0.45rem;">
+                <strong>Path length</strong> (m, &uarr;): metres travelled by the root
+                during the clip.
+              </li>
+              <li>
+                <strong>Stuck captions</strong> (out of 25, &darr;): number of captions
+                where body motion drops below 5 mm/frame, meaning the character
+                effectively stopped moving while the GPT was still emitting tokens.
+              </li>
+            </ul>
+          </div>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem; color: #4a4a4a;">
-          200-frame generations. Multinomial dominates every metric and is the only
-          decoder that never stands still; sharpened samplers (top-p + repetition penalty,
-          top-p, top-k) look smooth on locomotion captions but collapse to a held pose on
-          a third, a quarter and an eighth of the captions respectively.
+
+        <script>
+          (function () {
+            // Raw values per decoder: [body motion, pose diversity, path length, stuck/25]
+            var VARIANTS = [
+              { label: 'Greedy',                  color: '#94a3b8', raw: [7.09,  0.017, 3.56, 19] },
+              { label: 'Top-p (nucleus)',         color: '#F2B341', raw: [14.64, 0.040, 6.56,  6] },
+              { label: 'Top-k',                   color: '#EB6E4C', raw: [14.86, 0.046, 6.50,  3] },
+              { label: 'Top-p + rep. penalty',    color: '#8A6FCB', raw: [14.85, 0.046, 5.83,  8] },
+              { label: 'Multinomial (ours)',      color: '#2596be', raw: [19.67, 0.058, 7.80,  0], highlight: true }
+            ];
+            var AXES = [
+              { label: 'Body motion ↑',     lowerBetter: false },
+              { label: 'Pose diversity ↑',  lowerBetter: false },
+              { label: 'Path length ↑',     lowerBetter: false },
+              { label: 'Non-stuck / 25 ↑',  lowerBetter: false, transform: function (v) { return 25 - v; } }
+            ];
+
+            // Apply transforms (so stuck → non-stuck for ratio-to-best)
+            VARIANTS.forEach(function (v) {
+              v.normRaw = v.raw.map(function (val, i) {
+                return AXES[i].transform ? AXES[i].transform(val) : val;
+              });
+            });
+
+            var bestVals = AXES.map(function (a, i) {
+              var vals = VARIANTS.map(function (v) { return v.normRaw[i]; });
+              return Math.max.apply(null, vals);
+            });
+
+            function normalize(val, idx) {
+              if (val === 0) return 0;
+              return val / bestVals[idx];
+            }
+
+            function hexToRgba(hex, alpha) {
+              hex = hex.replace('#', '');
+              var r = parseInt(hex.substr(0, 2), 16);
+              var g = parseInt(hex.substr(2, 2), 16);
+              var b = parseInt(hex.substr(4, 2), 16);
+              return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+            }
+
+            function draw() {
+              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var el = document.getElementById('decoderRadarChart');
+              if (!el) { return setTimeout(draw, 50); }
+
+              var datasets = VARIANTS.map(function (v) {
+                return {
+                  label: v.label,
+                  data: v.normRaw.map(normalize),
+                  borderColor: v.color,
+                  backgroundColor: hexToRgba(v.color, v.highlight ? 0.25 : 0.08),
+                  borderWidth: v.highlight ? 2.5 : 1.5,
+                  pointRadius: v.highlight ? 4 : 2.5,
+                  pointBackgroundColor: v.color,
+                  _raw: v.raw
+                };
+              });
+
+              new Chart(el, {
+                type: 'radar',
+                data: { labels: AXES.map(function (a) { return a.label; }), datasets: datasets },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    r: {
+                      beginAtZero: true, min: 0, max: 1,
+                      ticks: { display: false, stepSize: 0.25 },
+                      angleLines: { color: 'rgba(0,0,0,0.08)' },
+                      grid: { color: 'rgba(0,0,0,0.07)' },
+                      pointLabels: { font: { size: 11, weight: '600' }, color: '#2c3e50' }
+                    }
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: 14, boxHeight: 14, padding: 14, font: { size: 11 } }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function (ctx) {
+                          var raw = ctx.dataset._raw[ctx.dataIndex];
+                          var suffix = ctx.dataIndex === 3 ? ' / 25' : '';
+                          var fmt = raw < 1 ? raw.toFixed(3) : raw.toFixed(2);
+                          return ctx.dataset.label + ': ' + fmt + suffix;
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
+        <p class="has-text-justified" style="margin-top: 0.5rem; color: #4a4a4a;">
+          Multinomial dominates every axis and is the only decoder that never stands
+          still. Sharpened samplers (top-p + repetition penalty, top-p, top-k) look
+          smooth on locomotion captions but collapse to a held pose on roughly a third,
+          a quarter and an eighth of the captions respectively.
         </p>
+
+        <!-- View table toggle -->
+        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="numbers-toggle-label">View table</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="numbers-details">
+          <div class="table-container">
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+              <thead>
+                <tr>
+                  <th>decoder</th>
+                  <th>body motion (mm / frame) &uarr;</th>
+                  <th>pose diversity &uarr;</th>
+                  <th>path length (m) &uarr;</th>
+                  <th>stuck captions &darr;</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Greedy</td>                     <td>7.09</td><td>0.017</td><td>3.56</td><td>19 / 25</td></tr>
+                <tr><td>Top-p (nucleus)</td>            <td>14.64</td><td>0.040</td><td>6.56</td><td>6 / 25</td></tr>
+                <tr><td>Top-k</td>                      <td>14.86</td><td>0.046</td><td>6.50</td><td>3 / 25</td></tr>
+                <tr><td>Top-p + repetition penalty</td> <td>14.85</td><td>0.046</td><td>5.83</td><td>8 / 25</td></tr>
+                <tr>
+                  <td><strong>Multinomial (ours)</strong></td>
+                  <td><strong>19.67</strong></td>
+                  <td><strong>0.058</strong></td>
+                  <td><strong>7.80</strong></td>
+                  <td><strong>0 / 25</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
 
         <h4 class="title is-6" style="margin-top: 1.5rem;">Qualitative comparison</h4>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Side-by-side renderings of the five decoders on five representative captions.
-          Each clip shows the same skeleton driven by each decoder; the winning decoder
-          (Multinomial, ours) is drawn in red with a star, the others switch to grey at
-          the frame they predict end-of-sequence.
+          Same skeleton, five decoders, five held-out captions. Multinomial (ours) is
+          drawn in red with a star; the others turn grey at the frame they emit
+          end-of-sequence.
         </p>
         <div class="columns is-multiline">
           <div class="column is-half">
             <video controls muted loop playsinline style="width:100%;">
               <source src="./assets/decoder_grid/decoder_grid_sw20_walks_backward.mp4" type="video/mp4">
             </video>
-            <p class="has-text-centered is-size-7">"walks backward"</p>
+            <p class="has-text-centered">"walks backward"</p>
           </div>
           <div class="column is-half">
             <video controls muted loop playsinline style="width:100%;">
               <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_crouches_walks.mp4" type="video/mp4">
             </video>
-            <p class="has-text-centered is-size-7">"crouches and walks"</p>
+            <p class="has-text-centered">"crouches and walks"</p>
           </div>
           <div class="column is-half">
             <video controls muted loop playsinline style="width:100%;">
               <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_dances.mp4" type="video/mp4">
             </video>
-            <p class="has-text-centered is-size-7">"dances"</p>
+            <p class="has-text-centered">"dances"</p>
           </div>
           <div class="column is-half">
             <video controls muted loop playsinline style="width:100%;">
               <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_stretches.mp4" type="video/mp4">
             </video>
-            <p class="has-text-centered is-size-7">"stretches"</p>
+            <p class="has-text-centered">"stretches"</p>
           </div>
           <div class="column is-half is-offset-one-quarter">
             <video controls muted loop playsinline style="width:100%;">
               <source src="./assets/decoder_grid/decoder_grid_sw20_diverse_walks_waving.mp4" type="video/mp4">
             </video>
-            <p class="has-text-centered is-size-7">"walks while waving"</p>
+            <p class="has-text-centered">"walks while waving"</p>
           </div>
         </div>
 
         <h4 class="title is-6" style="margin-top: 2rem;">Sliding-window decode trade-off</h4>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          The body GPT samples tokens with a sliding window: at every step it keeps only
-          the last <em>SW</em> tokens of context, refreshing the prefix as the sequence
-          grows. The choice of <em>SW</em> trades off two things: the total number of
-          frames generated before the model predicts end-of-sequence (we want this high so
-          the motion is long enough to be useful), and the limb activity preserved over the
-          rollout. Limb activity is measured as the mean magnitude of the per-joint
-          velocity in the character's local frame (mm per frame). A value close to zero
-          means the character has frozen; a non-trivial walking, dancing or stretching
-          motion sits in the 15 to 25 mm/frame range, so within that band higher
-          essentially means &ldquo;the limbs are still moving like they should&rdquo;. A
-          separate semantic quality metric per (decoder, <em>SW</em>) is being added in a
-          forthcoming revision (Table 2-style FID against the TMR-SOMA-RP encoder).
-        </p>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          We adopt <strong>SW = 25</strong>, which sits at the knee of the gen-length curve
-          (the model produces about 290 frames before EOS, roughly ten seconds of motion at
-          thirty frames per second) while keeping limb activity essentially at its peak
-          (about 21 mm per frame). Multinomial sampling is the only decoder whose limb
-          activity is insensitive to the window size; top-p and top-k both lose roughly
-          twenty percent of limb activity in the <em>SW &isin; {10, 15}</em> regime,
-          indicating that the tightened token distribution starts holding poses when the
-          context becomes short.
+          At each step the body GPT keeps only the last <em>SW</em> tokens of context.
+          A larger <em>SW</em> lets the model produce longer motions but reaches
+          end-of-sequence sooner; a smaller one keeps generating but starts forgetting
+          its own context. We adopt <strong>SW = 25</strong>: roughly 290 frames
+          (~10 s) before EOS while limb activity stays near its peak (~21 mm/frame).
+          Multinomial is the only sampler whose limb activity is insensitive to
+          window size; top-p and top-k both lose ~20 % when the window shrinks below 15.
         </p>
         <div class="columns is-vcentered">
           <div class="column is-two-thirds">
@@ -857,11 +1390,9 @@
                    alt="Two-panel plot. Left: generation length in frames as a function of sliding window size for the three sampling decoders. Right: body motion in mm per frame against the same axis."
                    style="border-radius: 4px;">
             </figure>
-            <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
-              Figure 3. Sliding-window size versus generation length (left) and limb
-              activity (right) for the three sampling decoders. Aggregate over 10 captions
-              and 20 samples per (decoder, SW) cell (4 800 generations total). The dashed
-              vertical line marks our chosen SW = 25.
+            <p class="has-text-centered" style="margin-top: 0.4rem;">
+              Gen length (left) and limb activity (right) vs. <em>SW</em>. Dashed line
+              marks our chosen <em>SW</em> = 25.
             </p>
           </div>
           <div class="column is-one-third">
@@ -870,21 +1401,17 @@
                    alt="Scatter plot of motion quality (body motion, vertical axis) against motion quantity (generation length, horizontal axis). Each point corresponds to a (decoder, sliding window) pair."
                    style="border-radius: 4px;">
             </figure>
-            <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
-              Figure 4. Quantity versus quality trade-off across the same 4 800
-              generations. Multinomial points (ours) cluster in a high-quality band
+            <p class="has-text-centered" style="margin-top: 0.4rem;">
+              Quantity vs. quality. Multinomial (ours) stays in the high-quality band
               regardless of window size.
             </p>
           </div>
         </div>
 
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          The table below reports the same four motion-quality metrics as the decoder
-          ablation, now varied along the sliding-window axis with the decoder fixed to our
-          chosen Multinomial sampler. Each cell aggregates 200 generations (10 captions ×
-          20 samples). It answers which window size to pick once the decoder is settled;
-          the decoder ablation above answers the complementary question of which decoder to
-          pick at the chosen window size.
+          Same metrics as above, swept along <em>SW</em> with the decoder fixed to
+          Multinomial. Each row aggregates 200 generations (10 captions &times; 20
+          samples).
         </p>
         <div class="table-container">
           <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
@@ -917,16 +1444,12 @@
             </tbody>
           </table>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          Aggregate over 10 captions × 20 samples per cell (200 generations per row),
-          decoder fixed to Multinomial (ours). Path length is reported without a strict
-          arrow: at small windows the model produces 20 to 35 metres of root travel in
-          6.7 seconds, much of it spurious wandering as the model forgets its own recent
-          context. At SW = 25 the figure tightens to roughly 9 metres of travel in 10
-          seconds, consistent with a natural walking pace, while limb activity is at its
-          peak (21.0 mm per frame) and the stuck count is at its minimum (1 caption out
-          of 10). The default SW = 50 is too narrow: the model emits end-of-sequence after
-          roughly 80 frames, less than three seconds of motion.
+        <p class="has-text-justified" style="margin-top: 0.5rem;">
+          Small windows produce long but wandering motion (20-35 m in 6.7 s, much of
+          it spurious as the model forgets its own context). The default
+          <em>SW</em> = 50 is too tight: only ~80 frames before EOS. <em>SW</em> = 25
+          hits the sweet spot, with limb activity at its peak and the stuck count at
+          its minimum.
         </p>
       </div>
     </div>
@@ -948,7 +1471,7 @@
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
           <source src="./assets/fine_graining/level_1.mp4" type="video/mp4">
         </video>
-        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+        <p class="has-text-centered" style="margin-top:0.4rem; color:#555;">
           <strong>Level 1</strong><br><em>"a person walks"</em>
         </p>
       </div>
@@ -957,7 +1480,7 @@
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
           <source src="./assets/fine_graining/level_2.mp4" type="video/mp4">
         </video>
-        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+        <p class="has-text-centered" style="margin-top:0.4rem; color:#555;">
           <strong>Level 2</strong><br><em>"…walks forward slowly"</em>
         </p>
       </div>
@@ -966,7 +1489,7 @@
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
           <source src="./assets/fine_graining/level_3.mp4" type="video/mp4">
         </video>
-        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+        <p class="has-text-centered" style="margin-top:0.4rem; color:#555;">
           <strong>Level 3</strong><br><em>"…waving the right hand"</em>
         </p>
       </div>
@@ -975,7 +1498,7 @@
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
           <source src="./assets/fine_graining/level_4.mp4" type="video/mp4">
         </video>
-        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+        <p class="has-text-centered" style="margin-top:0.4rem; color:#555;">
           <strong>Level 4</strong><br><em>"…nodding their head"</em>
         </p>
       </div>
@@ -984,7 +1507,7 @@
         <video autoplay muted loop playsinline style="width:100%; border-radius:6px; display:block;">
           <source src="./assets/fine_graining/level_5.mp4" type="video/mp4">
         </video>
-        <p class="is-size-7 has-text-centered" style="margin-top:0.4rem; color:#555;">
+        <p class="has-text-centered" style="margin-top:0.4rem; color:#555;">
           <strong>Level 5</strong><br><em>"…raising their left arm"</em>
         </p>
       </div>

@@ -278,14 +278,22 @@
           </p>
           <p>
             We present <strong>C-T2M</strong>, a decoupled approach that splits
-            the problem in two: a small <strong>path controller</strong>
-            that rolls out an XZ root path from waypoints, and a caption-driven
+            the problem in two: a small <strong>path controller</strong> that rolls
+            out the <em>root XZ path</em> (the line on the floor where the
+            character walks, given by a handful of waypoints), and a caption-driven
             <strong>body GPT</strong> that synthesizes natural motion along that
             path. A deterministic recompose step blends them. The controller can
             react to new constraints instantly without re-running the body
             generator, and the whole pipeline runs an order of magnitude faster
-            than Kimodo while following constraints with comparable accuracy. The
-            full paper version of this writeup lives on the
+            than Kimodo while following constraints with comparable accuracy. We
+            train and evaluate on
+            <a href="https://bones.studio/info/seed-license">BONES-SEED</a>,
+            a large motion-capture corpus covering everyday and athletic actions
+            (kicks, jumps, dances, locomotion), roughly 10&times; larger than the
+            standard
+            <a href="https://ericguo5513.github.io/text-to-motion/">HumanML3D</a>
+            benchmark, and the same corpus Kimodo trains on, so the comparison is
+            apples-to-apples. The full paper version of this writeup lives on the
             <a href="./report.html">Report</a> page.
           </p>
         </div>
@@ -300,7 +308,7 @@
   <div class="container is-max-widescreen">
     <h2 class="title is-3 has-text-centered" style="margin-bottom: 0.5rem;">Key Capabilities of C-T2M</h2>
     <p class="has-text-centered" style="color:#555; margin-bottom: 1.5rem;">
-      Three things our system does that motivate the design.
+      Four things our system does that motivate the design.
     </p>
 
     <h3 id="kc-title" class="has-text-centered" style="font-size:1.35rem; font-weight:600; color:#2c3e50; margin-bottom: 0.9rem;">Text-to-Motion Generation</h3>
@@ -328,7 +336,7 @@
             title: 'Path Constraints',
             kind: 'video',
             src: './assets/constraint_exports/walk__wavy__sparse_pp_trim2s.mp4',
-            caption: 'Walk along any path: sparse waypoints or dense trajectories are followed by the GRU controller while the body GPT keeps the gait natural.'
+            caption: 'Walk along any path: sparse waypoints or dense trajectories are followed by the path controller while the body GPT keeps the gait natural.'
           },
           {
             title: 'Online Adaptation',
@@ -689,13 +697,13 @@
               },
               {
                 title: '3. Path Controller',
-                body: 'A small closed-loop GRU reads the caption and path encodings and rolls out, frame by frame, the next (x, y, heading), which are the orange squares in the diagram. It is solely responsible for where the character goes. The "Path injection" arrow on the right shows that its predictions are then fed into the body GPT.',
+                body: 'Why a separate controller? End-to-end variants that try to make the body GPT follow waypoints by itself end up bad at both jobs (see the constraint-conditioning ablation). Splitting where from what lets each module specialise. The path controller is a small closed-loop GRU that reads the caption and path encodings and rolls out, frame by frame, the next (x, y, heading), which are the orange squares in the diagram. The "Path injection" arrow on the right shows that its predictions are then fed into the body GPT.',
                 kind: 'ours',
                 highlight: { left: 26, top: 31, width: 25, height: 52 }
               },
               {
                 title: '4. GPT generation (body GPT)',
-                body: 'A causal Transformer Decoder autoregressively predicts the motion tokens (10, 47, 1, …, END). At every step it attends to the caption embedding, the injected path from the controller, and the previously predicted tokens. Because the trajectory comes from the controller, the GPT can focus on locally-natural body motion instead of long-range navigation.',
+                body: 'A causal Transformer Decoder autoregressively predicts the motion tokens (10, 47, 1, …, END). At every step it attends to the caption embedding, the injected path from the controller, and the previously predicted tokens. Because the trajectory comes from the controller, the GPT can focus on locally-natural body motion instead of long-range navigation. We sample tokens with plain multinomial sampling: the choice of sampler matters more than expected (see the decoding-strategy ablation).',
                 kind: 'baseline',
                 highlight: { left: 50.5, top: 31, width: 47, height: 52 }
               },
@@ -930,14 +938,11 @@
 
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <strong>Qualitative results.</strong><br>
-
+        <strong>Qualitative results.</strong>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Free-generation samples from our body GPT (single-VQ codebook 2048, sliding
-          window 25, multinomial sampling) on captions held out from training. Each clip
-          is produced from the caption alone; no path constraint is given. The character
-          mesh and ground are rendered with pyrender on top of the SOMA skeleton; foot
-          contacts are post-processed with the Kimodo motion-correction solver.
+          Free-generation samples from our body GPT on captions held out from training.
+          Each clip is produced from the caption alone, with no path constraint, so what
+          you see is the model interpreting the text without any spatial guidance.
         </p>
 
         <div class="qual-carousel-container">
@@ -1066,22 +1071,18 @@
       </div>
     </div>
 
-    <!-- RVQ-GPT vs VQ-GPT vs Kimodo qualitative comparison -->
+    <!-- VQ-GPT vs Kimodo side-by-side comparison -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <p class="has-text-centered" style="margin-bottom: 0.5rem;">
-          <strong>Model comparison: Kimodo, RVQ-GPT, and VQ-GPT</strong>
+        <p class="has-text-centered" style="margin-bottom: 0.6rem;">
+          <strong>Ours vs. Kimodo (SOTA)</strong>
         </p>
         <p class="has-text-justified" style="margin-bottom: 1.5rem;">
-          Qualitative comparison of three text-to-motion models on the same held-out
-          captions. Kimodo is a diffusion-based baseline (state-of-the-art quality, slow);
-          VQ-GPT is our single-codebook autoregressive model; RVQ-GPT swaps that VQ-VAE for a
-          residual VQ-VAE. See the <a href="./ablations.html#codec-reconstruction">VQ-VAE
-          ablation</a> for the residual variant and its trade-off.
-        </p>
-
-        <p class="has-text-centered" style="margin-top: 2rem; margin-bottom: 1rem;">
-          <strong>Comparison between our two models and Kimodo (SOTA)</strong>
+          Side-by-side qualitative comparison on the same held-out captions. Kimodo is a
+          diffusion-based baseline (state-of-the-art quality, slow). <strong>What to look for:</strong> Kimodo (right)
+          produces smoother, more polished motion; our model (left) follows the caption
+          but shows slightly less smooth and refined joint trajectories.
+          This is the quality cost we trade for the speedup.
         </p>
 
         <!-- Example 1 (ID 0004) -->
@@ -1089,14 +1090,10 @@
           <p class="is-size-7 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
             Caption: "The person, standing upright, draws their hand back to the right diagonal before throwing the ball diagonally to the left, then stands upright."
           </p>
-          <div class="columns is-centered">
-            <div class="column is-full has-text-centered">
-              <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
-                <source src="./0004__merged.mp4" type="video/mp4">
-              </video>
-              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
-            </div>
-          </div>
+          <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
+            <source src="./0004__vq_vs_kimodo.mp4" type="video/mp4">
+          </video>
+          <p class="is-size-7 has-text-centered" style="margin-top: 0.5rem; color:#555;">Ours (left) | Kimodo (right)</p>
         </div>
 
         <!-- Example 2 (ID 0072) -->
@@ -1104,14 +1101,10 @@
           <p class="is-size-7 has-text-centered" style="margin-bottom: 1rem; color:#555; font-style: italic;">
             Caption: "A person standing straight stretches their leg and extends their arms outward, turns left and right, and stands in an upright stance."
           </p>
-          <div class="columns is-centered">
-            <div class="column is-full has-text-centered">
-              <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
-                <source src="./0072__merged.mp4" type="video/mp4">
-              </video>
-              <p class="is-size-7" style="margin-top: 0.5rem; color:#555;">RVQ-GPT (left) | VQ-GPT (center) | Kimodo (right)</p>
-            </div>
-          </div>
+          <video style="width: 100%; border-radius: 8px; background: #000;" autoplay controls muted loop playsinline>
+            <source src="./0072__vq_vs_kimodo.mp4" type="video/mp4">
+          </video>
+          <p class="is-size-7 has-text-centered" style="margin-top: 0.5rem; color:#555;">Ours (left) | Kimodo (right)</p>
         </div>
       </div>
     </div>
@@ -1124,8 +1117,8 @@
           On Kimodo's Repetition Text-to-Motion split (6 539 captions). The first two
           charts show that we trail Kimodo on text alignment (R@3) and realism (FID).
           The third chart, on a log scale, shows where we win: an order of magnitude
-          fewer parameters, fewer GFLOPs per clip, and faster inference on the same
-          A100.
+          fewer parameters, fewer GFLOPs per clip (the compute cost of one inference),
+          and faster inference on the same A100.
         </p>
 
         <!-- How to read these metrics (applies to all result figures below) -->
@@ -1137,45 +1130,81 @@
             <i class="fas fa-chevron-down metrics-legend-chevron"></i>
           </a>
           <div class="metrics-legend-body">
-          <p style="margin: 0 0 0.4rem;"><span class="metric-name">Evaluation splits.</span>
-            The three column groups are the text-to-motion test splits of the
-            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/docs/benchmark/metrics.html">Kimodo benchmark</a>.
-            All prompts come from Kimodo's SEED timeline annotations, where each clip carries one
-            high-level <em>overview</em> caption plus a <em>timeline</em> of fine-grained
-            atomic-action segments.</p>
-          <ul style="margin-bottom: 0.85rem;">
-            <li><span class="metric-name">Overview</span>:
-              the model is given the single high-level caption for the whole clip and must
-              generate the entire motion.</li>
-            <li><span class="metric-name">Timeline single</span>:
-              the prompt is one fine-grained timeline segment &ndash; a single atomic action.</li>
-            <li><span class="metric-name">Timeline multi</span>:
-              the prompt chains several consecutive timeline segments &ndash; multiple atomic
-              actions in sequence, testing transitions between them.</li>
-          </ul>
-          <p style="margin: 0 0 0.4rem;"><span class="metric-name">Metrics.</span>
-            Definitions follow the
-            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/docs/benchmark/metrics.html">Kimodo metrics</a>.</p>
-          <ul>
-            <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span>:
-text&ndash;motion retrieval: how often the right motion lands in the top&nbsp;3
-              for its caption (higher&nbsp;=&nbsp;better text match).</li>
-            <li><span class="metric-name">FID</span> <span class="metric-dir">↓</span>:
-distance between generated and real motion distributions
-              (lower&nbsp;=&nbsp;more realistic).</li>
-            <li><span class="metric-name">Skate</span> <span class="metric-dir">↓</span>:
-foot-skating: how much the feet slide while in contact with the ground
-              (lower&nbsp;=&nbsp;cleaner footwork).</li>
-            <li><span class="metric-name">Cont</span> <span class="metric-dir">↑</span>:
-foot-contact consistency: how stable ground contacts are
-              (higher&nbsp;=&nbsp;steadier).</li>
-            <li><span class="metric-name">2D root error</span> <span class="metric-dir">↓</span>:
-average distance between the generated path and the target path, in cm
-              (lower&nbsp;=&nbsp;follows the path better).</li>
-            <li><span class="metric-name">MedR</span> <span class="metric-dir">↓</span>:
-median retrieval rank of the correct motion
-              (lower&nbsp;=&nbsp;better).</li>
-          </ul>
+            <style>
+              .mlg-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.25rem;
+              }
+              .mlg-block {
+                background: #fff;
+                border: 1px solid #e3e8f0;
+                border-radius: 8px;
+                padding: 0.85rem 1rem 0.9rem;
+              }
+              .mlg-block h5 {
+                font-size: 0.78rem;
+                font-weight: 700;
+                color: #2596be;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                margin: 0 0 0.35rem;
+              }
+              .mlg-block p.mlg-intro {
+                margin: 0 0 0.55rem;
+                color: #4a5568;
+                font-size: 0.88rem;
+              }
+              .mlg-block ul { margin: 0; padding-left: 1.1rem; }
+              .mlg-block li { margin-bottom: 0.32rem; font-size: 0.88rem; }
+              .mlg-block li:last-child { margin-bottom: 0; }
+              @media (max-width: 720px) {
+                .mlg-grid { grid-template-columns: 1fr; }
+              }
+            </style>
+            <div class="mlg-grid">
+              <div class="mlg-block">
+                <h5>Evaluation splits</h5>
+                <p class="mlg-intro">
+                  The three column groups are the text-to-motion test splits of the
+                  <a href="https://research.nvidia.com/labs/sil/projects/kimodo/docs/benchmark/metrics.html">Kimodo benchmark</a>.
+                  Each clip carries one <em>overview</em> caption plus a <em>timeline</em>
+                  of fine-grained atomic-action segments.
+                </p>
+                <ul>
+                  <li><span class="metric-name">Overview</span>: one high-level caption
+                    drives the whole clip.</li>
+                  <li><span class="metric-name">Timeline single</span>: prompt is a single
+                    atomic action from the timeline.</li>
+                  <li><span class="metric-name">Timeline multi</span>: prompt chains
+                    several atomic actions; tests transitions.</li>
+                </ul>
+              </div>
+
+              <div class="mlg-block">
+                <h5>Metrics</h5>
+                <p class="mlg-intro">
+                  Definitions follow the
+                  <a href="https://research.nvidia.com/labs/sil/projects/kimodo/docs/benchmark/metrics.html">Kimodo metrics</a>.
+                </p>
+                <ul>
+                  <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span>:
+                    text-motion retrieval; how often the right motion lands in the top&nbsp;3
+                    (higher = better text match).</li>
+                  <li><span class="metric-name">FID</span> <span class="metric-dir">↓</span>:
+                    distance between generated and real motion distributions
+                    (lower = more realistic).</li>
+                  <li><span class="metric-name">Skate</span> <span class="metric-dir">↓</span>:
+                    how much the feet slide while in ground contact (lower = cleaner footwork).</li>
+                  <li><span class="metric-name">Cont</span> <span class="metric-dir">↑</span>:
+                    foot-contact consistency (higher = steadier).</li>
+                  <li><span class="metric-name">2D root error</span> <span class="metric-dir">↓</span>:
+                    mean distance between generated path and target path, in cm.</li>
+                  <li><span class="metric-name">MedR</span> <span class="metric-dir">↓</span>:
+                    median retrieval rank of the correct motion (lower = better).</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1209,17 +1238,12 @@ median retrieval rank of the correct motion
         <div class="chart-legend" aria-hidden="true">
           <span class="legend-item"><span class="legend-swatch" style="background:#2BAD94;"></span>Ground Truth</span>
           <span class="legend-item"><span class="legend-swatch" style="background:#EB6E4C;"></span>Kimodo</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#2596be;"></span>Ours (VQ-GPT)</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#8A6FCB;"></span>Ours (RVQ-GPT)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2596be;"></span>Ours</span>
         </div>
-        <p class="is-size-7 has-text-centered" style="margin-top: 0.4rem; color:#555;">
-          RVQ-GPT is our residual-VQ-VAE variant; it underperforms VQ-GPT end-to-end; see the
-          <a href="./ablations.html#codec-reconstruction">VQ-VAE ablation</a> for the architecture and full numbers.
-        </p>
 
         <script>
           (function () {
-            var COLORS = { gt: '#2BAD94', kimodo: '#EB6E4C', ours: '#2596be', rvq: '#8A6FCB' };
+            var COLORS = { gt: '#2BAD94', kimodo: '#EB6E4C', ours: '#2596be' };
             var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
             function draw() {
               if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
@@ -1250,15 +1274,13 @@ median retrieval rank of the correct motion
               gbar(r3, [
                 { label: 'Ground Truth',    data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
                 { label: 'Kimodo',          data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
-                { label: 'Ours (VQ-GPT)',   data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours },
-                { label: 'Ours (RVQ-GPT)',  data: [18.74, 22.18, 15.12], backgroundColor: COLORS.rvq }
+                { label: 'Ours',   data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours }
               ], 'R@3 (%)', 100);
 
               gbar(fid, [
                 { label: 'Ground Truth',    data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
                 { label: 'Kimodo',          data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
-                { label: 'Ours (VQ-GPT)',   data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours },
-                { label: 'Ours (RVQ-GPT)',  data: [0.644, 0.411, 0.670], backgroundColor: COLORS.rvq }
+                { label: 'Ours',   data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours }
               ], 'FID', 0.75);
 
               new Chart(eff, {
@@ -1267,8 +1289,7 @@ median retrieval rank of the correct motion
                   labels: ['Params (M)', 'GFLOPs / clip', 'Latency (ms / clip)'],
                   datasets: [
                     { label: 'Kimodo',         data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
-                    { label: 'Ours (VQ-GPT)',  data: [395, 470, 413],    backgroundColor: COLORS.ours },
-                    { label: 'Ours (RVQ-GPT)', data: [565, 640, 486],    backgroundColor: COLORS.rvq }
+                    { label: 'Ours',  data: [395, 470, 413],    backgroundColor: COLORS.ours }
                   ]
                 },
                 options: {
@@ -1331,22 +1352,13 @@ median retrieval rank of the correct motion
                 <td>88.65</td><td>0.010</td><td>3.35</td><td>0.980</td>
               </tr>
               <tr>
-                <td><strong>Ours (decoupled, 9L GPT, full BONES)</strong></td>
+                <td><strong>Ours</strong></td>
                 <td><strong>395</strong></td>
                 <td><strong>~470</strong></td>
                 <td><strong>413</strong></td>
                 <td><strong>58.66</strong></td><td><strong>0.191</strong></td><td><strong>33.07</strong></td><td><strong>0.617</strong></td>
                 <td><strong>47.44</strong></td><td><strong>0.220</strong></td><td><strong>27.95</strong></td><td><strong>0.654</strong></td>
                 <td><strong>37.04</strong></td><td><strong>0.307</strong></td><td><strong>27.20</strong></td><td><strong>0.664</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Ours (RVQ-GPT)</strong></td>
-                <td><strong>565</strong></td>
-                <td><strong>~640</strong></td>
-                <td><strong>486</strong></td>
-                <td>18.74</td><td>0.644</td><td>39.24</td><td>0.481</td>
-                <td>22.18</td><td>0.411</td><td>34.93</td><td>0.507</td>
-                <td>15.12</td><td>0.670</td><td>39.08</td><td>0.468</td>
               </tr>
             </tbody>
           </table>
@@ -1363,9 +1375,10 @@ median retrieval rank of the correct motion
     <h3 class="title is-4" style="margin-top: 3rem;">2. Constraint following</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
       We then evaluate the model under explicit path constraints: given a caption and a
-      target XZ trajectory, how closely does the generated motion follow the trajectory while
-      remaining faithful to the caption? We report qualitative samples on hand-drawn paths and
-      quantitative results on Kimodo's path-following split.
+      target floor path (a 2D XZ trajectory), how closely does the generated motion
+      follow the path while remaining faithful to the caption? We report qualitative
+      samples on hand-drawn paths and quantitative results on Kimodo's path-following
+      split.
     </p>
 
     <!-- Qualitative constraint-following gallery (kimodo-style carousel) -->
@@ -1374,10 +1387,8 @@ median retrieval rank of the correct motion
         <strong>Qualitative results.</strong><br>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           Free-generation samples on caption <em>&ldquo;a person walks forward at a neutral pace&rdquo;</em>
-          conditioned on the hand-drawn XZ paths shown on the ground. Same pipeline as
-          the constraint-following table below (decoupled path controller + single-VQ
-          body GPT, sliding window 25, multinomial sampling). The character follows the
-          path while the body GPT freely synthesises the gait.
+          conditioned on the hand-drawn paths shown on the ground. The character
+          follows the path while the body GPT freely synthesises the gait.
         </p>
 
         <div class="qual-carousel-container">
@@ -1495,11 +1506,12 @@ median retrieval rank of the correct motion
       <div class="column is-full">
         <strong>Quantitative results.</strong>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          On Kimodo's path-following subset (256 root-XZ testcases). The left chart
-          shows 2D root error in cm: we match the ground-truth lower bound and beat
-          Kimodo. The right chart shows where Kimodo still wins: foot-skate and
-          contact consistency. Path adherence is ours; foot quality is the next gap
-          to close.
+          <strong>The trade we make: path accuracy for foot quality.</strong>
+          On Kimodo's path-following subset (256 root-XZ testcases), the left chart
+          shows that we match the ground-truth lower bound on 2D root error and beat
+          Kimodo. The right chart shows the other side of the deal: Kimodo still
+          leads on foot-skate and contact consistency. Closing that foot-quality gap
+          is the next step.
         </p>
         <!-- Plot view: path adherence (cm) + foot-quality ratios -->
         <div class="columns is-vcentered" style="margin-bottom: 0.25rem;">
@@ -1622,7 +1634,7 @@ median retrieval rank of the correct motion
                   <td><strong>0.966</strong></td>
                 </tr>
                 <tr>
-                  <td><strong>Ours (decoupled, ctrl_full_v2_stillzero)</strong> &starf;</td>
+                  <td><strong>Ours</strong> &starf;</td>
                   <td><strong>3.94</strong></td>
                   <td><strong>0.957</strong></td>
                   <td>0.583</td>
@@ -1662,13 +1674,10 @@ median retrieval rank of the correct motion
     <h3 class="title is-4" style="margin-top: 3rem;">3. Online adaptation</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
       Beyond static text-to-motion and constraint following, our pipeline can adapt motion
-      <em>during</em> generation. Because the model is autoregressive, we can interrupt the
-      sequence at any point, keep the last few tokens as context, and reinfer from that point
-      forward with a new condition: either a different text prompt, a new path constraint, or
-      both. The model uses the last few generated tokens as a warm start, so the transition is
-      smooth rather than an abrupt reset. This section first reports the per-block latency
-      that makes online updates practical, then shows qualitative results of mid-sequence
-      text and path injection.
+      <em>during</em> generation. Because the model is autoregressive, a new text prompt or
+      a new path constraint can be injected mid-rollout and the body GPT continues from
+      there without restarting. The figure below sketches the mechanism; the rest of the
+      section shows it in action and reports the latency that makes it interactive.
     </p>
 
     <!-- Online-adaptation overview figure -->
@@ -1676,24 +1685,24 @@ median retrieval rank of the correct motion
       <div class="column is-three-quarters">
         <figure class="image">
           <img src="./assets/online_generation/online_main.png"
-               alt="Diagram of the cap-and-reinfer process: the sequence is cut at an arbitrary frame, the last tokens are kept as context, and a new condition (text or path) drives the remainder."
+               alt="Diagram of the interrupt-and-re-generate process: the sequence is cut at an arbitrary frame, the last tokens are kept as context, and a new condition (text or path) drives the remainder."
                style="max-width: 100%; border-radius: 8px;">
         </figure>
         <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
           <span class="fig-caption-summary"><strong>Figure 8.</strong> Online adaptation via
-          cap-and-reinfer: cut the sequence, keep recent tokens as context, and reinfer the
-          rest under a new condition.</span>
+          interrupt-and-re-generate: cut the sequence, keep recent tokens as context, and
+          re-generate the rest under a new condition.</span>
           <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
             <span class="fig-caption-toggle-label">Show details</span>
             <i class="fas fa-chevron-down"></i>
           </a>
           <div class="fig-caption-details">
-            <p>At an arbitrary frame the sequence is <strong>cut</strong> and the last few generated
-            tokens are kept as <strong>context</strong>. A new condition (a different text
-            prompt, a new path constraint, or both) is then fed to the model, which
-            <strong>reinfers</strong> the remainder of the sequence from that point. Because the
-            warm-start context comes from the already-generated tokens, the transition is smooth
-            rather than an abrupt reset.</p>
+            <p>At an arbitrary frame the sequence is <strong>cut</strong> and the last few
+            generated tokens are kept as <strong>context</strong>. A new condition (a different
+            text prompt, a new path constraint, or both) is then fed to the model, which
+            <strong>re-generates</strong> the remainder of the sequence from that point.
+            Because the context comes from the already-generated tokens, the transition is
+            smooth rather than an abrupt reset.</p>
           </div>
         </figcaption>
       </div>
@@ -1714,14 +1723,14 @@ median retrieval rank of the correct motion
             <img src="./assets/online_generation/online_text_1.gif"
                  alt="Walking forward, then sits criss-cross" style="max-width: 100%; border-radius: 6px;">
             <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              "a person walking forward" &rarr; "a person sits criss-cross"
+              &ldquo;a person walking forward&rdquo; &rarr; &ldquo;a person sits criss-cross&rdquo;
             </p>
           </div>
           <div class="column">
             <img src="./assets/online_generation/online_text_2.gif"
                  alt="Walking forward, then starts walking right" style="max-width: 100%; border-radius: 6px;">
             <p class="is-size-7" style="margin-top: 0.4rem; color: #555;">
-              "a person walking forward" &rarr; "a person starts walking right"
+              &ldquo;a person walking forward&rdquo; &rarr; &ldquo;a person starts walking right&rdquo;
             </p>
           </div>
         </div>
@@ -1759,11 +1768,12 @@ median retrieval rank of the correct motion
         <br><br>
         <strong>Per-block inference cost of the decoupled pipeline</strong>
         <p class="has-text-justified" style="margin-bottom: 0.75rem; margin-top: 0.75rem;">
-          From caption to motion in <strong>413&nbsp;ms</strong>. Press play to watch
-          the pipeline run: the playhead advances through each block at scaled
-          real-time, the current block lights up and its name appears below. The
-          path controller and the body GPT account for 96&nbsp;% of the wall-clock
-          cost.
+          From caption to motion in <strong>413&nbsp;ms</strong>, or roughly
+          <strong>2.4 clips per second</strong>: fast enough to replan the path
+          on the fly during a rollout. The path controller and the body GPT account
+          for 96&nbsp;% of the wall-clock cost; the CLIP encoder, the VQ decoder
+          and the recompose step are negligible. The second bar shows Kimodo on the
+          same A100 for reference, &asymp;&nbsp;10&times; slower end-to-end.
         </p>
 
         <style>
@@ -2312,12 +2322,15 @@ median retrieval rank of the correct motion
           </div>
         </figcaption>
 
-    <h3 class="title is-4" style="margin-top: 3rem;">4. Fine-grained Prompt</h3>
+    <h3 class="title is-4" style="margin-top: 3rem;">4. Fine-grained Prompts</h3>
     <div class="content has-text-justified">
       <p>
-        To study how much fine-grained information the model can capture from text, we run a simple
-        prompt ablation. We start from a basic walking prompt and progressively add more specific
-        motion details:
+        Sections 1 to 3 showed that the model can generate motion, follow paths, and adapt
+        online. One question is still open: how much of the <em>text</em> actually makes it
+        into the motion? Captions encode intent, modifiers, and ordering all at once, but
+        the body GPT only has so much capacity to bind them. To probe this, we start from a
+        basic walking prompt and progressively add more specific details, one modifier at a
+        time:
       </p>
 
       <div style="background:#f8f9fa; border:1px solid #e8ecf0; border-radius:8px; padding:1rem 1.25rem; margin:0.75rem 0 1.25rem;">
@@ -2359,6 +2372,20 @@ median retrieval rank of the correct motion
         transition into the next phase. This supports the idea that <em>text is a lossy
         representation of motion</em>, especially for prompts that encode explicit temporal
         transitions between actions.
+      </p>
+      <p>
+        <strong>Where the bottleneck likely sits.</strong> We use a frozen
+        <a href="https://openai.com/research/clip">CLIP</a> text encoder that was
+        trained on web image-text pairs, never on motion, and BONES captions
+        themselves rarely describe ordered sequences of actions. Two follow-ups are
+        worth trying: (i) replace CLIP with a text encoder fine-tuned on
+        motion-paired captions (e.g. TMR-style), and (ii) augment the training set
+        with multi-action captions that explicitly carry temporal connectives
+        (<em>then</em>, <em>after</em>, <em>while</em>). The online-adaptation
+        section already shows that the architecture itself <em>can</em> handle
+        discontinuities when the prompt is changed mid-rollout, so the gap is in
+        how transitions get encoded into a single sentence, not in the model's
+        ability to execute them.
       </p>
     </div>
 
@@ -2584,20 +2611,24 @@ median retrieval rank of the correct motion
         <div class="content has-text-justified">
           <p>
             We presented C-T2M, a decoupled autoregressive text-to-motion pipeline that
-            follows user-specified root XZ paths. By delegating trajectory control to a
-            small closed-loop GRU and letting a caption-driven body GPT focus on plausible
-            gait, our method matches Kimodo's constraint-following quality (3.94 cm vs.
-            4.88 cm 2D root error) with an order of magnitude lower latency and roughly
-            twenty times fewer effective parameters. Path and gait turn out to be
-            separable problems, and the decoupled solution is cheap, modular, and faster
-            than diffusion-based alternatives, making it suitable for online and
-            interactive settings.
+            follows user-specified root XZ paths. By delegating path control to a small
+            closed-loop GRU and letting a caption-driven body GPT focus on plausible gait,
+            our method matches Kimodo's constraint-following quality (3.94 cm vs. 4.88 cm
+            2D root error) at 10&times; lower latency and 20&times; fewer effective
+            parameters. Path and gait turn out to be separable problems: our
+            <a href="./ablations.html#constraint-arch">constraint-conditioning
+            ablation</a> shows that four end-to-end variants that try to make the body
+            GPT follow waypoints by itself are dominated by the decoupled design on
+            every metric. The decoupled solution is cheap, modular, and well-suited to
+            online and interactive settings.
           </p>
 
           <h3 class="title is-5">Limitations and future work</h3>
           <p>
-            Our body decoder inherits the foot-skating ceiling of frame-level discrete
-            VQ-VAEs, which is the main remaining gap to Kimodo on the foot-contact suite.
+            Because the VQ-VAE quantises one token per frame, it smooths out the
+            high-frequency detail that keeps the feet pinned to the ground, and that
+            shows up as foot-skating. It is the main remaining gap to Kimodo on the
+            foot-contact suite.
             A Kimodo-style foot re-projection post-processing step would close most of
             that gap and is left to future work. The recompose step also assumes a planar
             floor and a single root XZ trajectory, so it does not yet generalise to
