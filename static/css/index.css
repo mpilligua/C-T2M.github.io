@@ -2,25 +2,58 @@ body {
   font-family: 'Noto Sans', sans-serif;
 }
 
+/* ---- Global density ------------------------------------------------------
+   The page targets standard laptop screens (≈1280px effective width under
+   Windows 150% scaling), where Bulma's defaults feel oversized. Nudge the
+   root font down so every rem-based size (titles, body copy, spacing) scales
+   with it, and trim the generous per-section vertical padding so more content
+   fits per screen. Single knob to tune: `html { font-size }`. */
+html {
+  font-size: 15px;
+}
+
+.section {
+  padding: 2rem 1.5rem;
+}
+
+/* Bulma's `is-max-widescreen` caps content at ~1152px, which is nearly
+   edge-to-edge on a standard laptop and makes full-width figures huge.
+   Narrow the content column to a more comfortable reading/figure width.
+   Single knob to tune: this max-width. */
+.container.is-max-widescreen {
+  max-width: 1040px;
+}
+
+/* Pull section headings tighter to their content. */
+.title.is-3 {
+  margin-bottom: 1rem;
+}
+
 
 /* ---- Top navigation bar -------------------------------------------------
    White background kept, but pinned to the top with a clear shadow and a
    strong "you are here" indicator (blue pill + underline) on the active tab. */
 .navbar {
+  min-height: 2rem;
   background-color: #fff;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
   border-bottom: 1px solid #eef0f5;
 }
 
 .navbar-item {
   font-family: 'Google Sans', sans-serif;
   font-weight: 600;
+  font-size: 0.85rem;
   color: #4a5568;
   border-radius: 999px;
-  margin: 0.35rem 0.25rem;
-  padding: 0.5rem 1.1rem;
+  margin: 0.15rem 0.2rem;
+  padding: 0.2rem 0.8rem;
   position: relative;
   transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navbar-item .icon {
+  font-size: 0.8rem;
 }
 
 .navbar-item .icon {
@@ -31,32 +64,31 @@ body {
 /* Hover: subtle blue wash so the tabs clearly read as clickable */
 .navbar-item:hover,
 .navbar-item:focus {
-  background-color: #eef2ff !important;
-  color: #2b4eff !important;
+  background-color: #f2f4fb !important;
+  color: #3a55c0 !important;
 }
 .navbar-item:hover .icon,
 .navbar-item:focus .icon {
-  color: #2b4eff;
+  color: #3a55c0;
 }
 
-/* Active page: solid blue pill + underline accent */
+/* Active page: soft tinted pill + thin underline accent (toned-down blue) */
 .navbar-item.is-active {
-  background-color: #2b4eff !important;
-  color: #fff !important;
-  box-shadow: 0 3px 10px rgba(43, 78, 255, 0.35);
+  background-color: #eef2ff !important;
+  color: #3a55c0 !important;
 }
 .navbar-item.is-active .icon {
-  color: #fff;
+  color: #3a55c0;
 }
 .navbar-item.is-active::after {
   content: "";
   position: absolute;
-  left: 1.1rem;
-  right: 1.1rem;
-  bottom: 0.18rem;
+  left: 0.95rem;
+  right: 0.95rem;
+  bottom: 0.12rem;
   height: 2px;
   border-radius: 2px;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: #6b80d8;
 }
 
 
@@ -77,11 +109,23 @@ body {
 
 .teaser .hero-body {
   padding-top: 0;
-  padding-bottom: 3rem;
+  padding-bottom: 1.5rem;
 }
 
 .teaser {
   font-family: 'Google Sans', sans-serif;
+}
+
+/* Keep the teaser fully visible under the title instead of overflowing
+   the fold. Cap by viewport height and center it. */
+.teaser video {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1100px;
+  max-height: 55vh;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 
@@ -106,6 +150,15 @@ body {
 
 .publication-title {
     font-family: 'Google Sans', sans-serif;
+    /* Fluid size so the title stays compact and never overflows. */
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    line-height: 1.15;
+}
+
+/* Trim the top hero padding so title + teaser fit together above the fold. */
+.hero:not(.teaser) .hero-body {
+    padding-top: 2rem;
+    padding-bottom: 1rem;
 }
 
 .publication-authors {
