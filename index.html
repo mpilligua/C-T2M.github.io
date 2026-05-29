@@ -726,6 +726,11 @@
           })();
         </script>
 
+        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="numbers-toggle-label">Show full table</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="numbers-details">
         <div class="table-container">
           <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
             <thead>
@@ -780,27 +785,35 @@
             </tbody>
           </table>
         </div>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          <sup>†</sup> Includes the frozen Llama-3-8B-Instruct text encoder Kimodo loads
-          at inference (about 8 000 M parameters); the trainable adapters, diffusion UNet
-          and heads on top sum to 283 M parameters. We report the effective parameters
-          loaded at inference because they determine the memory footprint and the floating
-          point operations per clip.
-        </p>
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          R@3 is text-to-motion R-Precision at top-3 with the TMR-SOMA-RP encoder. FID and
-          foot-skate are in the same space; contact (Cont) is foot-contact consistency
-          against contacts inferred from foot height and velocity. Our model is roughly
-          twenty times smaller in effective parameters, uses about three times fewer
-          GFLOPs per clip, and runs roughly ten times faster than Kimodo on the same
-          hardware. On this generic text-to-motion benchmark we accept a quality deficit
-          driven by a narrower training vocabulary (walk, jog and run only) and a single
-          autoregressive pass per clip instead of one hundred denoising steps. The
-          foot-skate gap matches the codec ceiling reported in the codec reconstruction
-          ablation: any frame-level
-          discrete codec smoothes high-frequency foot detail, and we do not currently
-          apply Kimodo-style foot re-projection on top of the body decoder.
-        </p>
+        </div>
+        <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
+          <span class="fig-caption-summary"><strong>Results.</strong> Text-to-motion quality and
+          efficiency on the Kimodo Repetition split &mdash; we trade some text-match quality for a
+          model roughly 20&times; smaller and 10&times; faster than Kimodo.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p><sup>†</sup> Includes the frozen Llama-3-8B-Instruct text encoder Kimodo loads
+            at inference (about 8 000 M parameters); the trainable adapters, diffusion UNet
+            and heads on top sum to 283 M parameters. We report the effective parameters
+            loaded at inference because they determine the memory footprint and the floating
+            point operations per clip.</p>
+            <p>R@3 is text-to-motion R-Precision at top-3 with the TMR-SOMA-RP encoder. FID and
+            foot-skate are in the same space; contact (Cont) is foot-contact consistency
+            against contacts inferred from foot height and velocity. Our model is roughly
+            twenty times smaller in effective parameters, uses about three times fewer
+            GFLOPs per clip, and runs roughly ten times faster than Kimodo on the same
+            hardware. On this generic text-to-motion benchmark we accept a quality deficit
+            driven by a narrower training vocabulary (walk, jog and run only) and a single
+            autoregressive pass per clip instead of one hundred denoising steps. The
+            foot-skate gap matches the codec ceiling reported in the codec reconstruction
+            ablation: any frame-level discrete codec smoothes high-frequency foot detail,
+            and we do not currently apply Kimodo-style foot re-projection on top of the
+            body decoder.</p>
+          </div>
+        </figcaption>
       </div>
     </div>
 
@@ -1319,7 +1332,7 @@
         </script>
 
         <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
-          <span class="numbers-toggle-label">Show numbers</span>
+          <span class="numbers-toggle-label">Show full table</span>
           <i class="fas fa-chevron-down"></i>
         </a>
         <div class="numbers-details">
@@ -1602,7 +1615,7 @@
         </script>
 
         <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
-          <span class="numbers-toggle-label">Show numbers</span>
+          <span class="numbers-toggle-label">Show full table</span>
           <i class="fas fa-chevron-down"></i>
         </a>
         <div class="numbers-details">
@@ -1909,7 +1922,7 @@ level_5: "a person walks forward slowly while waving the right hand, nodding the
       var $details = $toggle.siblings('.numbers-details');
       var open     = $toggle.attr('aria-expanded') === 'true';
       $toggle.attr('aria-expanded', !open).toggleClass('is-open', !open);
-      $toggle.find('.numbers-toggle-label').text(open ? 'Show numbers' : 'Hide numbers');
+      $toggle.find('.numbers-toggle-label').text(open ? 'Show full table' : 'Hide full table');
       $details.stop(true, true).slideToggle(180);
     }
     $(document).on('click', '.numbers-toggle', function (e) {
