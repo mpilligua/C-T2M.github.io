@@ -1166,6 +1166,25 @@
             <i class="fas fa-chevron-down metrics-legend-chevron"></i>
           </a>
           <div class="metrics-legend-body">
+          <p style="margin: 0 0 0.4rem;"><span class="metric-name">Evaluation splits.</span>
+            The three column groups are the text-to-motion test splits of the
+            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/docs/benchmark/metrics.html">Kimodo benchmark</a>.
+            All prompts come from Kimodo's SEED timeline annotations, where each clip carries one
+            high-level <em>overview</em> caption plus a <em>timeline</em> of fine-grained
+            atomic-action segments.</p>
+          <ul style="margin-bottom: 0.85rem;">
+            <li><span class="metric-name">Overview</span>:
+              the model is given the single high-level caption for the whole clip and must
+              generate the entire motion.</li>
+            <li><span class="metric-name">Timeline single</span>:
+              the prompt is one fine-grained timeline segment &ndash; a single atomic action.</li>
+            <li><span class="metric-name">Timeline multi</span>:
+              the prompt chains several consecutive timeline segments &ndash; multiple atomic
+              actions in sequence, testing transitions between them.</li>
+          </ul>
+          <p style="margin: 0 0 0.4rem;"><span class="metric-name">Metrics.</span>
+            Definitions follow the
+            <a href="https://research.nvidia.com/labs/sil/projects/kimodo/docs/benchmark/metrics.html">Kimodo metrics</a>.</p>
           <ul>
             <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span>:
 text&ndash;motion retrieval: how often the right motion lands in the top&nbsp;3
