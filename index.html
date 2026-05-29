@@ -235,33 +235,199 @@
       <video id="teaser" autoplay muted loop playsinline height="100%">
         <source src="./teaser_final.mp4" type="video/mp4">
       </video>
-      <h2 class="subtitle has-text-centered">
-        C-T2M generates motion that follows a user-specified XZ path while obeying a
-        free-form caption.
       </h2>
     </div>
   </div>
 </section>
 
 
-<!-- Results carousel removed; placeholder scenario carousel lives in Experiments. -->
-
-
-<!-- 1. Abstract -->
-<section class="section">
+<!-- Motivation (sets up the rest of the page) -->
+<section class="section" id="motivation" style="padding-top: -3rem; padding-bottom: 1.5rem;">
   <div class="container is-max-widescreen">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-full">
-        <h2 class="title is-3">Abstract</h2>
-        <div class="content has-text-justified">
+    <div class="columns is-centered">
+      <div class="column is-three-quarters">
+        <div class="content has-text-justified" style="font-size: 1.1rem; line-height: 1.65;">
           <p>
-            We present C-T2M, a decoupled approach to controllable text-to-motion generation that enables precise spatial control while maintaining natural motion quality. Our method addresses the limitation of existing autoregressive models, which struggle to follow kinematic constraints, by introducing an explicit path controller that operates independently from the motion generation process. The pipeline consists of three components: (1) a closed-loop GRU-based trajectory controller that generates smooth XZ root paths from user-specified waypoints and captions, (2) a caption-driven body GPT that synthesizes motion tokens conditioned on text, and (3) a deterministic recompose step that combines the predicted gait with the controller's trajectory. By decoupling trajectory control from body motion generation, we achieve fast, online-updateable motion generation (413 ms per 200-frame clip) while following user constraints with 3.94 cm root error, better than Kimodo's 4.88 cm, and an order of magnitude faster.
+            Generating realistic human motion from natural language has improved
+            remarkably, but most state-of-the-art systems share a limitation: they
+            produce an entire clip in one shot. If the user wants the character to
+            follow a precise spatial path, or update that path mid-motion, the
+            system has to recompute everything from scratch. That is too slow for
+            interactive use, and too rigid for applications like robotics, digital
+            twins, or game characters that need to react to a changing environment.
+          </p>
+          <p>
+            We present <strong>C-T2M</strong>, a decoupled approach that splits the
+            problem into two independent modules: a small <strong>trajectory
+            controller</strong> that rolls out an XZ root path from user-specified
+            waypoints, and a caption-driven <strong>body GPT</strong> that
+            synthesizes natural body motion along that path. A deterministic
+            recompose step then blends them. Because the two modules are
+            independent, the controller can react to new constraints
+            instantly without re-running the body generator, the body GPT stays
+            simple and fast, and the whole pipeline runs in
+            <strong>413&nbsp;ms per 200-frame clip</strong>: an order of magnitude
+            faster than Kimodo, the state-of-the-art diffusion baseline, while
+            following constraints with comparable accuracy (3.94&nbsp;cm vs.
+            4.88&nbsp;cm root error).
           </p>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+
+<!-- Key Capabilities (same carousel pattern as the qualitative T2M gallery below) -->
+<section class="section" id="key-capabilities">
+  <div class="container is-max-widescreen">
+    <h2 class="title is-3 has-text-centered" style="margin-bottom: 0.5rem;">Key Capabilities of C-T2M</h2>
+    <p class="has-text-centered" style="color:#555; margin-bottom: 1.5rem;">
+      Three things our system does that motivate the design.
+    </p>
+
+    <h3 id="kc-title" class="has-text-centered" style="font-size:1.35rem; font-weight:600; color:#2c3e50; margin-bottom: 0.9rem;">Text-to-Motion Generation</h3>
+
+    <div class="qual-carousel-container">
+      <div id="kc-slides"></div>
+      <button class="qual-nav-button prev" type="button"
+              onclick="kcCarousel.navigate(-1)">&#10094;</button>
+      <button class="qual-nav-button next" type="button"
+              onclick="kcCarousel.navigate(1)">&#10095;</button>
+    </div>
+    <p id="kc-caption" class="qual-carousel-caption"></p>
+    <div class="qual-dots" id="kc-dots"></div>
+
+    <script>
+      (function () {
+        const data = [
+          {
+            title: 'Text-to-Motion Generation',
+            kind: 'video',
+            src: './assets/qualitative_t2m/flip_180_R_001__A416_M.mp4',
+            caption: 'From caption to motion: free-form prompts are turned into full-body motion by our caption-driven body GPT, no constraints required.'
+          },
+          {
+            title: 'Path Constraints',
+            kind: 'video',
+            src: './assets/constraint_exports/walk__spiral__dense_raw_trim1p5s.mp4',
+            caption: 'Walk along any path: sparse waypoints or dense trajectories are followed by the GRU controller while the body GPT keeps the gait natural.'
+          },
+          {
+            title: 'Online Adaptation',
+            kind: 'img',
+            src: './assets/online_generation/manual_path.gif',
+            caption: 'Update on the fly: because trajectory and body are decoupled, paths or text can be edited mid-rollout without restarting generation.'
+          }
+        ];
+
+        class KCCarousel {
+          constructor(cfg) {
+            this.data = cfg.data;
+            this.slidesId = cfg.slidesId;
+            this.dotsId = cfg.dotsId;
+            this.captionId = cfg.captionId;
+            this.titleId = cfg.titleId;
+            this.currentIndex = 0;
+          }
+          build() {
+            const slidesContainer = document.getElementById(this.slidesId);
+            const dotsContainer = document.getElementById(this.dotsId);
+            if (!slidesContainer || !dotsContainer) return;
+            slidesContainer.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            this.data.forEach((item, index) => {
+              const slide = document.createElement('div');
+              slide.className = 'qual-carousel-slide';
+              slide.dataset.index = index;
+              slide.onclick = () => { if (index !== this.currentIndex) this.setIndex(index); };
+              if (item.kind === 'img') {
+                slide.innerHTML = `<img src="${item.src}" alt="${item.title}"
+                    style="width:100%; height:auto; border-radius:16px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); display:block; background:#111;">`;
+              } else {
+                slide.innerHTML = `
+                  <video loop muted playsinline preload="metadata">
+                    <source data-src="${item.src}" type="video/mp4">
+                  </video>`;
+              }
+              slidesContainer.appendChild(slide);
+
+              const dot = document.createElement('button');
+              dot.className = 'qual-dot';
+              dot.dataset.index = index;
+              dot.onclick = () => this.setIndex(index);
+              dotsContainer.appendChild(dot);
+            });
+
+            this.setIndex(0);
+          }
+          navigate(direction) {
+            let newIndex = this.currentIndex + direction;
+            if (newIndex < 0) newIndex = this.data.length - 1;
+            else if (newIndex >= this.data.length) newIndex = 0;
+            this.setIndex(newIndex);
+          }
+          loadVideo(video) {
+            if (!video) return;
+            const source = video.querySelector('source');
+            if (source && source.dataset.src && !source.src) {
+              source.src = source.dataset.src;
+              video.load();
+            }
+          }
+          setIndex(index) {
+            this.currentIndex = index;
+            const slides = document.getElementById(this.slidesId)
+                                   .querySelectorAll('.qual-carousel-slide');
+            const dots = document.getElementById(this.dotsId)
+                                 .querySelectorAll('.qual-dot');
+            const captionEl = document.getElementById(this.captionId);
+            const titleEl = document.getElementById(this.titleId);
+            const n = this.data.length;
+
+            slides.forEach((slide, i) => {
+              slide.classList.remove('active', 'prev', 'next', 'hidden');
+              const video = slide.querySelector('video');
+              if (i === index) {
+                slide.classList.add('active');
+                if (video) { this.loadVideo(video); video.play().catch(() => {}); }
+              } else {
+                if (video) video.pause();
+                if (i === (index - 1 + n) % n) {
+                  slide.classList.add('prev');
+                  if (video) this.loadVideo(video);
+                } else if (i === (index + 1) % n) {
+                  slide.classList.add('next');
+                  if (video) this.loadVideo(video);
+                } else {
+                  slide.classList.add('hidden');
+                }
+              }
+            });
+
+            dots.forEach((dot, i) => {
+              dot.classList.toggle('active', i === index);
+            });
+
+            if (captionEl) captionEl.textContent = this.data[index].caption;
+            if (titleEl) titleEl.textContent = this.data[index].title;
+          }
+        }
+
+        window.kcCarousel = new KCCarousel({
+          data: data,
+          slidesId: 'kc-slides',
+          dotsId: 'kc-dots',
+          captionId: 'kc-caption',
+          titleId: 'kc-title'
+        });
+        kcCarousel.build();
+      })();
+    </script>
+  </div>
+</section>
+
 
 
 <!-- 2. Introduction -->
