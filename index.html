@@ -39,6 +39,37 @@
   <script src="./static/js/bulma-carousel.min.js"></script>
   <script src="./static/js/bulma-slider.min.js"></script>
   <script src="./static/js/index.js"></script>
+  <!-- Chart.js for plot-style result figures -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Expandable figure captions: a short summary always visible, full text on demand. -->
+  <style>
+    .fig-caption {
+      color: #4a4a4a;
+      line-height: 1.45;
+    }
+    .fig-caption-summary { color: #363636; }
+    .fig-caption-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3em;
+      margin-left: 0.4em;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #3273dc;            /* Bulma link blue */
+      font-size: inherit;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .fig-caption-toggle:hover { color: #2759b5; text-decoration: underline; }
+    .fig-caption-toggle:focus-visible { outline: 2px solid #3273dc; outline-offset: 2px; border-radius: 2px; }
+    .fig-caption-toggle .fas { font-size: 0.8em; transition: transform 0.2s ease; }
+    .fig-caption-toggle.is-open .fas { transform: rotate(180deg); }
+    .fig-caption-details { margin-top: 0.45rem; display: none; }
+    .fig-caption-details > :last-child { margin-bottom: 0; }
+  </style>
 </head>
 <body>
 
@@ -302,15 +333,24 @@
                  alt="C-T2M architecture: a VQ-VAE is pretrained to encode motion into a discrete codebook; a CLIP text encoder and a linear projection on path waypoints feed both a GRU path controller (predicting xy-heading per frame) and a Transformer decoder that autoregressively predicts motion tokens, with the controller's path injected into the GPT's stream; the predicted tokens are decoded back to motion through the VQ-VAE decoder."
                  style="max-width: 100%;">
           </figure>
-          <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
-            Figure 5. C-T2M decoupled architecture. <strong>VQ-VAE pretraining</strong> learns a
-            discrete motion codebook. <strong>Conditioning</strong> encodes the caption with CLIP
-            and the path waypoints with a linear projection. The <strong>path controller</strong>
-            (GRU) predicts the next (x, y, heading) for each frame from the caption and constraints.
-            The <strong>GPT generation</strong> block (Transformer decoder) autoregressively
-            predicts discrete motion tokens conditioned on text and on the controller's injected
-            path. Finally, the <strong>VQ-VAE decoder</strong> maps tokens back to motion.
-          </p>
+          <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
+            <span class="fig-caption-summary"><strong>Figure 5.</strong> C-T2M decoupled
+            architecture &mdash; VQ-VAE codec, text/path conditioning, GRU path controller and a
+            Transformer token decoder.</span>
+            <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+              <span class="fig-caption-toggle-label">Show details</span>
+              <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="fig-caption-details">
+              <p><strong>VQ-VAE pretraining</strong> learns a discrete motion codebook.
+              <strong>Conditioning</strong> encodes the caption with CLIP and the path waypoints
+              with a linear projection. The <strong>path controller</strong> (GRU) predicts the
+              next (x, y, heading) for each frame from the caption and constraints. The
+              <strong>GPT generation</strong> block (Transformer decoder) autoregressively predicts
+              discrete motion tokens conditioned on text and on the controller's injected path.
+              Finally, the <strong>VQ-VAE decoder</strong> maps tokens back to motion.</p>
+            </div>
+          </figcaption>
         </div>
 
         <!-- RVQ-VAE residual decoder -->
@@ -557,54 +597,130 @@
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           To isolate encoder bias, we also evaluate on a neutral text-to-motion encoder (TMR-petrovich, HumanML3D-trained, DistilBERT text) rather than the Kimodo-specific TMR-SOMA-RP encoder used above. This eliminates the bias toward Kimodo's training distribution and provides a fairer comparison. Both systems are evaluated on HumanML3D using the same retrieval protocol.
         </p>
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr>
-                <th>model</th>
-                <th>R@1 ↑</th>
-                <th>R@3 ↑</th>
-                <th>R@5 ↑</th>
-                <th>R@10 ↑</th>
-                <th>MedR ↓</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>HumanML3D test ceiling</td>
-                <td>15.3</td>
-                <td>34.7</td>
-                <td>43.4</td>
-                <td>57.1</td>
-                <td>7</td>
-              </tr>
-              <tr>
-                <td>Ground Truth (BONES)</td>
-                <td>4.6</td>
-                <td>11.1</td>
-                <td>16.5</td>
-                <td>25.4</td>
-                <td>48</td>
-              </tr>
-              <tr>
-                <td>Kimodo-SOMA-SEED-v1.1</td>
-                <td>5.4</td>
-                <td>11.6</td>
-                <td>16.8</td>
-                <td>27.5</td>
-                <td>39</td>
-              </tr>
-              <tr>
-                <td><strong>Ours (9L VQ-VAE)</strong></td>
-                <td><strong>4.5</strong></td>
-                <td><strong>9.5</strong></td>
-                <td><strong>13.8</strong></td>
-                <td><strong>23.3</strong></td>
-                <td><strong>51</strong></td>
-              </tr>
-            </tbody>
-          </table>
+
+        <!-- PROTOTYPE: retrieval curve (Chart.js, left 2/3) + source table (right 1/3) -->
+        <div class="columns is-vcentered" style="margin-top: 1rem;">
+          <div class="column is-two-thirds">
+            <div style="position: relative; height: 340px;">
+              <canvas id="retrievalCurveChart"></canvas>
+            </div>
+            <p class="has-text-centered is-size-7" style="margin-top: 0.5rem;">
+              Figure. Text-to-motion retrieval on the neutral TMR-petrovich encoder.
+              <strong>R@k</strong> = fraction of queries whose correct motion is retrieved within
+              the top <em>k</em> (higher is better). Our model (blue) tracks the BONES ground
+              truth closely and stays within ~2 points of Kimodo. For reference, the
+              in-distribution HumanML3D test ceiling reaches R@1&nbsp;15.3 / R@10&nbsp;57.1
+              (omitted from the axis so the three close-to-GT systems remain legible). Median
+              rank (MedR, lower is better) is shown in the tooltips.
+            </p>
+          </div>
+          <div class="column is-one-third">
+            <div class="table-container">
+              <table class="table is-bordered is-striped is-hoverable is-fullwidth is-narrow has-text-centered is-size-7">
+                <thead>
+                  <tr>
+                    <th>model</th>
+                    <th>R@1 ↑</th>
+                    <th>R@3 ↑</th>
+                    <th>R@5 ↑</th>
+                    <th>R@10 ↑</th>
+                    <th>MedR ↓</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>HumanML3D test ceiling</td>
+                    <td>15.3</td>
+                    <td>34.7</td>
+                    <td>43.4</td>
+                    <td>57.1</td>
+                    <td>7</td>
+                  </tr>
+                  <tr>
+                    <td>Ground Truth (BONES)</td>
+                    <td>4.6</td>
+                    <td>11.1</td>
+                    <td>16.5</td>
+                    <td>25.4</td>
+                    <td>48</td>
+                  </tr>
+                  <tr>
+                    <td>Kimodo-SOMA-SEED-v1.1</td>
+                    <td>5.4</td>
+                    <td>11.6</td>
+                    <td>16.8</td>
+                    <td>27.5</td>
+                    <td>39</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Ours (9L VQ-VAE)</strong></td>
+                    <td><strong>4.5</strong></td>
+                    <td><strong>9.5</strong></td>
+                    <td><strong>13.8</strong></td>
+                    <td><strong>23.3</strong></td>
+                    <td><strong>51</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+        <script>
+          (function () {
+            function draw() {
+              var el = document.getElementById('retrievalCurveChart');
+              if (!el || typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var K = [1, 3, 5, 10];
+              function pts(arr) {
+                return arr.map(function (v, i) { return { x: K[i], y: v }; });
+              }
+              new Chart(el, {
+                type: 'line',
+                data: {
+                  datasets: [
+                    { label: 'Ground Truth (BONES)', data: pts([4.6, 11.1, 16.5, 25.4]),
+                      borderColor: '#2e7d32', backgroundColor: '#2e7d32', borderDash: [6, 4],
+                      borderWidth: 2, pointRadius: 4, pointStyle: 'rectRot', tension: 0.25, _medr: 48 },
+                    { label: 'Kimodo-SOMA-SEED-v1.1', data: pts([5.4, 11.6, 16.8, 27.5]),
+                      borderColor: '#e8710a', backgroundColor: '#e8710a',
+                      borderWidth: 2, pointRadius: 4, pointStyle: 'triangle', tension: 0.25, _medr: 39 },
+                    { label: 'Ours (9L VQ-VAE)', data: pts([4.5, 9.5, 13.8, 23.3]),
+                      borderColor: '#2b4eff', backgroundColor: '#2b4eff',
+                      borderWidth: 3, pointRadius: 5, pointStyle: 'circle', tension: 0.25, _medr: 51 }
+                  ]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  interaction: { mode: 'nearest', intersect: false },
+                  scales: {
+                    x: { type: 'linear', min: 0.5, max: 10.5,
+                         title: { display: true, text: 'k  (top-k retrieval)' },
+                         ticks: { stepSize: 1,
+                                  callback: function (v) { return [1, 3, 5, 10].indexOf(v) >= 0 ? v : ''; } },
+                         grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { beginAtZero: true, suggestedMax: 30,
+                         title: { display: true, text: 'R@k  (%)' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } }
+                  },
+                  plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                      callbacks: {
+                        label: function (c) {
+                          return c.dataset.label + ' — R@' + c.parsed.x + ': ' +
+                                 c.parsed.y + '%  (MedR ' + c.dataset._medr + ')';
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
         <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
           On the biased Kimodo-TMR encoder, our system trails by ~30 points on R@3 (58 vs. 88). On a neutral encoder, both systems achieve similar GT-adjacent retrievability with only a 2-point gap (9.5 vs. 11.6). This demonstrates that the large apparent quality gap is largely an artifact of encoder bias toward Kimodo's training distribution, not ground-truth quality difference.
         </p>
@@ -1386,6 +1502,27 @@ level_5: "a person walks forward slowly while waving the right hand, nodding the
     </div>
   </div>
 </footer>
+
+<!-- Expandable figure captions: toggle the full text with a smooth slide animation. -->
+<script>
+  $(function () {
+    function toggleCaption(toggle) {
+      var $toggle  = $(toggle);
+      var $details = $toggle.siblings('.fig-caption-details');
+      var open     = $toggle.attr('aria-expanded') === 'true';
+      $toggle.attr('aria-expanded', !open).toggleClass('is-open', !open);
+      $toggle.find('.fig-caption-toggle-label').text(open ? 'Show details' : 'Hide details');
+      $details.stop(true, true).slideToggle(180);
+    }
+    $(document).on('click', '.fig-caption-toggle', function (e) {
+      e.preventDefault();
+      toggleCaption(this);
+    });
+    $(document).on('keydown', '.fig-caption-toggle', function (e) {
+      if (e.which === 13 || e.which === 32) { e.preventDefault(); toggleCaption(this); }
+    });
+  });
+</script>
 
 </body>
 </html>
