@@ -78,6 +78,23 @@
       text-align: center;
       margin-bottom: 0.35rem;
     }
+    /* One shared legend for figures whose charts plot the same groups */
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.35rem 1.2rem;
+      margin: 0.4rem 0 0.25rem;
+      font-size: 0.85rem;
+      color: #4a4a4a;
+    }
+    .chart-legend .legend-item { display: inline-flex; align-items: center; gap: 0.4em; }
+    .chart-legend .legend-swatch {
+      width: 0.85em;
+      height: 0.85em;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
 
     /* "How to read these metrics" legend */
     .metrics-legend {
@@ -654,6 +671,14 @@
           </div>
         </div>
 
+        <!-- One shared legend for all three charts above (Ground Truth absent from Efficiency) -->
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item"><span class="legend-swatch" style="background:#2e7d32;"></span>Ground Truth</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#e8710a;"></span>Kimodo</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2b4eff;"></span>Ours (VQ-GPT)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#9c27b0;"></span>Ours (RVQ-GPT)</span>
+        </div>
+
         <script>
           (function () {
             var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff', rvq: '#9c27b0' };
@@ -679,7 +704,7 @@
                            title: { display: true, text: yTitle },
                            grid: { color: 'rgba(0,0,0,0.05)' } }
                     },
-                    plugins: { legend: { position: 'bottom' } }
+                    plugins: { legend: { display: false } }
                   }
                 });
               }
@@ -718,7 +743,7 @@
                          grid: { color: 'rgba(0,0,0,0.05)' } }
                   },
                   plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { display: false },
                     tooltip: { callbacks: { label: function (c) {
                       return c.dataset.label + ': ' + c.parsed.y; } } }
                   }
@@ -1268,6 +1293,13 @@
           </div>
         </div>
 
+        <!-- One shared legend for both charts above (same three groups) -->
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item"><span class="legend-swatch" style="background:#2e7d32;"></span>Ground truth</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#e8710a;"></span>Kimodo</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2b4eff;"></span>Ours</span>
+        </div>
+
         <script>
           (function () {
             var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff' };
@@ -1296,7 +1328,7 @@
                          grid: { color: 'rgba(0,0,0,0.05)' } }
                   },
                   plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { display: false },
                     tooltip: { callbacks: { label: function (c) {
                       return c.dataset.label + ': ' + c.parsed.y.toFixed(2) + ' cm'; } } }
                   }
@@ -1323,7 +1355,7 @@
                          grid: { color: 'rgba(0,0,0,0.05)' } }
                   },
                   plugins: {
-                    legend: { position: 'bottom' },
+                    legend: { display: false },
                     tooltip: { callbacks: { label: function (c) {
                       return c.dataset.label + ': ' + c.parsed.y.toFixed(3); } } }
                   }
