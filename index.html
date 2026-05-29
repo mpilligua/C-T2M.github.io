@@ -612,7 +612,7 @@
     <div class="columns is-centered">
       <div class="column is-full">
         <h2 class="title is-3 has-text-centered">How does it work?</h2>
-        <p class="has-text-justified" style="font-size: 1.05rem; line-height: 1.65; max-width: 900px; margin: 0 auto;">
+        <p class="has-text-justified" style="font-size: 1.05rem; line-height: 1.65;">
           Text-to-motion is, at its core, the problem of placing every joint of a
           humanoid skeleton frame-by-frame from a sentence. We start from the
           <a href="https://mael-zys.github.io/T2M-GPT/">T2M-GPT</a> baseline, an
@@ -827,113 +827,13 @@
   <div class="container is-max-widescreen">
     <h2 class="title is-3 has-text-centered">Experiments</h2>
 
-    <h3 class="title is-5">Setup</h3>
-    <div class="columns is-vcentered">
-      <div class="column is-three-fifths">
-        <p class="has-text-justified">
-          All experiments use the BONES-SEED motion capture dataset, resampled to 30 fps and
-          converted to the 30-joint SOMA skeleton used by Kimodo's evaluation pipeline.
-          Motion is represented in a local velocity space (frame-to-frame translation and
-          heading changes, joint rotations and velocities expressed in the character local
-          frame); 59 near-constant feature dimensions are dropped, yielding the
-          310-dimensional vectors used for all training. The final model is trained on the
-          full curated split; ablations are run on a walk-and-jog subset of 22 726 clips for
-          tractable iteration without changing the conclusions. Evaluation follows the
-          Kimodo BONES protocol: text alignment is measured with FID and R-Precision
-          (top-1, top-3) on the TMR-SOMA-RP-v1 embeddings, motion quality with foot-skating
-          and contact consistency, and path following with the mean Euclidean error between
-          the generated root XZ trajectory and the user-specified waypoints. Inference
-          latency is measured end-to-end on a single A100 80GB in fp32 with batch size 1
-          over 50 measured runs after 10 warmups.
-        </p>
-      </div>
-      <div class="column is-two-fifths">
-        <figure class="image">
-          <img src="./static/images/skeleton_constraints.png"
-               alt="30-joint SOMA skeleton and constraint representation. Our pipeline controls motion through 2D root XZ waypoints (rightmost panel)."
-               style="border-radius: 4px;">
-        </figure>
-        <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
-          <span class="fig-caption-summary"><strong>Figure 2.</strong> SOMA skeleton and constraint
-          representation: we control motion through 2D root (XZ) waypoints.</span>
-          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
-            <span class="fig-caption-toggle-label">Show details</span>
-            <i class="fas fa-chevron-down"></i>
-          </a>
-          <div class="fig-caption-details">
-            <p>We control motion through 2D root (XZ) waypoints (rightmost panel). End-effector
-            and full-body keyframe constraints (middle panels) are shown for context only and are
-            not targeted in our final pipeline.</p>
-          </div>
-        </figcaption>
-      </div>
-    </div>
-
-    <h3 class="title is-5">Baselines</h3>
-    <p class="has-text-justified">
-      We compare our decoupled pipeline against two reference points chosen to bracket the
-      design space. The first is <strong>caption-only T2M-GPT</strong>, the autoregressive
-      backbone we build on, with no path conditioning at all. It defines a ceiling on
-      motion quality and text alignment for our architecture while having zero path
-      controllability, so any gap on text alignment isolates the cost of adding constraints
-      without confounding it with a change of backbone. The second is
-      <strong>Kimodo</strong>, the state-of-the-art diffusion-based controllable T2M model
-      trained on the same BONES dataset. It provides an upper reference on motion quality
-      and constraint following at the price of high inference latency, which lets us
-      quantify the speed and controllability trade-off that motivates the autoregressive
-      formulation. Where appropriate, we additionally consider two architectural ablations
-      that inject constraints inside the T2M-GPT body itself (cross-attention with
-      ControlNet-style zero-init, and constraint tokens prepended to the motion sequence);
-      these are described in the next section and ablated in the constraint-conditioning
-      architecture comparison in the Ablations section.
+    <p class="has-text-centered" style="color:#666; margin: 0.5rem auto 2rem;">
+      We evaluate on the <strong>BONES-SEED</strong> benchmark, comparing against
+      <strong>Kimodo</strong> under the same evaluation pipeline. Full setup, metrics,
+      and protocol details live in the <a href="./report.html#sec-experiments">Report</a>.
     </p>
 
-    <!-- Baselines table commented out -->
-    <!--
-    <div class="table-container" style="margin-top: 1rem;">
-      <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-        <thead>
-          <tr>
-            <th>baseline</th>
-            <th>formulation</th>
-            <th>root XZ control</th>
-            <th>inference</th>
-            <th>role in our evaluation</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>T2M-GPT (caption-only)</td>
-            <td>causal autoregressive (VQ-VAE + Transformer)</td>
-            <td>none</td>
-            <td>single forward pass over tokens</td>
-            <td>upper bound on motion quality without constraints</td>
-          </tr>
-          <tr>
-            <td>Kimodo</td>
-            <td>diffusion (100 DDIM steps)</td>
-            <td>via guided denoising</td>
-            <td>one-shot, offline</td>
-            <td>upper reference on constraint following; speed lower bound</td>
-          </tr>
-          <tr>
-            <td><strong>Ours (decoupled)</strong></td>
-            <td><strong>controller (GRU) + body GPT + recompose</strong></td>
-            <td><strong>explicit waypoints, closed-loop</strong></td>
-            <td><strong>streaming, mid-sequence updateable</strong></td>
-            <td><strong>the proposed pipeline</strong></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
-      Table 1. Baselines used in our evaluation. T2M-GPT bounds motion quality without
-      constraints; Kimodo bounds constraint following at high latency; our decoupled
-      pipeline targets both controllability and streaming inference.
-    </p>
-    -->
-
-    <h3 class="title is-4" style="margin-top: 2.5rem;">1. Text to motion</h3>
+    <h3 class="title is-4" style="margin-top: 1rem;">1. Text to motion</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
       We first evaluate the unconstrained text-to-motion behaviour of our pipeline: given a
       caption alone (no path constraint), can the model generate plausible motion that matches
