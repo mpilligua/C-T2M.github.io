@@ -840,402 +840,6 @@
       qualitative samples from held-out captions.
     </p>
 
-    <!-- Table 2 - Main results -->
-    <div class="columns is-centered" style="margin-top: 1.5rem;">
-      <div class="column is-full">
-        <strong>Quantitative results.</strong>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          On Kimodo's Repetition Text-to-Motion split (6 539 captions). The first two
-          charts show that we trail Kimodo on text alignment (R@3) and realism (FID).
-          The third chart, on a log scale, shows where we win: an order of magnitude
-          fewer parameters, fewer GFLOPs per clip, and faster inference on the same
-          A100.
-        </p>
-
-        <!-- How to read these metrics (applies to all result figures below) -->
-        <div class="metrics-legend">
-          <a class="metrics-legend-toggle" role="button" tabindex="0" aria-expanded="false">
-            <span class="metrics-legend-title">
-              <i class="fas fa-circle-info"></i> How to read these metrics?
-            </span>
-            <i class="fas fa-chevron-down metrics-legend-chevron"></i>
-          </a>
-          <div class="metrics-legend-body">
-          <ul>
-            <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span>:
-text&ndash;motion retrieval: how often the right motion lands in the top&nbsp;3
-              for its caption (higher&nbsp;=&nbsp;better text match).</li>
-            <li><span class="metric-name">FID</span> <span class="metric-dir">↓</span>:
-distance between generated and real motion distributions
-              (lower&nbsp;=&nbsp;more realistic).</li>
-            <li><span class="metric-name">Skate</span> <span class="metric-dir">↓</span>:
-foot-skating: how much the feet slide while in contact with the ground
-              (lower&nbsp;=&nbsp;cleaner footwork).</li>
-            <li><span class="metric-name">Cont</span> <span class="metric-dir">↑</span>:
-foot-contact consistency: how stable ground contacts are
-              (higher&nbsp;=&nbsp;steadier).</li>
-            <li><span class="metric-name">2D root error</span> <span class="metric-dir">↓</span>:
-average distance between the generated path and the target path, in cm
-              (lower&nbsp;=&nbsp;follows the path better).</li>
-            <li><span class="metric-name">MedR</span> <span class="metric-dir">↓</span>:
-median retrieval rank of the correct motion
-              (lower&nbsp;=&nbsp;better).</li>
-          </ul>
-          </div>
-        </div>
-
-        <!-- Plot view of the main results: text-alignment quality (R@3, FID) across splits -->
-        <div class="columns is-vcentered" style="margin-bottom: 0.5rem;">
-          <div class="column is-half">
-            <p class="chart-title">R@3 &uarr; (text-match, %)</p>
-            <div class="chart-wrap" style="height: 300px;">
-              <canvas id="mainR3Chart"></canvas>
-            </div>
-          </div>
-          <div class="column is-half">
-            <p class="chart-title">FID &darr; (realism, lower is better)</p>
-            <div class="chart-wrap" style="height: 300px;">
-              <canvas id="mainFidChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Plot view: efficiency (Kimodo vs Ours, log scale) -->
-        <div class="columns is-centered" style="margin-bottom: 0.5rem;">
-          <div class="column is-three-quarters">
-            <p class="chart-title">Efficiency: Kimodo vs. Ours (log scale, lower is better)</p>
-            <div class="chart-wrap" style="height: 280px;">
-              <canvas id="mainEffChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- One shared legend for all three charts above (Ground Truth absent from Efficiency) -->
-        <div class="chart-legend" aria-hidden="true">
-          <span class="legend-item"><span class="legend-swatch" style="background:#2BAD94;"></span>Ground Truth</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#EB6E4C;"></span>Kimodo</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#2596be;"></span>Ours (VQ-GPT)</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:#8A6FCB;"></span>Ours (RVQ-GPT)</span>
-        </div>
-
-        <script>
-          (function () {
-            var COLORS = { gt: '#2BAD94', kimodo: '#EB6E4C', ours: '#2596be', rvq: '#8A6FCB' };
-            var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
-            function draw() {
-              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
-              var r3 = document.getElementById('mainR3Chart');
-              var fid = document.getElementById('mainFidChart');
-              var eff = document.getElementById('mainEffChart');
-              if (!r3 || !fid || !eff) { return setTimeout(draw, 50); }
-
-              function gbar(el, datasets, yTitle, yMax) {
-                new Chart(el, {
-                  type: 'bar',
-                  data: { labels: SPLITS, datasets: datasets },
-                  options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    scales: {
-                      x: { grid: { display: false } },
-                      y: { beginAtZero: true, suggestedMax: yMax,
-                           title: { display: true, text: yTitle },
-                           grid: { color: 'rgba(0,0,0,0.05)' } }
-                    },
-                    plugins: { legend: { display: false } }
-                  }
-                });
-              }
-
-              gbar(r3, [
-                { label: 'Ground Truth',    data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
-                { label: 'Kimodo',          data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
-                { label: 'Ours (VQ-GPT)',   data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours },
-                { label: 'Ours (RVQ-GPT)',  data: [18.74, 22.18, 15.12], backgroundColor: COLORS.rvq }
-              ], 'R@3 (%)', 100);
-
-              gbar(fid, [
-                { label: 'Ground Truth',    data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
-                { label: 'Kimodo',          data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
-                { label: 'Ours (VQ-GPT)',   data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours },
-                { label: 'Ours (RVQ-GPT)',  data: [0.644, 0.411, 0.670], backgroundColor: COLORS.rvq }
-              ], 'FID', 0.75);
-
-              new Chart(eff, {
-                type: 'bar',
-                data: {
-                  labels: ['Params (M)', 'GFLOPs / clip', 'Latency (ms / clip)'],
-                  datasets: [
-                    { label: 'Kimodo',         data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
-                    { label: 'Ours (VQ-GPT)',  data: [395, 470, 413],    backgroundColor: COLORS.ours },
-                    { label: 'Ours (RVQ-GPT)', data: [565, 640, 486],    backgroundColor: COLORS.rvq }
-                  ]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    x: { grid: { display: false } },
-                    y: { type: 'logarithmic',
-                         title: { display: true, text: 'value (log scale)' },
-                         grid: { color: 'rgba(0,0,0,0.05)' } }
-                  },
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: function (c) {
-                      return c.dataset.label + ': ' + c.parsed.y; } } }
-                  }
-                }
-              });
-            }
-            draw();
-          })();
-        </script>
-
-        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
-          <span class="numbers-toggle-label">Show full table</span>
-          <i class="fas fa-chevron-down"></i>
-        </a>
-        <div class="numbers-details">
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr>
-                <th rowspan="2">model</th>
-                <th rowspan="2">params (M)</th>
-                <th rowspan="2">GFLOPs / clip ↓</th>
-                <th rowspan="2">latency (ms / clip) ↓</th>
-                <th colspan="4">Overview</th>
-                <th colspan="4">Timeline single</th>
-                <th colspan="4">Timeline multi</th>
-              </tr>
-              <tr>
-                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
-                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
-                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Ground Truth</td>
-                <td>-</td><td>-</td><td>-</td>
-                <td>94.03</td><td>0.000</td><td>2.11</td><td>1.000</td>
-                <td>90.04</td><td>0.000</td><td>2.04</td><td>1.000</td>
-                <td>94.49</td><td>0.000</td><td>1.93</td><td>1.000</td>
-              </tr>
-              <tr>
-                <td>Kimodo-SOMA-SEED-v1.1</td>
-                <td>8 300<sup>†</sup></td><td>~1500</td><td>4280</td>
-                <td>88.07</td><td>0.007</td><td>3.74</td><td>0.978</td>
-                <td>77.18</td><td>0.011</td><td>3.60</td><td>0.981</td>
-                <td>88.65</td><td>0.010</td><td>3.35</td><td>0.980</td>
-              </tr>
-              <tr>
-                <td><strong>Ours (decoupled, 9L GPT, full BONES)</strong></td>
-                <td><strong>395</strong></td>
-                <td><strong>~470</strong></td>
-                <td><strong>413</strong></td>
-                <td><strong>58.66</strong></td><td><strong>0.191</strong></td><td><strong>33.07</strong></td><td><strong>0.617</strong></td>
-                <td><strong>47.44</strong></td><td><strong>0.220</strong></td><td><strong>27.95</strong></td><td><strong>0.654</strong></td>
-                <td><strong>37.04</strong></td><td><strong>0.307</strong></td><td><strong>27.20</strong></td><td><strong>0.664</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Ours (RVQ-GPT)</strong></td>
-                <td><strong>565</strong></td>
-                <td><strong>~640</strong></td>
-                <td><strong>486</strong></td>
-                <td>18.74</td><td>0.644</td><td>39.24</td><td>0.481</td>
-                <td>22.18</td><td>0.411</td><td>34.93</td><td>0.507</td>
-                <td>15.12</td><td>0.670</td><td>39.08</td><td>0.468</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        </div>
-        <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
-          <span class="fig-caption-summary"><strong>Results.</strong> Text-to-motion quality and
-          efficiency on the Kimodo Repetition split: we trade some text-match quality for a
-          model roughly 20&times; smaller and 10&times; faster than Kimodo.</span>
-          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
-            <span class="fig-caption-toggle-label">Show details</span>
-            <i class="fas fa-chevron-down"></i>
-          </a>
-          <div class="fig-caption-details">
-            <p><sup>†</sup> Includes the frozen Llama-3-8B-Instruct text encoder Kimodo loads
-            at inference (about 8 000 M parameters); the trainable adapters, diffusion UNet
-            and heads on top sum to 283 M parameters. We report the effective parameters
-            loaded at inference because they determine the memory footprint and the floating
-            point operations per clip.</p>
-            <p>R@3 is text-to-motion R-Precision at top-3 with the TMR-SOMA-RP encoder. FID and
-            foot-skate are in the same space; contact (Cont) is foot-contact consistency
-            against contacts inferred from foot height and velocity. Our model is roughly
-            twenty times smaller in effective parameters, uses about three times fewer
-            GFLOPs per clip, and runs roughly ten times faster than Kimodo on the same
-            hardware. On this generic text-to-motion benchmark we accept a quality deficit
-            driven by a narrower training vocabulary (walk, jog and run only) and a single
-            autoregressive pass per clip instead of one hundred denoising steps. The
-            foot-skate gap matches the codec ceiling reported in the codec reconstruction
-            ablation: any frame-level discrete codec smoothes high-frequency foot detail,
-            and we do not currently apply Kimodo-style foot re-projection on top of the
-            body decoder.</p>
-          </div>
-        </figcaption>
-      </div>
-    </div>
-
-    <!-- Neutral encoder evaluation (TMR-petrovich) -->
-    <div class="columns is-centered" style="margin-top: 2.5rem;">
-      <div class="column is-full">
-        <strong>Neutral encoder evaluation (TMR-petrovich).</strong><br>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          To isolate encoder bias, we also evaluate on a neutral text-to-motion encoder (TMR-petrovich, HumanML3D-trained, DistilBERT text) rather than the Kimodo-specific TMR-SOMA-RP encoder used above. This eliminates the bias toward Kimodo's training distribution and provides a fairer comparison. Both systems are evaluated on HumanML3D using the same retrieval protocol.
-        </p>
-
-        <!-- PROTOTYPE: retrieval curve (Chart.js, left 2/3) + source table (right 1/3) -->
-        <div class="columns is-vcentered" style="margin-top: 1rem;">
-          <div class="column is-two-thirds">
-            <div style="position: relative; height: 340px;">
-              <canvas id="retrievalCurveChart"></canvas>
-            </div>
-          </div>
-          <div class="column is-one-third">
-            <div class="table-container">
-              <table class="table is-bordered is-striped is-hoverable is-fullwidth is-narrow has-text-centered is-size-7">
-                <thead>
-                  <tr>
-                    <th>model</th>
-                    <th>R@1 ↑</th>
-                    <th>R@3 ↑</th>
-                    <th>R@5 ↑</th>
-                    <th>R@10 ↑</th>
-                    <th>MedR ↓</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>HumanML3D test ceiling</td>
-                    <td>15.3</td>
-                    <td>34.7</td>
-                    <td>43.4</td>
-                    <td>57.1</td>
-                    <td>7</td>
-                  </tr>
-                  <tr>
-                    <td>Ground Truth (BONES)</td>
-                    <td>4.6</td>
-                    <td>11.1</td>
-                    <td>16.5</td>
-                    <td>25.4</td>
-                    <td>48</td>
-                  </tr>
-                  <tr>
-                    <td>Kimodo-SOMA-SEED-v1.1</td>
-                    <td>5.4</td>
-                    <td>11.6</td>
-                    <td>16.8</td>
-                    <td>27.5</td>
-                    <td>39</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Ours (9L VQ-VAE)</strong></td>
-                    <td><strong>4.5</strong></td>
-                    <td><strong>9.5</strong></td>
-                    <td><strong>13.8</strong></td>
-                    <td><strong>23.3</strong></td>
-                    <td><strong>51</strong></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <script>
-          (function () {
-            function draw() {
-              var el = document.getElementById('retrievalCurveChart');
-              if (!el || typeof Chart === 'undefined') { return setTimeout(draw, 50); }
-              var K = [1, 3, 5, 10];
-              function pts(arr) {
-                return arr.map(function (v, i) { return { x: K[i], y: v }; });
-              }
-              new Chart(el, {
-                type: 'line',
-                data: {
-                  datasets: [
-                    { label: 'Ground Truth (BONES)', data: pts([4.6, 11.1, 16.5, 25.4]),
-                      borderColor: '#2BAD94', backgroundColor: '#2BAD94', borderDash: [6, 4],
-                      borderWidth: 2, pointRadius: 4, pointStyle: 'rectRot', tension: 0.25, _medr: 48 },
-                    { label: 'Kimodo-SOMA-SEED-v1.1', data: pts([5.4, 11.6, 16.8, 27.5]),
-                      borderColor: '#EB6E4C', backgroundColor: '#EB6E4C',
-                      borderWidth: 2, pointRadius: 4, pointStyle: 'triangle', tension: 0.25, _medr: 39 },
-                    { label: 'Ours (9L VQ-VAE)', data: pts([4.5, 9.5, 13.8, 23.3]),
-                      borderColor: '#2596be', backgroundColor: '#2596be',
-                      borderWidth: 3, pointRadius: 5, pointStyle: 'circle', tension: 0.25, _medr: 51 }
-                  ]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  interaction: { mode: 'nearest', intersect: false },
-                  scales: {
-                    x: { type: 'linear', min: 0.5, max: 10.5,
-                         title: { display: true, text: 'k  (top-k retrieval)' },
-                         ticks: { stepSize: 1,
-                                  callback: function (v) { return [1, 3, 5, 10].indexOf(v) >= 0 ? v : ''; } },
-                         grid: { color: 'rgba(0,0,0,0.05)' } },
-                    y: { beginAtZero: true, suggestedMax: 30,
-                         title: { display: true, text: 'R@k  (%)' },
-                         grid: { color: 'rgba(0,0,0,0.05)' } }
-                  },
-                  plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                      callbacks: {
-                        label: function (c) {
-                          return c.dataset.label + ', R@' + c.parsed.x + ': ' +
-                                 c.parsed.y + '%  (MedR ' + c.dataset._medr + ')';
-                        }
-                      }
-                    }
-                  }
-                }
-              });
-            }
-            draw();
-          })();
-        </script>
-
-        <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
-          <span class="fig-caption-summary"><strong>Figure.</strong> Text-to-motion retrieval
-          on a neutral encoder (TMR-petrovich). Our model tracks the BONES ground truth and
-          stays within ~2 points of Kimodo (R@3 9.5 vs. 11.6); the large gap seen on
-          Kimodo's own encoder is mostly encoder bias, not a quality difference.</span>
-          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
-            <span class="fig-caption-toggle-label">Show details</span>
-            <i class="fas fa-chevron-down"></i>
-          </a>
-          <div class="fig-caption-details">
-            <p class="has-text-justified">
-              <strong>R@k</strong> is text-to-motion R-Precision at top-<em>k</em>: the fraction
-              of queries whose correct motion is retrieved within the top <em>k</em>
-              (higher is better). <strong>MedR</strong> is the median rank of the correct motion
-              (lower is better), shown in the chart tooltips. For reference, the in-distribution
-              HumanML3D test ceiling reaches R@1&nbsp;15.3 / R@10&nbsp;57.1; it is omitted from
-              the chart axis so the three close-to-GT systems stay legible.
-            </p>
-            <p class="has-text-justified">
-              On the biased Kimodo-TMR encoder our system trails by ~30 points on R@3
-              (58 vs. 88). On this neutral encoder both systems reach similar GT-adjacent
-              retrievability with only a 2-point gap (9.5 vs. 11.6), showing the large apparent
-              quality gap is largely an artifact of encoder bias toward Kimodo's training
-              distribution rather than a ground-truth quality difference.
-            </p>
-          </div>
-        </figcaption>
-      </div>
-    </div>
-
     <!-- Qualitative T2M gallery (kimodo-style multi-slide carousel) -->
     <style>
       .qual-carousel-container {
@@ -1494,6 +1098,379 @@ median retrieval rank of the correct motion
       </div>
     </div>
 
+    <!-- Table 2 - Main results -->
+    <div class="columns is-centered" style="margin-top: 1.5rem;">
+      <div class="column is-full">
+        <strong>Quantitative results.</strong>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          On Kimodo's Repetition Text-to-Motion split (6 539 captions). The first two
+          charts show that we trail Kimodo on text alignment (R@3) and realism (FID).
+          The third chart, on a log scale, shows where we win: an order of magnitude
+          fewer parameters, fewer GFLOPs per clip, and faster inference on the same
+          A100.
+        </p>
+
+        <!-- How to read these metrics (applies to all result figures below) -->
+        <div class="metrics-legend">
+          <a class="metrics-legend-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="metrics-legend-title">
+              <i class="fas fa-circle-info"></i> How to read these metrics?
+            </span>
+            <i class="fas fa-chevron-down metrics-legend-chevron"></i>
+          </a>
+          <div class="metrics-legend-body">
+          <ul>
+            <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span>:
+text&ndash;motion retrieval: how often the right motion lands in the top&nbsp;3
+              for its caption (higher&nbsp;=&nbsp;better text match).</li>
+            <li><span class="metric-name">FID</span> <span class="metric-dir">↓</span>:
+distance between generated and real motion distributions
+              (lower&nbsp;=&nbsp;more realistic).</li>
+            <li><span class="metric-name">Skate</span> <span class="metric-dir">↓</span>:
+foot-skating: how much the feet slide while in contact with the ground
+              (lower&nbsp;=&nbsp;cleaner footwork).</li>
+            <li><span class="metric-name">Cont</span> <span class="metric-dir">↑</span>:
+foot-contact consistency: how stable ground contacts are
+              (higher&nbsp;=&nbsp;steadier).</li>
+            <li><span class="metric-name">2D root error</span> <span class="metric-dir">↓</span>:
+average distance between the generated path and the target path, in cm
+              (lower&nbsp;=&nbsp;follows the path better).</li>
+            <li><span class="metric-name">MedR</span> <span class="metric-dir">↓</span>:
+median retrieval rank of the correct motion
+              (lower&nbsp;=&nbsp;better).</li>
+          </ul>
+          </div>
+        </div>
+
+        <!-- Plot view of the main results: text-alignment quality (R@3, FID) across splits -->
+        <div class="columns is-vcentered" style="margin-bottom: 0.5rem;">
+          <div class="column is-half">
+            <p class="chart-title">R@3 &uarr; (text-match, %)</p>
+            <div class="chart-wrap" style="height: 300px;">
+              <canvas id="mainR3Chart"></canvas>
+            </div>
+          </div>
+          <div class="column is-half">
+            <p class="chart-title">FID &darr; (realism, lower is better)</p>
+            <div class="chart-wrap" style="height: 300px;">
+              <canvas id="mainFidChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plot view: efficiency (Kimodo vs Ours, log scale) -->
+        <div class="columns is-centered" style="margin-bottom: 0.5rem;">
+          <div class="column is-three-quarters">
+            <p class="chart-title">Efficiency: Kimodo vs. Ours (log scale, lower is better)</p>
+            <div class="chart-wrap" style="height: 280px;">
+              <canvas id="mainEffChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- One shared legend for all three charts above (Ground Truth absent from Efficiency) -->
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item"><span class="legend-swatch" style="background:#2BAD94;"></span>Ground Truth</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#EB6E4C;"></span>Kimodo</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#2596be;"></span>Ours (VQ-GPT)</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#8A6FCB;"></span>Ours (RVQ-GPT)</span>
+        </div>
+
+        <script>
+          (function () {
+            var COLORS = { gt: '#2BAD94', kimodo: '#EB6E4C', ours: '#2596be', rvq: '#8A6FCB' };
+            var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
+            function draw() {
+              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var r3 = document.getElementById('mainR3Chart');
+              var fid = document.getElementById('mainFidChart');
+              var eff = document.getElementById('mainEffChart');
+              if (!r3 || !fid || !eff) { return setTimeout(draw, 50); }
+
+              function gbar(el, datasets, yTitle, yMax) {
+                new Chart(el, {
+                  type: 'bar',
+                  data: { labels: SPLITS, datasets: datasets },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                      x: { grid: { display: false } },
+                      y: { beginAtZero: true, suggestedMax: yMax,
+                           title: { display: true, text: yTitle },
+                           grid: { color: 'rgba(0,0,0,0.05)' } }
+                    },
+                    plugins: { legend: { display: false } }
+                  }
+                });
+              }
+
+              gbar(r3, [
+                { label: 'Ground Truth',    data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',          data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
+                { label: 'Ours (VQ-GPT)',   data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours },
+                { label: 'Ours (RVQ-GPT)',  data: [18.74, 22.18, 15.12], backgroundColor: COLORS.rvq }
+              ], 'R@3 (%)', 100);
+
+              gbar(fid, [
+                { label: 'Ground Truth',    data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',          data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
+                { label: 'Ours (VQ-GPT)',   data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours },
+                { label: 'Ours (RVQ-GPT)',  data: [0.644, 0.411, 0.670], backgroundColor: COLORS.rvq }
+              ], 'FID', 0.75);
+
+              new Chart(eff, {
+                type: 'bar',
+                data: {
+                  labels: ['Params (M)', 'GFLOPs / clip', 'Latency (ms / clip)'],
+                  datasets: [
+                    { label: 'Kimodo',         data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
+                    { label: 'Ours (VQ-GPT)',  data: [395, 470, 413],    backgroundColor: COLORS.ours },
+                    { label: 'Ours (RVQ-GPT)', data: [565, 640, 486],    backgroundColor: COLORS.rvq }
+                  ]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { type: 'logarithmic',
+                         title: { display: true, text: 'value (log scale)' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } }
+                  },
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function (c) {
+                      return c.dataset.label + ': ' + c.parsed.y; } } }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
+        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="numbers-toggle-label">Show full table</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="numbers-details">
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+            <thead>
+              <tr>
+                <th rowspan="2">model</th>
+                <th rowspan="2">params (M)</th>
+                <th rowspan="2">GFLOPs / clip ↓</th>
+                <th rowspan="2">latency (ms / clip) ↓</th>
+                <th colspan="4">Overview</th>
+                <th colspan="4">Timeline single</th>
+                <th colspan="4">Timeline multi</th>
+              </tr>
+              <tr>
+                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+                <th>R@3 ↑</th><th>FID ↓</th><th>Skate ↓</th><th>Cont ↑</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ground Truth</td>
+                <td>-</td><td>-</td><td>-</td>
+                <td>94.03</td><td>0.000</td><td>2.11</td><td>1.000</td>
+                <td>90.04</td><td>0.000</td><td>2.04</td><td>1.000</td>
+                <td>94.49</td><td>0.000</td><td>1.93</td><td>1.000</td>
+              </tr>
+              <tr>
+                <td>Kimodo-SOMA-SEED-v1.1</td>
+                <td>8 300<sup>†</sup></td><td>~1500</td><td>4280</td>
+                <td>88.07</td><td>0.007</td><td>3.74</td><td>0.978</td>
+                <td>77.18</td><td>0.011</td><td>3.60</td><td>0.981</td>
+                <td>88.65</td><td>0.010</td><td>3.35</td><td>0.980</td>
+              </tr>
+              <tr>
+                <td><strong>Ours (decoupled, 9L GPT, full BONES)</strong></td>
+                <td><strong>395</strong></td>
+                <td><strong>~470</strong></td>
+                <td><strong>413</strong></td>
+                <td><strong>58.66</strong></td><td><strong>0.191</strong></td><td><strong>33.07</strong></td><td><strong>0.617</strong></td>
+                <td><strong>47.44</strong></td><td><strong>0.220</strong></td><td><strong>27.95</strong></td><td><strong>0.654</strong></td>
+                <td><strong>37.04</strong></td><td><strong>0.307</strong></td><td><strong>27.20</strong></td><td><strong>0.664</strong></td>
+              </tr>
+              <tr>
+                <td><strong>Ours (RVQ-GPT)</strong></td>
+                <td><strong>565</strong></td>
+                <td><strong>~640</strong></td>
+                <td><strong>486</strong></td>
+                <td>18.74</td><td>0.644</td><td>39.24</td><td>0.481</td>
+                <td>22.18</td><td>0.411</td><td>34.93</td><td>0.507</td>
+                <td>15.12</td><td>0.670</td><td>39.08</td><td>0.468</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+        <figcaption class="fig-caption is-size-7 has-text-justified" style="margin-top: 0.5rem;">
+          <span class="fig-caption-summary"><strong>Results.</strong> Text-to-motion quality and
+          efficiency on the Kimodo Repetition split: we trade some text-match quality for a
+          model roughly 20&times; smaller and 10&times; faster than Kimodo.</span>
+        </figcaption>
+      </div>
+    </div>
+
+    <!-- Neutral encoder evaluation (TMR-petrovich) -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <strong>Neutral encoder evaluation (TMR-petrovich).</strong><br>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          To isolate encoder bias, we also evaluate on a neutral text-to-motion encoder (TMR-petrovich, HumanML3D-trained, DistilBERT text) rather than the Kimodo-specific TMR-SOMA-RP encoder used above. This eliminates the bias toward Kimodo's training distribution and provides a fairer comparison. Both systems are evaluated on HumanML3D using the same retrieval protocol.
+        </p>
+
+        <!-- PROTOTYPE: retrieval curve (Chart.js, left 2/3) + source table (right 1/3) -->
+        <div class="columns is-vcentered" style="margin-top: 1rem;">
+          <div class="column is-two-thirds">
+            <div style="position: relative; height: 340px;">
+              <canvas id="retrievalCurveChart"></canvas>
+            </div>
+          </div>
+          <div class="column is-one-third">
+            <div class="table-container">
+              <table class="table is-bordered is-striped is-hoverable is-fullwidth is-narrow has-text-centered is-size-7">
+                <thead>
+                  <tr>
+                    <th>model</th>
+                    <th>R@1 ↑</th>
+                    <th>R@3 ↑</th>
+                    <th>R@5 ↑</th>
+                    <th>R@10 ↑</th>
+                    <th>MedR ↓</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>HumanML3D test ceiling</td>
+                    <td>15.3</td>
+                    <td>34.7</td>
+                    <td>43.4</td>
+                    <td>57.1</td>
+                    <td>7</td>
+                  </tr>
+                  <tr>
+                    <td>Ground Truth (BONES)</td>
+                    <td>4.6</td>
+                    <td>11.1</td>
+                    <td>16.5</td>
+                    <td>25.4</td>
+                    <td>48</td>
+                  </tr>
+                  <tr>
+                    <td>Kimodo-SOMA-SEED-v1.1</td>
+                    <td>5.4</td>
+                    <td>11.6</td>
+                    <td>16.8</td>
+                    <td>27.5</td>
+                    <td>39</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Ours (9L VQ-VAE)</strong></td>
+                    <td><strong>4.5</strong></td>
+                    <td><strong>9.5</strong></td>
+                    <td><strong>13.8</strong></td>
+                    <td><strong>23.3</strong></td>
+                    <td><strong>51</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <script>
+          (function () {
+            function draw() {
+              var el = document.getElementById('retrievalCurveChart');
+              if (!el || typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var K = [1, 3, 5, 10];
+              function pts(arr) {
+                return arr.map(function (v, i) { return { x: K[i], y: v }; });
+              }
+              new Chart(el, {
+                type: 'line',
+                data: {
+                  datasets: [
+                    { label: 'Ground Truth (BONES)', data: pts([4.6, 11.1, 16.5, 25.4]),
+                      borderColor: '#2BAD94', backgroundColor: '#2BAD94', borderDash: [6, 4],
+                      borderWidth: 2, pointRadius: 4, pointStyle: 'rectRot', tension: 0.25, _medr: 48 },
+                    { label: 'Kimodo-SOMA-SEED-v1.1', data: pts([5.4, 11.6, 16.8, 27.5]),
+                      borderColor: '#EB6E4C', backgroundColor: '#EB6E4C',
+                      borderWidth: 2, pointRadius: 4, pointStyle: 'triangle', tension: 0.25, _medr: 39 },
+                    { label: 'Ours (9L VQ-VAE)', data: pts([4.5, 9.5, 13.8, 23.3]),
+                      borderColor: '#2596be', backgroundColor: '#2596be',
+                      borderWidth: 3, pointRadius: 5, pointStyle: 'circle', tension: 0.25, _medr: 51 }
+                  ]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  interaction: { mode: 'nearest', intersect: false },
+                  scales: {
+                    x: { type: 'linear', min: 0.5, max: 10.5,
+                         title: { display: true, text: 'k  (top-k retrieval)' },
+                         ticks: { stepSize: 1,
+                                  callback: function (v) { return [1, 3, 5, 10].indexOf(v) >= 0 ? v : ''; } },
+                         grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { beginAtZero: true, suggestedMax: 30,
+                         title: { display: true, text: 'R@k  (%)' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } }
+                  },
+                  plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                      callbacks: {
+                        label: function (c) {
+                          return c.dataset.label + ', R@' + c.parsed.x + ': ' +
+                                 c.parsed.y + '%  (MedR ' + c.dataset._medr + ')';
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
+        <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
+          <span class="fig-caption-summary"><strong>Figure.</strong> Text-to-motion retrieval
+          on a neutral encoder (TMR-petrovich). Our model tracks the BONES ground truth and
+          stays within ~2 points of Kimodo (R@3 9.5 vs. 11.6); the large gap seen on
+          Kimodo's own encoder is mostly encoder bias, not a quality difference.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p class="has-text-justified">
+              <strong>R@k</strong> is text-to-motion R-Precision at top-<em>k</em>: the fraction
+              of queries whose correct motion is retrieved within the top <em>k</em>
+              (higher is better). <strong>MedR</strong> is the median rank of the correct motion
+              (lower is better), shown in the chart tooltips. For reference, the in-distribution
+              HumanML3D test ceiling reaches R@1&nbsp;15.3 / R@10&nbsp;57.1; it is omitted from
+              the chart axis so the three close-to-GT systems stay legible.
+            </p>
+            <p class="has-text-justified">
+              On the biased Kimodo-TMR encoder our system trails by ~30 points on R@3
+              (58 vs. 88). On this neutral encoder both systems reach similar GT-adjacent
+              retrievability with only a 2-point gap (9.5 vs. 11.6), showing the large apparent
+              quality gap is largely an artifact of encoder bias toward Kimodo's training
+              distribution rather than a ground-truth quality difference.
+            </p>
+          </div>
+        </figcaption>
+      </div>
+    </div>
+
     <h3 class="title is-4" style="margin-top: 3rem;">2. Constraint following</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
       We then evaluate the model under explicit path constraints: given a caption and a
@@ -1501,6 +1478,128 @@ median retrieval rank of the correct motion
       remaining faithful to the caption? We report qualitative samples on hand-drawn paths and
       quantitative results on Kimodo's path-following split.
     </p>
+
+    <!-- Qualitative constraint-following gallery (kimodo-style carousel) -->
+    <div class="columns is-centered" style="margin-top: 2.5rem;">
+      <div class="column is-full">
+        <strong>Qualitative results.</strong><br>
+        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
+          Free-generation samples on caption <em>&ldquo;a person walks forward at a neutral pace&rdquo;</em>
+          conditioned on the hand-drawn XZ paths shown on the ground. Same pipeline as
+          Table 12 (decoupled, ctrl_full_v2_stillzero controller, single-VQ body GPT,
+          sliding window 25, multinomial sampling). The character follows the path while
+          the body GPT freely synthesises the gait.
+        </p>
+
+        <div class="qual-carousel-container">
+          <div id="const-slides"></div>
+          <button class="qual-nav-button prev" type="button"
+                  onclick="constCarousel.navigate(-1)">&#10094;</button>
+          <button class="qual-nav-button next" type="button"
+                  onclick="constCarousel.navigate(1)">&#10095;</button>
+        </div>
+        <div class="qual-dots" id="const-dots"></div>
+
+        <script>
+          (function () {
+            const root = './assets/constraint_exports/';
+            const data = [
+              { src: 'walk__diagonal__single_trim05.mp4'        },
+              { src: 'walk__arc_right__sparse_raw.mp4'          },
+              { src: 'walk__wavy__sparse_pp_trim2s.mp4'         },
+              { src: 'walk__wavy__dense_raw.mp4'                },
+              { src: 'walk__spiral__dense_raw_trim1p5s.mp4'     }
+            ];
+
+            class VideoCarousel {
+              constructor(cfg) {
+                this.data = cfg.data;
+                this.root = cfg.root;
+                this.slidesId = cfg.slidesId;
+                this.dotsId = cfg.dotsId;
+                this.currentIndex = 0;
+              }
+              build() {
+                const slidesContainer = document.getElementById(this.slidesId);
+                const dotsContainer = document.getElementById(this.dotsId);
+                if (!slidesContainer || !dotsContainer) return;
+                slidesContainer.innerHTML = '';
+                dotsContainer.innerHTML = '';
+                this.data.forEach((item, index) => {
+                  const slide = document.createElement('div');
+                  slide.className = 'qual-carousel-slide';
+                  slide.dataset.index = index;
+                  slide.onclick = () => { if (index !== this.currentIndex) this.setIndex(index); };
+                  slide.innerHTML = `
+                    <video loop muted playsinline preload="metadata">
+                      <source data-src="${this.root + item.src}" type="video/mp4">
+                    </video>`;
+                  slidesContainer.appendChild(slide);
+                  const dot = document.createElement('button');
+                  dot.className = 'qual-dot';
+                  dot.dataset.index = index;
+                  dot.onclick = () => this.setIndex(index);
+                  dotsContainer.appendChild(dot);
+                });
+                this.setIndex(0);
+              }
+              navigate(direction) {
+                let newIndex = this.currentIndex + direction;
+                if (newIndex < 0) newIndex = this.data.length - 1;
+                else if (newIndex >= this.data.length) newIndex = 0;
+                this.setIndex(newIndex);
+              }
+              loadVideo(video) {
+                if (!video) return;
+                const source = video.querySelector('source');
+                if (source && source.dataset.src && !source.src) {
+                  source.src = source.dataset.src;
+                  video.load();
+                }
+              }
+              setIndex(index) {
+                this.currentIndex = index;
+                const slides = document.getElementById(this.slidesId)
+                                       .querySelectorAll('.qual-carousel-slide');
+                const dots = document.getElementById(this.dotsId)
+                                     .querySelectorAll('.qual-dot');
+                const n = this.data.length;
+                slides.forEach((slide, i) => {
+                  slide.classList.remove('active', 'prev', 'next', 'hidden');
+                  const video = slide.querySelector('video');
+                  if (i === index) {
+                    slide.classList.add('active');
+                    this.loadVideo(video);
+                    video.play().catch(() => {});
+                  } else {
+                    video.pause();
+                    if (i === (index - 1 + n) % n) {
+                      slide.classList.add('prev');
+                      this.loadVideo(video);
+                    } else if (i === (index + 1) % n) {
+                      slide.classList.add('next');
+                      this.loadVideo(video);
+                    } else {
+                      slide.classList.add('hidden');
+                    }
+                  }
+                });
+                dots.forEach((dot, i) => {
+                  dot.classList.toggle('active', i === index);
+                });
+              }
+            }
+            window.constCarousel = new VideoCarousel({
+              data: data,
+              root: root,
+              slidesId: 'const-slides',
+              dotsId: 'const-dots'
+            });
+            constCarousel.build();
+          })();
+        </script>
+      </div>
+    </div>
 
     <!-- Table 12 - Constraint following head-to-head vs Kimodo (second main table) -->
     <div class="columns is-centered" style="margin-top: 1.5rem;">
@@ -1668,128 +1767,6 @@ median retrieval rank of the correct motion
             (Kimodo enables one by default) and is left to future work.</p>
           </div>
         </figcaption>
-      </div>
-    </div>
-
-    <!-- Qualitative constraint-following gallery (kimodo-style carousel) -->
-    <div class="columns is-centered" style="margin-top: 2.5rem;">
-      <div class="column is-full">
-        <strong>Qualitative results.</strong><br>
-        <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-          Free-generation samples on caption <em>&ldquo;a person walks forward at a neutral pace&rdquo;</em>
-          conditioned on the hand-drawn XZ paths shown on the ground. Same pipeline as
-          Table 12 (decoupled, ctrl_full_v2_stillzero controller, single-VQ body GPT,
-          sliding window 25, multinomial sampling). The character follows the path while
-          the body GPT freely synthesises the gait.
-        </p>
-
-        <div class="qual-carousel-container">
-          <div id="const-slides"></div>
-          <button class="qual-nav-button prev" type="button"
-                  onclick="constCarousel.navigate(-1)">&#10094;</button>
-          <button class="qual-nav-button next" type="button"
-                  onclick="constCarousel.navigate(1)">&#10095;</button>
-        </div>
-        <div class="qual-dots" id="const-dots"></div>
-
-        <script>
-          (function () {
-            const root = './assets/constraint_exports/';
-            const data = [
-              { src: 'walk__diagonal__single_trim05.mp4'        },
-              { src: 'walk__arc_right__sparse_raw.mp4'          },
-              { src: 'walk__wavy__sparse_pp_trim2s.mp4'         },
-              { src: 'walk__wavy__dense_raw.mp4'                },
-              { src: 'walk__spiral__dense_raw_trim1p5s.mp4'     }
-            ];
-
-            class VideoCarousel {
-              constructor(cfg) {
-                this.data = cfg.data;
-                this.root = cfg.root;
-                this.slidesId = cfg.slidesId;
-                this.dotsId = cfg.dotsId;
-                this.currentIndex = 0;
-              }
-              build() {
-                const slidesContainer = document.getElementById(this.slidesId);
-                const dotsContainer = document.getElementById(this.dotsId);
-                if (!slidesContainer || !dotsContainer) return;
-                slidesContainer.innerHTML = '';
-                dotsContainer.innerHTML = '';
-                this.data.forEach((item, index) => {
-                  const slide = document.createElement('div');
-                  slide.className = 'qual-carousel-slide';
-                  slide.dataset.index = index;
-                  slide.onclick = () => { if (index !== this.currentIndex) this.setIndex(index); };
-                  slide.innerHTML = `
-                    <video loop muted playsinline preload="metadata">
-                      <source data-src="${this.root + item.src}" type="video/mp4">
-                    </video>`;
-                  slidesContainer.appendChild(slide);
-                  const dot = document.createElement('button');
-                  dot.className = 'qual-dot';
-                  dot.dataset.index = index;
-                  dot.onclick = () => this.setIndex(index);
-                  dotsContainer.appendChild(dot);
-                });
-                this.setIndex(0);
-              }
-              navigate(direction) {
-                let newIndex = this.currentIndex + direction;
-                if (newIndex < 0) newIndex = this.data.length - 1;
-                else if (newIndex >= this.data.length) newIndex = 0;
-                this.setIndex(newIndex);
-              }
-              loadVideo(video) {
-                if (!video) return;
-                const source = video.querySelector('source');
-                if (source && source.dataset.src && !source.src) {
-                  source.src = source.dataset.src;
-                  video.load();
-                }
-              }
-              setIndex(index) {
-                this.currentIndex = index;
-                const slides = document.getElementById(this.slidesId)
-                                       .querySelectorAll('.qual-carousel-slide');
-                const dots = document.getElementById(this.dotsId)
-                                     .querySelectorAll('.qual-dot');
-                const n = this.data.length;
-                slides.forEach((slide, i) => {
-                  slide.classList.remove('active', 'prev', 'next', 'hidden');
-                  const video = slide.querySelector('video');
-                  if (i === index) {
-                    slide.classList.add('active');
-                    this.loadVideo(video);
-                    video.play().catch(() => {});
-                  } else {
-                    video.pause();
-                    if (i === (index - 1 + n) % n) {
-                      slide.classList.add('prev');
-                      this.loadVideo(video);
-                    } else if (i === (index + 1) % n) {
-                      slide.classList.add('next');
-                      this.loadVideo(video);
-                    } else {
-                      slide.classList.add('hidden');
-                    }
-                  }
-                });
-                dots.forEach((dot, i) => {
-                  dot.classList.toggle('active', i === index);
-                });
-              }
-            }
-            window.constCarousel = new VideoCarousel({
-              data: data,
-              root: root,
-              slidesId: 'const-slides',
-              dotsId: 'const-dots'
-            });
-            constCarousel.build();
-          })();
-        </script>
       </div>
     </div>
 
