@@ -48,7 +48,7 @@
       color: #4a4a4a;
       line-height: 1.45;
     }
-    .fig-caption-summary { color: #363636; }
+    .fig-caption-summary { color: #363636; font-size: 1rem; }
     .fig-caption-toggle {
       display: inline-flex;
       align-items: center;
@@ -59,7 +59,7 @@
       background: none;
       cursor: pointer;
       color: #3273dc;            /* Bulma link blue */
-      font-size: inherit;
+      font-size: 0.9rem;
       font-weight: 500;
       white-space: nowrap;
     }
@@ -69,6 +69,82 @@
     .fig-caption-toggle.is-open .fas { transform: rotate(180deg); }
     .fig-caption-details { margin-top: 0.45rem; display: none; }
     .fig-caption-details > :last-child { margin-bottom: 0; }
+
+    /* Plot-style result figures */
+    .chart-wrap { position: relative; width: 100%; }
+    .chart-title {
+      font-weight: 600;
+      color: #363636;
+      text-align: center;
+      margin-bottom: 0.35rem;
+    }
+
+    /* "How to read these metrics" legend */
+    .metrics-legend {
+      background: #fafafa;
+      border: 1px solid #dbdbdb;
+      border-radius: 6px;
+      padding: 0.85rem 1.1rem;
+      margin: 0.5rem 0 1.25rem;
+    }
+    .metrics-legend-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 0.4em;
+      cursor: pointer;
+      font-weight: 600;
+      color: #3273dc;            /* Bulma link blue */
+    }
+    .metrics-legend-toggle:hover { color: #2759b5; }
+    .metrics-legend-toggle:focus-visible { outline: 2px solid #3273dc; outline-offset: 2px; border-radius: 4px; }
+    .metrics-legend-toggle .metrics-legend-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+    .metrics-legend-chevron { font-size: 0.85em; transition: transform 0.2s ease; }
+    .metrics-legend-toggle.is-open .metrics-legend-chevron { transform: rotate(180deg); }
+    .metrics-legend-body { display: none; margin-top: 0.75rem; }
+    .metrics-legend ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.35rem 1.4rem;
+    }
+    .metrics-legend li { margin: 0; line-height: 1.45; color: #4a4a4a; }
+    .metrics-legend .metric-name { font-weight: 600; color: #363636; }
+    .metrics-legend .metric-dir {
+      font-weight: 700;
+      font-size: 0.85em;
+      padding: 0 0.35em;
+      border-radius: 4px;
+      background: #f0f0f0;
+      color: #7a7a7a;
+    }
+
+    /* Collapsible "show numbers" tables */
+    .numbers-details { margin-top: 0.6rem; display: none; }
+    .numbers-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3em;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #3273dc;
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .numbers-toggle:hover { color: #2759b5; text-decoration: underline; }
+    .numbers-toggle:focus-visible { outline: 2px solid #3273dc; outline-offset: 2px; border-radius: 2px; }
+    .numbers-toggle .fas { font-size: 0.8em; transition: transform 0.2s ease; }
+    .numbers-toggle.is-open .fas { transform: rotate(180deg); }
   </style>
 </head>
 <body>
@@ -404,12 +480,19 @@
                alt="30-joint SOMA skeleton and constraint representation. Our pipeline controls motion through 2D root XZ waypoints (rightmost panel)."
                style="border-radius: 4px;">
         </figure>
-        <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
-          Figure 2. SOMA skeleton and constraint representation. We control motion through
-          2D root (XZ) waypoints (rightmost panel). End-effector and full-body keyframe
-          constraints (middle panels) are shown for context only and are not targeted in
-          our final pipeline.
-        </p>
+        <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
+          <span class="fig-caption-summary"><strong>Figure 2.</strong> SOMA skeleton and constraint
+          representation &mdash; we control motion through 2D root (XZ) waypoints.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p>We control motion through 2D root (XZ) waypoints (rightmost panel). End-effector
+            and full-body keyframe constraints (middle panels) are shown for context only and are
+            not targeted in our final pipeline.</p>
+          </div>
+        </figcaption>
       </div>
     </div>
 
@@ -512,6 +595,137 @@
           times larger than the walk-jog-run subset we train on) and a hundred denoising
           steps per clip; we trade those for size, speed, and streaming controllability.
         </p>
+
+        <!-- How to read these metrics (applies to all result figures below) -->
+        <div class="metrics-legend">
+          <a class="metrics-legend-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="metrics-legend-title">
+              <i class="fas fa-circle-info"></i> How to read these metrics?
+            </span>
+            <i class="fas fa-chevron-down metrics-legend-chevron"></i>
+          </a>
+          <div class="metrics-legend-body">
+          <ul>
+            <li><span class="metric-name">R@3</span> <span class="metric-dir">↑</span> &mdash;
+              text&ndash;motion retrieval: how often the right motion lands in the top&nbsp;3
+              for its caption (higher&nbsp;=&nbsp;better text match).</li>
+            <li><span class="metric-name">FID</span> <span class="metric-dir">↓</span> &mdash;
+              distance between generated and real motion distributions
+              (lower&nbsp;=&nbsp;more realistic).</li>
+            <li><span class="metric-name">Skate</span> <span class="metric-dir">↓</span> &mdash;
+              foot-skating: how much the feet slide while in contact with the ground
+              (lower&nbsp;=&nbsp;cleaner footwork).</li>
+            <li><span class="metric-name">Cont</span> <span class="metric-dir">↑</span> &mdash;
+              foot-contact consistency: how stable ground contacts are
+              (higher&nbsp;=&nbsp;steadier).</li>
+            <li><span class="metric-name">2D root error</span> <span class="metric-dir">↓</span> &mdash;
+              average distance between the generated path and the target path, in cm
+              (lower&nbsp;=&nbsp;follows the path better).</li>
+            <li><span class="metric-name">MedR</span> <span class="metric-dir">↓</span> &mdash;
+              median retrieval rank of the correct motion
+              (lower&nbsp;=&nbsp;better).</li>
+          </ul>
+          </div>
+        </div>
+
+        <!-- Plot view of the main results: text-alignment quality (R@3, FID) across splits -->
+        <div class="columns is-vcentered" style="margin-bottom: 0.5rem;">
+          <div class="column is-half">
+            <p class="chart-title">R@3 &uarr; (text-match, %)</p>
+            <div class="chart-wrap" style="height: 300px;">
+              <canvas id="mainR3Chart"></canvas>
+            </div>
+          </div>
+          <div class="column is-half">
+            <p class="chart-title">FID &darr; (realism, lower is better)</p>
+            <div class="chart-wrap" style="height: 300px;">
+              <canvas id="mainFidChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plot view: efficiency (Kimodo vs Ours, log scale) -->
+        <div class="columns is-centered" style="margin-bottom: 0.5rem;">
+          <div class="column is-three-quarters">
+            <p class="chart-title">Efficiency &mdash; Kimodo vs. Ours (log scale, lower is better)</p>
+            <div class="chart-wrap" style="height: 280px;">
+              <canvas id="mainEffChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          (function () {
+            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff' };
+            var SPLITS = ['Overview', 'Timeline single', 'Timeline multi'];
+            function draw() {
+              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var r3 = document.getElementById('mainR3Chart');
+              var fid = document.getElementById('mainFidChart');
+              var eff = document.getElementById('mainEffChart');
+              if (!r3 || !fid || !eff) { return setTimeout(draw, 50); }
+
+              function gbar(el, datasets, yTitle, yMax) {
+                new Chart(el, {
+                  type: 'bar',
+                  data: { labels: SPLITS, datasets: datasets },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                      x: { grid: { display: false } },
+                      y: { beginAtZero: true, suggestedMax: yMax,
+                           title: { display: true, text: yTitle },
+                           grid: { color: 'rgba(0,0,0,0.05)' } }
+                    },
+                    plugins: { legend: { position: 'bottom' } }
+                  }
+                });
+              }
+
+              gbar(r3, [
+                { label: 'Ground Truth', data: [94.03, 90.04, 94.49], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',       data: [88.07, 77.18, 88.65], backgroundColor: COLORS.kimodo },
+                { label: 'Ours',         data: [58.66, 47.44, 37.04], backgroundColor: COLORS.ours }
+              ], 'R@3 (%)', 100);
+
+              gbar(fid, [
+                { label: 'Ground Truth', data: [0.000, 0.000, 0.000], backgroundColor: COLORS.gt },
+                { label: 'Kimodo',       data: [0.007, 0.011, 0.010], backgroundColor: COLORS.kimodo },
+                { label: 'Ours',         data: [0.191, 0.220, 0.307], backgroundColor: COLORS.ours }
+              ], 'FID', 0.35);
+
+              new Chart(eff, {
+                type: 'bar',
+                data: {
+                  labels: ['Params (M)', 'GFLOPs / clip', 'Latency (ms / clip)'],
+                  datasets: [
+                    { label: 'Kimodo', data: [8300, 1500, 4280], backgroundColor: COLORS.kimodo },
+                    { label: 'Ours',   data: [395, 470, 413],    backgroundColor: COLORS.ours }
+                  ]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { type: 'logarithmic',
+                         title: { display: true, text: 'value (log scale)' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } }
+                  },
+                  plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: function (c) {
+                      return c.dataset.label + ': ' + c.parsed.y; } } }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
         <div class="table-container">
           <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
             <thead>
@@ -604,15 +818,6 @@
             <div style="position: relative; height: 340px;">
               <canvas id="retrievalCurveChart"></canvas>
             </div>
-            <p class="has-text-centered is-size-7" style="margin-top: 0.5rem;">
-              Figure. Text-to-motion retrieval on the neutral TMR-petrovich encoder.
-              <strong>R@k</strong> = fraction of queries whose correct motion is retrieved within
-              the top <em>k</em> (higher is better). Our model (blue) tracks the BONES ground
-              truth closely and stays within ~2 points of Kimodo. For reference, the
-              in-distribution HumanML3D test ceiling reaches R@1&nbsp;15.3 / R@10&nbsp;57.1
-              (omitted from the axis so the three close-to-GT systems remain legible). Median
-              rank (MedR, lower is better) is shown in the tooltips.
-            </p>
           </div>
           <div class="column is-one-third">
             <div class="table-container">
@@ -721,9 +926,33 @@
           })();
         </script>
 
-        <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
-          On the biased Kimodo-TMR encoder, our system trails by ~30 points on R@3 (58 vs. 88). On a neutral encoder, both systems achieve similar GT-adjacent retrievability with only a 2-point gap (9.5 vs. 11.6). This demonstrates that the large apparent quality gap is largely an artifact of encoder bias toward Kimodo's training distribution, not ground-truth quality difference.
-        </p>
+        <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
+          <span class="fig-caption-summary"><strong>Figure.</strong> Text-to-motion retrieval
+          on a neutral encoder (TMR-petrovich). Our model tracks the BONES ground truth and
+          stays within ~2 points of Kimodo (R@3 9.5 vs. 11.6) &mdash; the large gap seen on
+          Kimodo's own encoder is mostly encoder bias, not a quality difference.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p class="has-text-justified">
+              <strong>R@k</strong> is text-to-motion R-Precision at top-<em>k</em>: the fraction
+              of queries whose correct motion is retrieved within the top <em>k</em>
+              (higher is better). <strong>MedR</strong> is the median rank of the correct motion
+              (lower is better), shown in the chart tooltips. For reference, the in-distribution
+              HumanML3D test ceiling reaches R@1&nbsp;15.3 / R@10&nbsp;57.1; it is omitted from
+              the chart axis so the three close-to-GT systems stay legible.
+            </p>
+            <p class="has-text-justified">
+              On the biased Kimodo-TMR encoder our system trails by ~30 points on R@3
+              (58 vs. 88). On this neutral encoder both systems reach similar GT-adjacent
+              retrievability with only a 2-point gap (9.5 vs. 11.6), showing the large apparent
+              quality gap is largely an artifact of encoder bias toward Kimodo's training
+              distribution rather than a ground-truth quality difference.
+            </p>
+          </div>
+        </figcaption>
       </div>
     </div>
 
@@ -1007,41 +1236,129 @@
           same 256 testcases so the comparison is apples-to-apples (same evaluator, same
           testcases, same skeleton handling).
         </p>
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr>
-                <th>model</th>
-                <th>2D root error (cm) ↓</th>
-                <th>root accuracy (≤ 10 cm) ↑</th>
-                <th>foot skate ratio ↓</th>
-                <th>foot contact consistency ↑</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Ground truth (lower bound)</td>
-                <td>3.76</td>
-                <td>1.000</td>
-                <td>0.103</td>
-                <td>1.000</td>
-              </tr>
-              <tr>
-                <td>Kimodo-SOMA-SEED-v1.1</td>
-                <td>4.88</td>
-                <td>0.934</td>
-                <td><strong>0.117</strong></td>
-                <td><strong>0.966</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Ours (decoupled, ctrl_full_v2_stillzero)</strong> &starf;</td>
-                <td><strong>3.94</strong></td>
-                <td><strong>0.957</strong></td>
-                <td>0.583</td>
-                <td>0.582</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Plot view: path adherence (cm) + foot-quality ratios -->
+        <div class="columns is-vcentered" style="margin-bottom: 0.25rem;">
+          <div class="column is-one-third">
+            <p class="chart-title">2D root error &darr; (cm)</p>
+            <div class="chart-wrap" style="height: 300px;">
+              <canvas id="constErrChart"></canvas>
+            </div>
+          </div>
+          <div class="column is-two-thirds">
+            <p class="chart-title">Foot &amp; path quality (0&ndash;1 scale)</p>
+            <div class="chart-wrap" style="height: 300px;">
+              <canvas id="constRatioChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          (function () {
+            var COLORS = { gt: '#2e7d32', kimodo: '#e8710a', ours: '#2b4eff' };
+            function draw() {
+              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var errEl = document.getElementById('constErrChart');
+              var ratioEl = document.getElementById('constRatioChart');
+              if (!errEl || !ratioEl) { return setTimeout(draw, 50); }
+
+              new Chart(errEl, {
+                type: 'bar',
+                data: {
+                  labels: ['2D root error (cm)'],
+                  datasets: [
+                    { label: 'Ground truth', data: [3.76], backgroundColor: COLORS.gt },
+                    { label: 'Kimodo',       data: [4.88], backgroundColor: COLORS.kimodo },
+                    { label: 'Ours',         data: [3.94], backgroundColor: COLORS.ours }
+                  ]
+                },
+                options: {
+                  responsive: true, maintainAspectRatio: false,
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, suggestedMax: 5.5,
+                         title: { display: true, text: 'cm (lower is better)' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } }
+                  },
+                  plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: function (c) {
+                      return c.dataset.label + ': ' + c.parsed.y.toFixed(2) + ' cm'; } } }
+                  }
+                }
+              });
+
+              new Chart(ratioEl, {
+                type: 'bar',
+                data: {
+                  labels: ['root accuracy (≤10 cm) ↑', 'foot skate ratio ↓', 'foot contact consistency ↑'],
+                  datasets: [
+                    { label: 'Ground truth', data: [1.000, 0.103, 1.000], backgroundColor: COLORS.gt },
+                    { label: 'Kimodo',       data: [0.934, 0.117, 0.966], backgroundColor: COLORS.kimodo },
+                    { label: 'Ours',         data: [0.957, 0.583, 0.582], backgroundColor: COLORS.ours }
+                  ]
+                },
+                options: {
+                  responsive: true, maintainAspectRatio: false,
+                  interaction: { mode: 'index', intersect: false },
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, max: 1.0,
+                         title: { display: true, text: 'ratio (0–1)' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } }
+                  },
+                  plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: function (c) {
+                      return c.dataset.label + ': ' + c.parsed.y.toFixed(3); } } }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
+        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="numbers-toggle-label">Show numbers</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="numbers-details">
+          <div class="table-container">
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+              <thead>
+                <tr>
+                  <th>model</th>
+                  <th>2D root error (cm) ↓</th>
+                  <th>root accuracy (≤ 10 cm) ↑</th>
+                  <th>foot skate ratio ↓</th>
+                  <th>foot contact consistency ↑</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ground truth (lower bound)</td>
+                  <td>3.76</td>
+                  <td>1.000</td>
+                  <td>0.103</td>
+                  <td>1.000</td>
+                </tr>
+                <tr>
+                  <td>Kimodo-SOMA-SEED-v1.1</td>
+                  <td>4.88</td>
+                  <td>0.934</td>
+                  <td><strong>0.117</strong></td>
+                  <td><strong>0.966</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Ours (decoupled, ctrl_full_v2_stillzero)</strong> &starf;</td>
+                  <td><strong>3.94</strong></td>
+                  <td><strong>0.957</strong></td>
+                  <td>0.583</td>
+                  <td>0.582</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
         <p class="has-text-justified is-size-7" style="margin-top: 0.5rem;">
           Our pipeline matches the ground-truth lower bound on root-2D adherence to within
@@ -1204,14 +1521,23 @@
                alt="Diagram of the cap-and-reinfer process: the sequence is cut at an arbitrary frame, the last tokens are kept as context, and a new condition (text or path) drives the remainder."
                style="max-width: 100%; border-radius: 8px;">
         </figure>
-        <p class="has-text-centered is-size-7" style="margin-top: 0.4rem;">
-          Figure 8. Online adaptation via cap-and-reinfer. At an arbitrary frame the sequence is
-          <strong>cut</strong> and the last few generated tokens are kept as <strong>context</strong>.
-          A new condition — a different text prompt, a new path constraint, or both — is then fed to the
-          model, which <strong>reinfers</strong> the remainder of the sequence from that point.
-          Because the warm-start context comes from the already-generated tokens, the transition is
-          smooth rather than an abrupt reset.
-        </p>
+        <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
+          <span class="fig-caption-summary"><strong>Figure 8.</strong> Online adaptation via
+          cap-and-reinfer &mdash; cut the sequence, keep recent tokens as context, and reinfer the
+          rest under a new condition.</span>
+          <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
+            <span class="fig-caption-toggle-label">Show details</span>
+            <i class="fas fa-chevron-down"></i>
+          </a>
+          <div class="fig-caption-details">
+            <p>At an arbitrary frame the sequence is <strong>cut</strong> and the last few generated
+            tokens are kept as <strong>context</strong>. A new condition &mdash; a different text
+            prompt, a new path constraint, or both &mdash; is then fed to the model, which
+            <strong>reinfers</strong> the remainder of the sequence from that point. Because the
+            warm-start context comes from the already-generated tokens, the transition is smooth
+            rather than an abrupt reset.</p>
+          </div>
+        </figcaption>
       </div>
     </div>
 
@@ -1226,24 +1552,79 @@
           controller together account for 96 % of the cost; the VQ decoder and the CPU
           recompose step are effectively free.
         </p>
-        <div class="table-container">
-          <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
-            <thead>
-              <tr><th>block</th><th>ms / clip</th><th>% of total</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>CLIP caption encoder</td><td>7.40 ± 0.24</td><td>1.79</td></tr>
-              <tr><td>Trajectory controller (GRU, 2M parameters)</td><td>179.73 ± 4.45</td><td>43.47</td></tr>
-              <tr><td>Body GPT autoregressive sampling (51 tokens, 30M parameters)</td><td><strong>217.00 ± 1.70</strong></td><td><strong>52.49</strong></td></tr>
-              <tr><td>VQ decoder</td><td>1.51 ± 0.08</td><td>0.37</td></tr>
-              <tr><td>Recompose, time-warp and reprojection (CPU)</td><td>7.76 ± 2.52</td><td>1.88</td></tr>
-              <tr>
-                <td><strong>Total</strong></td>
-                <td><strong>413.40</strong></td>
-                <td><strong>100.00</strong></td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Plot view: share of end-to-end latency per block -->
+        <div class="chart-wrap" style="height: 260px; max-width: 760px; margin: 0 auto;">
+          <canvas id="latencyChart"></canvas>
+        </div>
+        <script>
+          (function () {
+            var BLOCKS = [
+              { name: 'CLIP caption encoder',            ms: 7.40,   pct: 1.79,  c: '#90a4ae' },
+              { name: 'Trajectory controller (GRU)',     ms: 179.73, pct: 43.47, c: '#e8710a' },
+              { name: 'Body GPT autoregressive sampling', ms: 217.00, pct: 52.49, c: '#2b4eff' },
+              { name: 'VQ decoder',                      ms: 1.51,   pct: 0.37,  c: '#26a69a' },
+              { name: 'Recompose / reprojection (CPU)',  ms: 7.76,   pct: 1.88,  c: '#bdbdbd' }
+            ];
+            function draw() {
+              if (typeof Chart === 'undefined') { return setTimeout(draw, 50); }
+              var el = document.getElementById('latencyChart');
+              if (!el) { return setTimeout(draw, 50); }
+              new Chart(el, {
+                type: 'bar',
+                data: {
+                  labels: BLOCKS.map(function (b) { return b.name; }),
+                  datasets: [{
+                    label: '% of total latency',
+                    data: BLOCKS.map(function (b) { return b.pct; }),
+                    backgroundColor: BLOCKS.map(function (b) { return b.c; })
+                  }]
+                },
+                options: {
+                  indexAxis: 'y',
+                  responsive: true, maintainAspectRatio: false,
+                  scales: {
+                    x: { beginAtZero: true, suggestedMax: 60,
+                         title: { display: true, text: '% of 413 ms total' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { grid: { display: false } }
+                  },
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function (c) {
+                      var b = BLOCKS[c.dataIndex];
+                      return b.pct + '% — ' + b.ms.toFixed(2) + ' ms / clip'; } } }
+                  }
+                }
+              });
+            }
+            draw();
+          })();
+        </script>
+
+        <a class="numbers-toggle" role="button" tabindex="0" aria-expanded="false">
+          <span class="numbers-toggle-label">Show numbers</span>
+          <i class="fas fa-chevron-down"></i>
+        </a>
+        <div class="numbers-details">
+          <div class="table-container">
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
+              <thead>
+                <tr><th>block</th><th>ms / clip</th><th>% of total</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>CLIP caption encoder</td><td>7.40 ± 0.24</td><td>1.79</td></tr>
+                <tr><td>Trajectory controller (GRU, 2M parameters)</td><td>179.73 ± 4.45</td><td>43.47</td></tr>
+                <tr><td>Body GPT autoregressive sampling (51 tokens, 30M parameters)</td><td><strong>217.00 ± 1.70</strong></td><td><strong>52.49</strong></td></tr>
+                <tr><td>VQ decoder</td><td>1.51 ± 0.08</td><td>0.37</td></tr>
+                <tr><td>Recompose, time-warp and reprojection (CPU)</td><td>7.76 ± 2.52</td><td>1.88</td></tr>
+                <tr>
+                  <td><strong>Total</strong></td>
+                  <td><strong>413.40</strong></td>
+                  <td><strong>100.00</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
     <!-- Text prompt injection -->
@@ -1520,6 +1901,39 @@ level_5: "a person walks forward slowly while waving the right hand, nodding the
     });
     $(document).on('keydown', '.fig-caption-toggle', function (e) {
       if (e.which === 13 || e.which === 32) { e.preventDefault(); toggleCaption(this); }
+    });
+
+    // "Show numbers" toggles for the collapsible result tables.
+    function toggleNumbers(toggle) {
+      var $toggle  = $(toggle);
+      var $details = $toggle.siblings('.numbers-details');
+      var open     = $toggle.attr('aria-expanded') === 'true';
+      $toggle.attr('aria-expanded', !open).toggleClass('is-open', !open);
+      $toggle.find('.numbers-toggle-label').text(open ? 'Show numbers' : 'Hide numbers');
+      $details.stop(true, true).slideToggle(180);
+    }
+    $(document).on('click', '.numbers-toggle', function (e) {
+      e.preventDefault();
+      toggleNumbers(this);
+    });
+    $(document).on('keydown', '.numbers-toggle', function (e) {
+      if (e.which === 13 || e.which === 32) { e.preventDefault(); toggleNumbers(this); }
+    });
+
+    // "How to read these metrics" collapsible legend.
+    function toggleLegend(toggle) {
+      var $toggle = $(toggle);
+      var $body   = $toggle.siblings('.metrics-legend-body');
+      var open    = $toggle.attr('aria-expanded') === 'true';
+      $toggle.attr('aria-expanded', !open).toggleClass('is-open', !open);
+      $body.stop(true, true).slideToggle(180);
+    }
+    $(document).on('click', '.metrics-legend-toggle', function (e) {
+      e.preventDefault();
+      toggleLegend(this);
+    });
+    $(document).on('keydown', '.metrics-legend-toggle', function (e) {
+      if (e.which === 13 || e.which === 32) { e.preventDefault(); toggleLegend(this); }
     });
   });
 </script>
