@@ -839,11 +839,11 @@
           We test two variants of the VQ-VAE in isolation: the
           <strong>single-codebook</strong> baseline (one quantizer, one index per
           frame) and a <strong>residual</strong> stack of four quantizers, each
-          encoding the error left by the previous one.
+          encoding the error left by the previous one. Highlighted in red are the tokens we are asking the gpt to predict per each motion token. 
         </p>
 
-        <figure class="image" style="max-width: 620px; margin: 1rem auto 0.75rem;">
-          <img src="./assets/rvq_vae/rvq_vae_arch.png"
+        <figure class="image" style="max-width: 1000px; margin: 1rem auto 0.75rem;">
+          <img src="./static/images/arch_rvq_vae.png"
                alt="Residual VQ-VAE (left) versus single-codebook VQ-VAE (right)."
                style="width: 100%; height: auto; display: block;">
         </figure>
@@ -1454,15 +1454,17 @@
       </div>
     </div>
 
-    <h3 class="title is-5" style="margin-top: 2rem;">Fine-grained prompt experiment</h3>
+    <h3 class="title is-5" id="fine-grained-simultaneous" style="margin-top: 2rem;">Simultaneous prompts (&ldquo;while&rdquo;)</h3>
     <p class="has-text-justified" style="margin-bottom: 0.75rem;">
-      We test how well the model handles prompts that combine multiple simultaneous body-part
-      actions. Each level adds one new action — slow walking, right-hand waving, head nodding,
-      left-arm raising — and each of those actions can be generated correctly on its own.
-      However, when combined in a single caption the model starts dropping secondary details
-      at Level 4 and 5: the walking and waving dominate, while nodding and arm-raising are
-      weakened or absent. The text embedding acts as a bottleneck — it preserves the most
-      salient actions but loses the finer-grained ones when there are too many at once.
+      Complementary to the
+      <a href="./index.html#sec-experiments">sequential-prompts experiment</a> on the
+      main page (<em>X, and then Y</em>): here we test <em>X while doing Y</em>. Each
+      level adds one simultaneous action (slow walking, right-hand waving, head
+      nodding, left-arm raising). Each is generated correctly on its own; combined
+      in one caption, walking and waving dominate while nodding and arm-raising fade.
+      Same takeaway as the sequential case: <em>text is a lossy representation of
+      motion</em>, this time when one caption tries to encode multiple simultaneous
+      actions.
     </p>
 
     <div class="columns is-multiline" style="margin: 0 -0.4rem;">

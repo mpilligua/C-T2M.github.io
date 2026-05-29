@@ -214,7 +214,7 @@
           Transformer over discrete motion tokens handles what it does. A deterministic
           recompose step blends the two at the end. Because the components are independent,
           path or text constraints can be updated mid-generation without restarting from
-          scratch — the model re-uses the last few generated tokens as context and continues
+          scratch: the model re-uses the last few generated tokens as context and continues
           from the new condition. Our system runs at 413&nbsp;ms per 200-frame clip, roughly
           10&times; faster than Kimodo, and follows root XZ path constraints at 3.94&nbsp;cm
           error versus Kimodo's 4.88&nbsp;cm. We train on the BONES dataset, evaluate on
@@ -231,16 +231,15 @@
       <h2 class="section-title">1. Introduction</h2>
       <div class="report-body">
         <p>
-          Generating realistic human motion from natural-language descriptions has made
-          significant progress in recent years. Diffusion-based systems such as
-          <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a> are
-          now capable of producing high-fidelity human motion conditioned on free-form
-          text, and additionally support a rich set of kinematic constraints
-          (pose, joint trajectory, root path). Kimodo is trained on the
+          The current state of the art in text-to-motion is dominated by diffusion
+          systems such as <a href="https://research.nvidia.com/labs/sil/projects/kimodo/">Kimodo</a>,
+          which produce high-fidelity human motion conditioned on free-form text and
+          support a rich set of kinematic constraints (pose, joint trajectory, root
+          path). Kimodo is trained on the
           <a href="https://bones.studio/info/seed-license">BONES</a> dataset, a
-          large-scale motion capture corpus roughly ten times larger than the commonly
-          used <a href="https://ericguo5513.github.io/text-to-motion/">HumanML3D</a>
-          benchmark, which enables this quality improvement.
+          large-scale motion-capture corpus roughly ten times larger than the
+          commonly used <a href="https://ericguo5513.github.io/text-to-motion/">HumanML3D</a>
+          benchmark, which enables much of that quality improvement.
         </p>
         <p>
           Despite these advances, current state-of-the-art systems share a common
@@ -292,14 +291,15 @@
             spin-on-spot pathology common to absolute-heading parameterisations.
           </li>
           <li>
-            A <strong>cap-and-reinfer online adaptation</strong> mechanism that allows
-            text prompts and path constraints to be updated at any point during
-            generation: the sequence is cut, the last few tokens are kept as warm-start
-            context, and the model reinfers the remainder under the new condition,
-            producing a smooth transition without restarting the rollout.
+            An <strong>interrupt-and-re-generate online adaptation</strong> mechanism
+            that allows text prompts and path constraints to be updated at any point
+            during generation: the sequence is cut, the last few tokens are kept as
+            warm-start context, and the model re-generates the remainder under the
+            new condition, producing a smooth transition without restarting the
+            rollout.
           </li>
           <li>
-            A <strong>residual VQ-VAE (RVQ-VAE)</strong> codec that lifts
+            A <strong>residual VQ-VAE (RVQ-VAE)</strong> that lifts
             reconstruction-side R-Precision by 9-12 points over a single VQ-VAE
             baseline, halves the reconstruction FID, and reduces foot-skating.
           </li>
@@ -423,10 +423,10 @@
           <em>K</em> token streams per frame. We use <em>K</em> = 4 levels with 1024
           codebook entries per level, trained with a cosine-weighted reconstruction
           loss that emphasises higher-frequency details at deeper levels. On the
-          codec reconstruction benchmark this lifts R-Precision by roughly 9 points
+          VQ-VAE reconstruction benchmark this lifts R-Precision by roughly 9 points
           on the Overview split and 12 points on the Timeline-multi split, halves the
           FID, and shaves about 6&nbsp;cm/s off the foot-skating; full numbers are
-          reported in the <a href="./ablations.html#codec-reconstruction">codec
+          reported in the <a href="./ablations.html#codec-reconstruction">VQ-VAE
           reconstruction ablation</a>.
         </p>
 
@@ -454,8 +454,7 @@
           than absolute world-frame yaw; on still frames, where the travel direction
           is ill-defined, we add an explicit target-zero loss on the predicted turn
           rate, which fixes the spin-on-spot pathology that arises with the naive
-          travel-relative formulation. See the <a href="./ablations.html#heading">heading
-          representation ablation</a>.
+          travel-relative formulation.
         </p>
 
         <h3 class="subsection-title">3.5. Body GPT</h3>
@@ -475,7 +474,7 @@
         <p>
           At inference time we sample tokens with a sliding window of size SW = 25.
           We use plain <em>multinomial</em> sampling rather than greedy, top-<em>p</em>,
-          or top-<em>k</em>; the <a href="./ablations.html#decoder">decoder ablation</a>
+          or top-<em>k</em>; the <a href="./ablations.html#decoder-sampling">decoder ablation</a>
           shows that multinomial is the only sampler whose body motion does not
           collapse to a held pose on a non-trivial fraction of captions.
         </p>
@@ -496,16 +495,17 @@
         <h3 class="subsection-title">3.7. Online Adaptation</h3>
         <p>
           Because the body GPT is autoregressive, generation can be interrupted at
-          any frame. To update the motion mid-sequence — with a new text prompt, a
-          new path constraint, or both — we apply a <strong>cap-and-reinfer</strong>
-          procedure: the sequence is cut at the chosen frame, the last <em>K</em>
-          generated tokens are kept as context, and the model reinfers the remainder
-          conditioned on the new input. The retained tokens act as a warm start, so
-          the body transitions smoothly into the new condition rather than resetting
-          abruptly. The same procedure applies to path updates: the controller
-          re-rolls from the cut point with the new waypoints, and the body GPT
-          follows from its warm-start context. End-to-end latency per 200-frame
-          clip is 413&nbsp;ms, making real-time updates feasible.
+          any frame. To update the motion mid-sequence (with a new text prompt, a
+          new path constraint, or both), we apply an
+          <strong>interrupt-and-re-generate</strong> procedure: the sequence is cut
+          at the chosen frame, the last <em>K</em> generated tokens are kept as
+          context, and the model re-generates the remainder conditioned on the new
+          input. The retained tokens act as a warm start, so the body transitions
+          smoothly into the new condition rather than resetting abruptly. The same
+          procedure applies to path updates: the controller re-rolls from the cut
+          point with the new waypoints, and the body GPT follows from its warm-start
+          context. End-to-end latency per 200-frame clip is 413&nbsp;ms, making
+          real-time updates feasible.
         </p>
       </div>
     </div>
@@ -539,21 +539,20 @@
         <h3 class="subsection-title">4.2. Main Results (Text-to-Motion vs. Kimodo)</h3>
         <p>
           Table 1 reports the headline comparison on the Repetition Text-to-Motion
-          split. Our 9L single-VQ system reaches R@3 = 58.66 on the Overview split,
-          a 10&times; latency reduction over Kimodo (413&nbsp;ms vs. 4280&nbsp;ms per
-          clip) and roughly 20&times; fewer effective parameters (395&nbsp;M vs.
-          8.3&nbsp;B). We accept a quality deficit on this generic-text benchmark,
-          driven by a much narrower training vocabulary (walk-and-jog subset for our
-          baseline ablations; full BONES for the headline system) and by a single
-          autoregressive pass per clip instead of 100 denoising steps. The
-          foot-skate gap reflects the codec ceiling on frame-level discrete codecs;
-          a Kimodo-style foot-contact re-projection step would close most of this
-          gap and is left to future work.
+          split. Our system reaches R@3 = 58.66 on the Overview split, at
+          10&times; lower latency than Kimodo (413&nbsp;ms vs. 4280&nbsp;ms per clip)
+          and 20&times; fewer effective parameters (395&nbsp;M vs. 8.3&nbsp;B). We
+          accept a quality deficit on this generic-text benchmark, driven by a
+          narrower training vocabulary and by a single autoregressive pass per clip
+          instead of 100 denoising steps. The foot-skate gap reflects the ceiling
+          of the frame-level discrete VQ-VAE; a Kimodo-style foot-contact
+          re-projection step would close most of this gap and is left to future
+          work.
         </p>
 
         <div class="report-table-wrap">
           <table class="table is-bordered is-striped is-narrow is-fullwidth has-text-centered">
-            <caption><strong>Table 1.</strong> Main results on the BONES Repetition Text-to-Motion split (Overview, 2380 testcases). Higher is better for R@3 and Contact; lower for FID, Skate, and latency. See <a href="./index.html#sec-experiments">Home / Experiments</a> for the full three-split table including Timeline-single and Timeline-multi.</caption>
+            <caption><strong>Table 1.</strong> Main results on the BONES Repetition Text-to-Motion split (Overview, 2380 testcases). Higher is better for R@3 and Contact; lower for FID, Skate, and latency. The <a href="./index.html#sec-experiments">Home page</a> shows the same comparison as interactive bar charts and includes Timeline-single and Timeline-multi splits behind a toggle.</caption>
             <thead>
               <tr>
                 <th>Model</th>
@@ -577,14 +576,9 @@
                 <td>88.07</td><td>0.007</td><td>3.74</td><td>0.978</td>
               </tr>
               <tr>
-                <td><strong>Ours (decoupled, 9L sVQ)</strong></td>
+                <td><strong>Ours</strong></td>
                 <td><strong>395</strong></td><td><strong>413</strong></td>
                 <td><strong>58.66</strong></td><td><strong>0.191</strong></td><td><strong>33.07</strong></td><td><strong>0.617</strong></td>
-              </tr>
-              <tr>
-                <td>Ours (RVQ-GPT)</td>
-                <td>565</td><td>486</td>
-                <td>18.74</td><td>0.644</td><td>39.24</td><td>0.481</td>
               </tr>
             </tbody>
           </table>
@@ -598,7 +592,7 @@
           Kimodo's 4.88&nbsp;cm on the same testcases under the same evaluator.
           Root-accuracy (fraction of frames within 10&nbsp;cm of the target path)
           is 95.7&nbsp;% for ours versus 93.4&nbsp;% for Kimodo. Foot-skate and
-          contact consistency favour Kimodo, consistent with the codec ceiling
+          contact consistency favour Kimodo, consistent with the VQ-VAE ceiling
           discussed in Section 4.2.
         </p>
 
@@ -647,13 +641,6 @@
             neutral encoder space.
           </li>
           <li>
-            <strong>Heading representation.</strong> A travel-relative heading loss
-            with a still-frame target halves the all-frame heading error compared to
-            the naive travel-relative formulation, at a modest cost in waypoint
-            accuracy. This fixes the spin-on-spot pathology on non-locomotion
-            captions.
-          </li>
-          <li>
             <strong>VQ-VAE temporal compression.</strong> 4&times; downsampling
             converges fastest and to the lowest reconstruction loss with the
             highest unique-codes-per-clip; 16&times; collapses on reconstruction.
@@ -675,16 +662,14 @@
         <h3 class="subsection-title">4.5. Qualitative Results</h3>
         <p>
           Beyond the quantitative tables, we report a representative set of
-          qualitative samples. All clips are rendered with pyrender on top of the
-          SOMA skeleton; foot contacts are post-processed with the Kimodo
-          motion-correction solver. Captions are held out from training.
+          qualitative samples. All captions are held out from training.
         </p>
 
         <h4 style="font-weight:600; color:#2c3e50; margin-top:1rem; margin-bottom:0.5rem;">4.5.1 Free text-to-motion samples</h4>
         <p>
-          A grid of free-generation samples from our body GPT (single-VQ codebook
-          2048, sliding window 25, multinomial sampling). Each clip is produced
-          from the caption alone; no path constraint is given.
+          Free-generation samples from our body GPT on held-out captions. Each clip
+          is produced from the caption alone, with no path constraint, so what you
+          see is the model interpreting the text without any spatial guidance.
         </p>
 
         <div class="columns is-multiline" style="margin-top: 0.75rem;">
@@ -831,6 +816,23 @@
           <strong>Figure 6.</strong> Online adaptation: the controller responds to
           waypoint edits in real time without re-running the body generator.
         </p>
+
+        <h4 style="font-weight:600; color:#2c3e50; margin-top:1.5rem; margin-bottom:0.5rem;">4.5.5 Fine-grained prompts</h4>
+        <p>
+          We probe how much of the text actually makes it into the motion with two
+          complementary experiments. The
+          <a href="./index.html#sec-experiments">sequential-prompts experiment</a> on
+          the home page tests captions that chain actions in time (<em>do X, and then
+          Y</em>): up to Level 3 the motion follows the caption, but from Level 4
+          onwards the &ldquo;and then&rdquo; structure is lost. The
+          <a href="./ablations.html#fine-grained-simultaneous">simultaneous-prompts
+          ablation</a> tests the other direction (<em>do X while doing Y</em>): each
+          action is generated correctly on its own, but combined in one caption the
+          secondary ones (nodding, arm-raising) fade while the salient ones (walking,
+          waving) dominate. Same takeaway in both directions: text is a lossy
+          representation of motion when one caption tries to encode either an
+          explicit temporal sequence or multiple simultaneous actions.
+        </p>
       </div>
     </div>
 
@@ -856,9 +858,9 @@
         <ul>
           <li>
             <strong>Foot skating.</strong> The body decoder inherits the foot-skating
-            ceiling of frame-level discrete codecs. A foot re-projection post-processing
-            step (as used by Kimodo) would close most of the gap and is left to future
-            work.
+            ceiling of a frame-level discrete VQ-VAE. A foot re-projection
+            post-processing step (as used by Kimodo) would close most of the gap and is
+            left to future work.
           </li>
           <li>
             <strong>Constraint types.</strong> The recompose step assumes a planar
@@ -887,10 +889,41 @@
       <h2 class="section-title">6. Individual Contributions</h2>
       <div class="report-body">
         <ul>
-          <li><strong>Maria Pilligua</strong> &mdash; TODO: list contributions (e.g. path controller, training, benchmarks).</li>
-          <li><strong>Pau Amargant</strong> &mdash; TODO: list contributions (e.g. VQ-VAE / RVQ-VAE codec).</li>
-          <li><strong>Miquel Lopez</strong> &mdash; Designed and implemented the data preprocessing pipeline. Set up the initial training pipeline for the VQ-VAE codec and the body GPT. Attempted to train a full constraint model supporting root-path, joint, and end-keypoint-frame constraints (unsuccessful). Ran the heavy compute training runs. Designed and implemented the online adaptation architecture and produced the online adaptation demos.</li>
-          <li><strong>Nahush Rajesh Kolhe</strong> &mdash; TODO: list contributions (e.g. Kimodo baseline, evaluation pipeline).</li>
+          <li>
+            <strong>Maria Pilligua</strong>:
+            ran the initial experiments to replicate T2M-GPT and preprocessed the
+            BONES dataset (multiple times, with different pipelines). Prepared the
+            model and dataloaders to retrain on the Kimodo benchmark. Trained the
+            VQ-VAE at both small and large scale, trained our main model, and
+            explored several architectures for injecting constraints before arriving
+            at and training our current decoupled design. Rendered all visuals shown
+            on the page (except the online-adaptation demos) and designed every
+            architecture figure. Designed and ran all ablations and evaluations
+            reported here. Consistently pushed for results, kept the meetings on
+            track, and helped organise the team.
+          </li>
+          <li>
+            <strong>Pau Amargant</strong>:
+            developed the RVQ-VAE and the GPT-RVQ-VAE end-to-end variant, tuned the
+            VQ-VAE, and contributed to model evaluation.
+          </li>
+          <li>
+            <strong>Miquel Lopez</strong>:
+            designed and implemented the data preprocessing pipeline, and set up the
+            initial training pipeline for the VQ-VAE and the body GPT. Attempted to
+            train a full constraint model supporting root-path, joint, and
+            end-keypoint-frame constraints (unsuccessful). Ran the heavy-compute
+            training jobs. Designed and implemented the online-adaptation
+            architecture and produced the online-adaptation demos.
+          </li>
+          <li>
+            <strong>Nahush Rajesh Kolhe</strong>:
+            Implemented the data preparation and training scripts for the
+            larger model. Designed and implemented online generation with
+            text input injected mid-generation, using a streaming generator
+            to render the motion live. Built the visualisation and the demo
+            for online generation.
+          </li>
         </ul>
       </div>
     </div>
