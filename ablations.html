@@ -430,7 +430,7 @@ Ablations
     <!-- Table 9 - Codec reconstruction quality on the Kimodo benchmark -->
     <div class="columns is-centered" style="margin-top: 2.5rem;">
       <div class="column is-full">
-        <h3 class="title is-5">Codec reconstruction quality</h3>
+        <h3 class="title is-5" id="codec-reconstruction">Codec reconstruction quality</h3>
         <p class="has-text-justified" style="margin-bottom: 0.75rem;">
           Beyond temporal compression, the body codec must preserve text alignment and
           motion quality when it encodes a ground-truth clip and decodes it back. We pass
@@ -444,8 +444,53 @@ Ablations
           Overview split (82.48 versus 73.15) and almost twelve points on the Timeline-multi
           split (82.69 versus 70.99), halves the FID, and shaves about six centimetres per
           second off the foot-skate, at the cost of one extra level of codebook
-          quantisation; we adopt the residual codec as our body decoder. Lower is better
+          quantisation. As an isolated codec the residual stack is clearly the stronger
+          decoder, but that advantage did not transfer end-to-end: paired with the body GPT,
+          the RVQ-GPT variant trained less effectively and scored worse than the
+          single-codebook model (see the model comparison on the main page), so the single
+          VQ-VAE remains our deployed body decoder. Lower is better
           for FID and Skate; higher for R-Precision (top-3) and Contact consistency.
+        </p>
+
+        <!-- Residual VQ-VAE codec architecture (moved from the main page) -->
+        <figure class="image" style="max-width: 620px; margin: 1.25rem auto 0.75rem;">
+          <img src="./assets/rvq_vae/rvq_vae_arch.png"
+               alt="Residual VQ-VAE motion codec (left) versus a single-codebook VQ-VAE (right): a stack of quantizers each encode the residual left by the previous level, so one motion token is a tuple of codebook indices."
+               style="width: 100%; height: auto; display: block;">
+        </figure>
+        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
+          <strong>The residual VQ-VAE codec behind RVQ-GPT.</strong>
+          The RVQ-VAE (left) replaces the single quantizer of a plain VQ-VAE (right) with a
+          stack of quantizers, each encoding the residual the previous levels left behind. This
+          reconstructs motion more faithfully than a single codebook (the table above), but it
+          represents every timestep with four codebook indices (b0, b1, b2, b3) instead of one.
+        </p>
+        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
+          <strong>Left (RVQ-VAE).</strong> The encoder maps a motion frame to a continuous
+          feature. The first quantizer <code>VQ&nbsp;0</code> snaps it to its nearest
+          codebook entry (<code>argmin</code>), giving feature <code>b0</code>. The residual
+          (input minus <code>b0</code>) is passed to <code>VQ&nbsp;1</code>, whose residual
+          feeds <code>VQ&nbsp;2</code>, and so on: each level quantizes only the error left
+          by the levels above it. The selected features <code>b0&hellip;b3</code> are summed
+          and the running sum is sent to the decoder. The four codebook indices stacked
+          together form a single motion token, so one frame is represented by an ordered
+          coarse-to-fine tuple <code>(b0,&nbsp;b1,&nbsp;b2,&nbsp;b3)</code>.
+        </p>
+        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
+          <strong>Right (VQ-VAE).</strong> The single-codebook baseline uses one quantizer:
+          the encoder feature is snapped to a single codebook entry <code>b</code> and
+          decoded directly, so each motion token is a single index.
+        </p>
+        <p class="has-text-justified is-size-7" style="margin-bottom: 0.5rem;">
+          <strong>The trade-off.</strong> Measured purely as a codec, the residual stack
+          reconstructs motion more faithfully than the single VQ-VAE. The cost is that it
+          quadruples the tokens per frame, which makes the generation problem harder: rather
+          than predicting one token per timestep, the body GPT must predict all four
+          codebook indices, and in our setup it generates them sequentially. We were not
+          able to train this RVQ-VAE + GPT setup effectively: its end-to-end results came
+          out worse than the plain VQ-VAE (see the model comparison on the main page), so the
+          single-codebook model remains our reference point. Making the residual codec pay off
+          end-to-end likely needs a more elaborate design, possibly a hierarchical one.
         </p>
         <div class="table-container">
           <table class="table is-bordered is-striped is-hoverable is-fullwidth has-text-centered">
