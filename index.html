@@ -448,78 +448,373 @@
 
 
 
-<!-- Method -->
-<section class="section">
+<!-- Method (interactive guided tour through the architecture figure) -->
+<section class="section" id="method">
+  <style>
+    .arch-tour-stage {
+      position: relative;
+      max-width: 1100px;
+      margin: 1.5rem auto 0.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .arch-tour-stage img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .arch-tour-stage .arch-dim {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .arch-tour-stage.is-touring .arch-dim { opacity: 1; }
+
+    .arch-highlight {
+      position: absolute;
+      border: 3px solid #2b4eff;
+      border-radius: 8px;
+      box-shadow: 0 0 0 4px rgba(43, 78, 255, 0.18),
+                  0 0 30px rgba(43, 78, 255, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      /* punch a hole in the dim overlay */
+      background: transparent;
+      mix-blend-mode: normal;
+    }
+    .arch-tour-stage.is-touring .arch-highlight { opacity: 1; }
+
+    /* a separate layer that punches the dim — uses box-shadow trick */
+    .arch-spotlight {
+      position: absolute;
+      border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .arch-tour-stage.is-touring .arch-spotlight { opacity: 1; }
+
+    .tour-toolbar {
+      text-align: center;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .tour-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.65rem 1.4rem;
+      background: #2b4eff;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+      box-shadow: 0 4px 12px rgba(43, 78, 255, 0.25);
+    }
+    .tour-btn:hover { background: #1f3ce0; transform: translateY(-1px); }
+    .tour-btn .icon { font-size: 0.95rem; }
+
+    .tour-panel {
+      max-width: 900px;
+      margin: 1rem auto 0;
+      padding: 1.25rem 1.5rem;
+      background: #f6f8fc;
+      border: 1px solid #dfe5f2;
+      border-left: 4px solid #2b4eff;
+      border-radius: 10px;
+      display: none;
+    }
+    .tour-panel.is-active { display: block; }
+    .tour-step-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .tour-step-counter {
+      font-size: 0.8rem;
+      color: #6b7280;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .tour-step-badge {
+      display: inline-block;
+      background: #2b4eff;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .tour-step-badge.is-baseline { background: #94a3b8; }
+    .tour-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1f2933;
+      margin: 0 0 0.4rem 0;
+    }
+    .tour-body {
+      color: #374151;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .tour-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tour-nav-side { display: flex; gap: 0.5rem; }
+    .tour-nav button {
+      padding: 0.45rem 0.95rem;
+      border-radius: 999px;
+      border: 1px solid #dfe5f2;
+      background: #fff;
+      color: #2c3e50;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .tour-nav button:hover { background: #eef2fb; border-color: #2b4eff; color: #2b4eff; }
+    .tour-nav button.primary {
+      background: #2b4eff; color: #fff; border-color: #2b4eff;
+    }
+    .tour-nav button.primary:hover { background: #1f3ce0; color: #fff; }
+    .tour-nav button:disabled {
+      opacity: 0.4; cursor: not-allowed;
+    }
+    .tour-dots {
+      display: flex; gap: 6px; justify-content: center;
+    }
+    .tour-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #cbd5e1; border: none; padding: 0; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tour-dot.active { background: #2b4eff; transform: scale(1.3); }
+  </style>
+
   <div class="container is-max-widescreen">
-    <div class="columns is-centered has-text-centered">
+    <div class="columns is-centered">
       <div class="column is-full">
-        <h2 class="title is-3">Method</h2>
-        <div class="content has-text-justified">
-          <p>
-            At its core, text-to-motion predicts the 3D position of each joint of a humanoid
-            skeleton, frame by frame, from a natural-language description. Our approach extends
-            the T2M-GPT baseline with one key addition: an <strong>explicit path controller</strong>
-            that lets the model follow spatial constraints, instead of leaving the trajectory
-            entirely up to the language model.
-          </p>
-          <p>
-            The pipeline is composed of four blocks: <strong>(i)</strong> a VQ-VAE pretrained as an
-            autoencoder to map raw motion into a discrete codebook and decode it back, so that
-            "predicting motion" reduces to predicting codebook tokens; <strong>(ii)</strong> a
-            conditioning module that encodes the textual prompt with CLIP and the path constraints
-            with a small linear projection that takes the next four waypoints (x, y, t) relative to
-            the skeleton's current position, plus its absolute position and current frame index;
-            <strong>(iii)</strong> a path controller, a closed-loop GRU that takes the caption and
-            path constraints and predicts the next (x, y, heading) for each frame, making it solely
-            responsible for <em>where</em> the skeleton goes; and <strong>(iv)</strong> a Transformer
-            decoder (body GPT) that autoregressively predicts the next motion token conditioned on
-            the CLIP embedding, with the controller's trajectory injected at generation time. The
-            GPT is no longer in charge of global position (it is conditioned on it), so it focuses
-            on producing motion coherent with the chosen trajectory. Trajectory comes from the
-            controller, naturalness from the GPT.
-          </p>
+        <h2 class="title is-3 has-text-centered">How does it work?</h2>
+        <p class="has-text-justified" style="font-size: 1.05rem; line-height: 1.65; max-width: 900px; margin: 0 auto;">
+          Text-to-motion is, at its core, the problem of placing every joint of a
+          humanoid skeleton frame-by-frame from a sentence. We start from the
+          <a href="https://mael-zys.github.io/T2M-GPT/">T2M-GPT</a> baseline, an
+          autoregressive Transformer that predicts discrete motion tokens from
+          text, and add one key piece: a separate
+          <strong>trajectory controller</strong> that decides
+          <em>where</em> the character goes, leaving the body GPT free to focus
+          on <em>what</em> it does.
+        </p>
+
+        <!-- Architecture stage + highlight overlay -->
+        <div id="arch-tour-stage" class="arch-tour-stage">
+          <img id="arch-tour-img"
+               src="./static/images/architecture_final.png"
+               alt="C-T2M architecture overview">
+          <div class="arch-spotlight" id="arch-spotlight"></div>
+          <div class="arch-highlight" id="arch-highlight"></div>
         </div>
 
-        <!-- Architecture diagram. -->
-        <div class="content has-text-centered">
-          <figure class="image">
-            <img src="./static/images/architecture_final.png"
-                 alt="C-T2M architecture: a VQ-VAE is pretrained to encode motion into a discrete codebook; a CLIP text encoder and a linear projection on path waypoints feed both a GRU path controller (predicting xy-heading per frame) and a Transformer decoder that autoregressively predicts motion tokens, with the controller's path injected into the GPT's stream; the predicted tokens are decoded back to motion through the VQ-VAE decoder."
-                 style="max-width: 100%;">
-          </figure>
-          <figcaption class="fig-caption is-size-7 has-text-centered" style="margin-top: 0.4rem;">
-            <span class="fig-caption-summary"><strong>Figure 5.</strong> C-T2M decoupled
-            architecture &mdash; VQ-VAE codec, text/path conditioning, GRU path controller and a
-            Transformer token decoder.</span>
-            <a class="fig-caption-toggle" role="button" tabindex="0" aria-expanded="false">
-              <span class="fig-caption-toggle-label">Show details</span>
-              <i class="fas fa-chevron-down"></i>
-            </a>
-            <div class="fig-caption-details">
-              <p><strong>VQ-VAE pretraining</strong> learns a discrete motion codebook.
-              <strong>Conditioning</strong> encodes the caption with CLIP and the path waypoints
-              with a linear projection. The <strong>path controller</strong> (GRU) predicts the
-              next (x, y, heading) for each frame from the caption and constraints. The
-              <strong>GPT generation</strong> block (Transformer decoder) autoregressively predicts
-              discrete motion tokens conditioned on text and on the controller's injected path.
-              Finally, the <strong>VQ-VAE decoder</strong> maps tokens back to motion.</p>
+        <div class="tour-toolbar">
+          <button id="tour-start" class="tour-btn" type="button">
+            <span class="icon"><i class="fas fa-route"></i></span>
+            <span>Guide me through the figure</span>
+          </button>
+        </div>
+
+        <!-- Step panel -->
+        <div id="tour-panel" class="tour-panel" aria-live="polite">
+          <div class="tour-step-row">
+            <span class="tour-step-counter" id="tour-counter">Step 1 of 6</span>
+            <span class="tour-step-badge" id="tour-badge">★ Our addition</span>
+          </div>
+          <h3 class="tour-title" id="tour-title">VQ-VAE motion codec</h3>
+          <p class="tour-body" id="tour-body">A VQ-VAE...</p>
+          <div class="tour-nav">
+            <div class="tour-nav-side">
+              <button id="tour-prev" type="button">&larr; Back</button>
+              <button id="tour-next" class="primary" type="button">Next &rarr;</button>
             </div>
-          </figcaption>
+            <div class="tour-dots" id="tour-dots"></div>
+            <div class="tour-nav-side">
+              <button id="tour-close" type="button">Close</button>
+            </div>
+          </div>
         </div>
 
-        <!-- RVQ-VAE residual decoder -->
-        <h3 class="title is-4" style="margin-top: 2rem;">Residual VQ-VAE (RVQ-VAE)</h3>
-        <div class="content has-text-justified">
-          <p>
-            <em>TODO: explain the RVQ-VAE architecture.</em> Describe how it differs from the
-            single VQ-VAE: K levels of residual quantisation, cosine-weighted loss, 1024
-            codebook entries per level. Explain how the residual structure progressively refines
-            the reconstruction (each level encodes the error left by the previous), why this
-            improves R-Precision and FID on the codec reconstruction ablation, and how the GPT
-            decoder is adapted to predict the K-level token streams. Add a small RVQ-VAE
-            diagram alongside this paragraph.
-          </p>
-        </div>
+        <script>
+          (function () {
+            // Each step describes one component. Highlight is in percentages of the IMAGE box.
+            // Tune these to match where each block sits in architecture_final.png.
+            var STEPS = [
+              {
+                title: 'The big picture',
+                body: 'C-T2M has five blocks. On top, a VQ-VAE encodes motion into discrete tokens (left) and decodes them back (right). On the bottom row, a conditioning module embeds the caption and path constraints; a Path Controller (GRU) decides where the character goes; a Transformer Decoder (body GPT) autoregressively predicts the motion tokens. Click Next to walk through each block.',
+                kind: 'baseline',
+                highlight: null
+              },
+              {
+                title: '1. VQ-VAE pretraining (motion codec)',
+                body: 'A VQ-VAE is pretrained as an autoencoder: an encoder maps raw motion into a learned codebook of K entries, and a decoder reconstructs motion from those discrete tokens. From now on, "predicting motion" reduces to "predicting tokens" — which is what the language model below will do.',
+                kind: 'baseline',
+                highlight: { left: 0.5, top: 0.9, width: 51, height: 33 }
+              },
+              {
+                title: '2. Text + path conditioning',
+                body: 'The caption is embedded by a frozen CLIP text encoder (top half of the block). The path constraints — next four waypoints (x, y, t) relative to the skeleton, plus current position and frame index — are encoded by a small linear projection (bottom half). Both encodings are shared by the Path Controller and the body GPT.',
+                kind: 'both',
+                highlight: { left: 0.5, top: 31, width: 26, height: 52 }
+              },
+              {
+                title: '3. Path Controller',
+                body: 'A small closed-loop GRU reads the caption and path encodings and rolls out, frame by frame, the next (x, y, heading) — the orange squares in the diagram. It is solely responsible for where the character goes. The "Path injection" arrow on the right shows that its predictions are then fed into the body GPT.',
+                kind: 'ours',
+                highlight: { left: 26, top: 31, width: 25, height: 52 }
+              },
+              {
+                title: '4. GPT generation (body GPT)',
+                body: 'A causal Transformer Decoder autoregressively predicts the motion tokens (10, 47, 1, …, END). At every step it attends to the caption embedding, the injected path from the controller, and the previously predicted tokens. Because the trajectory comes from the controller, the GPT can focus on locally-natural body motion instead of long-range navigation.',
+                kind: 'baseline',
+                highlight: { left: 50.5, top: 31, width: 47, height: 52 }
+              },
+              {
+                title: '5. VQ-VAE decoding',
+                body: 'The predicted tokens flow back through the VQ-VAE decoder, which turns each token into one body pose. Strung together they form the final motion — which follows the caption (via the GPT) and the user-specified path (via the controller and the path injection).',
+                kind: 'baseline',
+                highlight: { left: 50.5, top: 1, width: 47, height: 32 }
+              }
+            ];
+
+            var stage = document.getElementById('arch-tour-stage');
+            var highlight = document.getElementById('arch-highlight');
+            var spotlight = document.getElementById('arch-spotlight');
+            var panel = document.getElementById('tour-panel');
+            var counter = document.getElementById('tour-counter');
+            var badge = document.getElementById('tour-badge');
+            var title = document.getElementById('tour-title');
+            var body = document.getElementById('tour-body');
+            var btnPrev = document.getElementById('tour-prev');
+            var btnNext = document.getElementById('tour-next');
+            var btnClose = document.getElementById('tour-close');
+            var btnStart = document.getElementById('tour-start');
+            var dotsEl = document.getElementById('tour-dots');
+            var idx = 0;
+            var touring = false;
+
+            // Build dots
+            STEPS.forEach(function (_, i) {
+              var d = document.createElement('button');
+              d.className = 'tour-dot' + (i === 0 ? ' active' : '');
+              d.type = 'button';
+              d.setAttribute('aria-label', 'Go to step ' + (i + 1));
+              d.addEventListener('click', function () { goTo(i); });
+              dotsEl.appendChild(d);
+            });
+            var dots = dotsEl.querySelectorAll('.tour-dot');
+
+            function setBadge(kind) {
+              if (kind === 'ours') {
+                badge.textContent = '★ Our addition';
+                badge.classList.remove('is-baseline');
+                badge.style.display = '';
+              } else if (kind === 'baseline') {
+                badge.textContent = 'From T2M-GPT';
+                badge.classList.add('is-baseline');
+                badge.style.display = '';
+              } else if (kind === 'both') {
+                badge.textContent = 'Baseline + ours';
+                badge.classList.remove('is-baseline');
+                badge.style.display = '';
+              } else {
+                badge.style.display = 'none';
+              }
+            }
+
+            function applyHighlight(h) {
+              if (!h) {
+                highlight.style.opacity = '0';
+                spotlight.style.opacity = '0';
+                return;
+              }
+              var css = {
+                left: h.left + '%',
+                top: h.top + '%',
+                width: h.width + '%',
+                height: h.height + '%'
+              };
+              Object.keys(css).forEach(function (k) {
+                highlight.style[k] = css[k];
+                spotlight.style[k] = css[k];
+              });
+              highlight.style.opacity = '1';
+              spotlight.style.opacity = '1';
+            }
+
+            function goTo(i) {
+              if (i < 0) i = 0;
+              if (i >= STEPS.length) i = STEPS.length - 1;
+              idx = i;
+              var step = STEPS[idx];
+              counter.textContent = 'Step ' + (idx + 1) + ' of ' + STEPS.length;
+              title.textContent = step.title;
+              body.textContent = step.body;
+              setBadge(step.kind);
+              applyHighlight(step.highlight);
+              btnPrev.disabled = (idx === 0);
+              btnNext.textContent = (idx === STEPS.length - 1) ? 'Finish' : 'Next →';
+              dots.forEach(function (d, k) { d.classList.toggle('active', k === idx); });
+            }
+
+            function startTour() {
+              touring = true;
+              stage.classList.add('is-touring');
+              panel.classList.add('is-active');
+              btnStart.style.display = 'none';
+              goTo(0);
+              panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            function endTour() {
+              touring = false;
+              stage.classList.remove('is-touring');
+              panel.classList.remove('is-active');
+              btnStart.style.display = '';
+              applyHighlight(null);
+            }
+
+            btnStart.addEventListener('click', startTour);
+            btnClose.addEventListener('click', endTour);
+            btnPrev.addEventListener('click', function () { goTo(idx - 1); });
+            btnNext.addEventListener('click', function () {
+              if (idx === STEPS.length - 1) { endTour(); }
+              else { goTo(idx + 1); }
+            });
+            // Keyboard nav inside panel
+            panel.setAttribute('tabindex', '0');
+            panel.addEventListener('keydown', function (e) {
+              if (!touring) return;
+              if (e.key === 'ArrowLeft') goTo(idx - 1);
+              else if (e.key === 'ArrowRight') goTo(idx + 1);
+              else if (e.key === 'Escape') endTour();
+            });
+          })();
+        </script>
 
       </div>
     </div>
